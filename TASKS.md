@@ -6,8 +6,6 @@
 
 ## 待认领（open）
 
-- **T1 · 删除笔记本/来源能力** — `open` · owner: —
-  - API（`DELETE /api/notebooks/{id}`、`DELETE /api/sources/{id}`，级联清理相关 messages/jobs + 孤儿媒体文件）+ 界面删除按钮 + 二次确认。补上目前「无删除」的产品缺口。
 - **T3 · 真实脱敏实验样例替换** — `open` · owner: —
   - 用真实脱敏的实验规程/讲义替换当前自造 DH5α 转化规程（M0 剩余项）。
 - **T5 · 长任务断点续传（可选）** — `open` · owner: —
@@ -27,3 +25,4 @@
 
 - v0.1 骨架 / v0.2 M0 真实模型联调 / M1 材料与来源验收 —— 见 `docs/开发进度.md`。
 - **T6 · GitHub 备份首次 push** — 项目专属 repo + 三件套 + 首次 push 到 `origin=Aa144085412/Study-companion`（`main`）。
+- **T1 · 删除笔记本/来源能力** — `DELETE /api/notebooks/{id}` + `DELETE /api/sources/{id}`（版本链双向级联 + 孤儿媒体文件清理，带守卫）+ 界面删除按钮（`.danger`）+ 二次确认。回归 `tests/delete.test.mjs` 2 项，全套 8/8；浏览器实测笔记本删除全流程通过。

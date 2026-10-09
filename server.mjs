@@ -236,6 +236,17 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       if(req.method==='PATCH' && p.startsWith('/api/questions/')) {
         const x=await body(req),q=db.questions.find(q=>q.id===p.split('/').pop());if(!q)throw fail('问题不存在',404);if(!['未解决','学习中','已理解'].includes(x.status))throw fail('状态无效');q.status=x.status;save();return json(res,q);
       }
+      if(req.method==='DELETE' && p.startsWith('/api/notebooks/')){
+        const id=p.split('/').pop(); book(id);
+        for(const s of db.sources) if(s.notebookId===id && s.kind==='media'){const file=path.join(dataDir,'media',s.file);if(fs.existsSync(file)&&!db.sources.some(o=>o.id!==s.id&&o.file===s.file))fs.unlinkSync(file);}
+        db.notebooks=db.notebooks.filter(n=>n.id!==id);db.sources=db.sources.filter(s=>s.notebookId!==id);db.revisions=db.revisions.filter(r=>r.notebookId!==id);db.messages=db.messages.filter(m=>m.notebookId!==id);db.questions=db.questions.filter(q=>q.notebookId!==id);db.jobs=db.jobs.filter(j=>j.notebookId!==id);save();return json(res,{ok:true});
+      }
+      if(req.method==='DELETE' && p.startsWith('/api/sources/')){
+        const id=p.split('/').pop(),src=db.sources.find(s=>s.id===id);if(!src) throw fail('来源不存在',404);
+        const del=new Set([id]);let grew=true;while(grew){grew=false;for(const s of db.sources){if(del.has(s.id))continue;if((s.previousId&&del.has(s.previousId))||(s.replacedBy&&del.has(s.replacedBy))){del.add(s.id);grew=true;}}}
+        for(const s of db.sources)if(del.has(s.id)&&s.kind==='media'){const file=path.join(dataDir,'media',s.file);if(fs.existsSync(file)&&!db.sources.some(o=>!del.has(o.id)&&o.file===s.file))fs.unlinkSync(file);}
+        db.sources=db.sources.filter(s=>!del.has(s.id));db.jobs=db.jobs.filter(j=>!del.has(j.sourceId));save();return json(res,{ok:true});
+      }
       if(p.startsWith('/api/')) throw fail('接口不存在',404);
       if(req.method!=='GET')throw fail('方法不支持',405);
       const files={'/':'index.html','/app.js':'app.js','/style.css':'style.css'};const filename=files[p];if(!filename)throw fail('页面不存在',404);
