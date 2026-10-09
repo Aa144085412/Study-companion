@@ -7,10 +7,10 @@
 ## Recovery Capsule
 
 - **Status**: NORMAL
-- **Goal**: 个人学习 + 实操应用——本地 Node.js（127.0.0.1:8765，零 npm 依赖）+ 本地 ASR（faster-whisper）+ 本地 TTS（Kokoro-ONNX 纯 CPU）+ 本地 LLM（NInfer 18081），把音视频/文稿转文字并与模型共读、引用定位原媒体、自然中文朗读；**新增实验 skill 实操指导**（把实验笔记沉淀为 `skills/*.md`，实操时问答式让 agent 定位当前步骤给指导）。
+- **Goal**: 个人学习 + 实操应用——本地 Node.js（127.0.0.1:8765，零 npm 依赖）+ 本地 ASR（faster-whisper）+ 云端 TTS（edge-tts 中文音色，需联网）+ 本地 LLM（NInfer 18081），把音视频/文稿转文字并与模型共读、引用定位原媒体、自然中文朗读；**新增实验 skill 实操指导**（把实验笔记沉淀为 `skills/*.md`，实操时问答式让 agent 定位当前步骤给指导）。
 - **Active task**: 无进行中任务（T8 实验 skill 垂直切片已收口）。
-- **Last verified state**: **实验 skill 实操指导（垂直切片）已上线并活体验证**——`skills/dh5a-gfp-transformation.md`（由「酵母转化」笔记整理，6 步骤）；`GET /api/skills`、`POST /api/skill-ask`（问答式，存 `type:'skill'`）、`POST /api/skills/generate`（笔记→skill，同名自动加后缀不覆盖）；前端「实验指导」tab（skill 下拉+问答+朗读+从笔记生成）。活体：选 DH5α skill 问「准备加质粒，下一步？」→ 回答准确定位**第 2 步**（加质粒+冰浴）+参数(5μL/50ng·μL⁻¹/30min)+安全+预告第 3 步热激；「朗读」触发 `POST /api/tts` 200 `audio/wav`（247KB）；回归共读/生成/转写/删除不受影响、skill 消息不泄漏进共读列表。`npm test` 18/18（含 7 项 skill）。此前自然中文朗读（Kokoro）、M1 核心验收、删除能力均已收口。项目专属 git repo 备份 `origin=github.com/Aa144085412/Study-companion`（`main`）。服务器经 preview/start.ps1 启动，勿双开共享 `data/store`。
-- **Last meaningful success**: 实验 skill 实操指导（垂直切片）上线并活体验证（2026-10-09）。
+- **Last verified state**: **实验 skill 实操指导（垂直切片）已上线并活体验证**——`skills/dh5a-gfp-transformation.md`（由「酵母转化」笔记整理，6 步骤）；`GET /api/skills`、`POST /api/skill-ask`（问答式，存 `type:'skill'`）、`POST /api/skills/generate`（笔记→skill，同名自动加后缀不覆盖）；前端「实验指导」tab（skill 下拉+问答+朗读+从笔记生成）。活体：选 DH5α skill 问「准备加质粒，下一步？」→ 回答准确定位**第 2 步**（加质粒+冰浴）+参数(5μL/50ng·μL⁻¹/30min)+安全+预告第 3 步热激；「朗读」走 **edge-tts（云端中文音色，需联网；worker 经 ffmpeg 转 24kHz WAV，11 音色，旧 Kokoro 值启动时自动迁移为 `zh-CN-XiaoxiaoNeural`）** 触发 `POST /api/tts` 200 `audio/wav`（浏览器实测有效 RIFF）；回归共读/生成/转写/删除不受影响、skill 消息不泄漏进共读列表。`npm test` 18/18（含 7 项 skill）。此前自然中文朗读已由 Kokoro 换 **edge-tts**（Kokoro 中文弃用）、M1 核心验收、删除能力均已收口。项目专属 git repo 备份 `origin=github.com/Aa144085412/Study-companion`（`main`）。服务器经 preview/start.ps1 启动，勿双开共享 `data/store`。
+- **Last meaningful success**: 朗读引擎由 Kokoro 换 **edge-tts**（云端中文音色，需联网）并活体验证（2026-10-09）；此前实验 skill 实操指导（垂直切片）已上线并活体验证。
 - **Current blocker**: 无硬性阻塞。待用户决策：①**T8b 铺开**（多 skill 自动路由 / 步骤陪跑 checklist / 录视频入口 / app 内 skill 编辑）②是否装 FunASR 做引擎对比 ③真实实验样例替换（自造规程 → 真实脱敏材料）。
 - **Next safe action**: 见 `TASKS.md`；铺开范围待用户拍板。
 - **Files involved**: `server.mjs`（API/队列/引用/TTS/skill 端点）、`public/app.js`+`public/index.html`+`public/style.css`（前端 speak/设置/实验指导 tab）、`skills/`（SKILL.md）、`asr_worker.py`、`tts.mjs`+`tts_worker.py`+`setup-tts.ps1`、`tests/skill.test.mjs`、`docs/开发进度.md`。
@@ -39,7 +39,7 @@
 - v0.1 骨架、v0.2 M0 真实模型联调、M1 材料/来源验收（详见 `docs/开发进度.md`）。
 - 麦克风设备选择、转写繁→简归一化、长音视频转写验证。
 - 删除笔记本/来源能力（API 双向级联 + 孤儿媒体清理 + 界面删除按钮 + 二次确认；`tests/delete.test.mjs`）。
-- 自然中文朗读（Kokoro-ONNX int8，纯 CPU 不占显存）：`/api/tts` + 前端 speak/stopSpeak + 8 音色设置 + `setup-tts.ps1`；`tests/tts.test.mjs` 3 项。
+- 自然中文朗读：**现用 edge-tts（云端中文音色，需联网）**——`/api/tts`（wire 格式 WAV）+ 前端 speak/stopSpeak（引擎无关，失败回退浏览器本地音）+ 11 音色设置 + `setup-tts.ps1`（含 ffmpeg 校验）+ 旧 Kokoro 音色启动时自动迁移；`tests/tts.test.mjs` 3 项。（早期曾为 Kokoro-ONNX 纯 CPU，中文质量差弃用。）
 - **实验 skill 实操指导（垂直切片）**：`skills/dh5a-gfp-transformation.md` + `GET /api/skills` + `POST /api/skill-ask`（问答式）+ `POST /api/skills/generate`（笔记→skill，同名不覆盖）+ 前端「实验指导」tab；`tests/skill.test.mjs` 7 项。
 - 项目专属 git repo + 三件套（本文件/TASKS/COLLAB）+ GitHub 备份（已完成，origin `Aa144085412/Study-companion`）。
 

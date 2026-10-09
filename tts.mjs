@@ -10,7 +10,7 @@ export function ttsStatus(){
   const python=path.join(ROOT,'.venv-tts','Scripts','python.exe');
   const flag=path.join(ROOT,'.venv-tts','tts-ready.flag');
   const env=fs.existsSync(python),ready=env&&fs.existsSync(flag);
-  return {ready,engine:'kokoro-onnx (CPU)',device:'CPU',python,message:ready?'本地朗读已就绪':env?'已创建朗读环境但模型未装好，请运行 setup-tts.ps1':'本地朗读未安装，请运行 setup-tts.ps1'};
+  return {ready,engine:'edge-tts (云端)',device:'cloud',python,message:ready?'朗读已就绪（edge-tts 云端音色，需联网）':env?'已创建朗读环境但未就绪，请运行 setup-tts.ps1':'本地朗读未安装，请运行 setup-tts.ps1'};
 }
 export function synthesize(text,{signal,onProgress=()=>{},voice='',timeoutMs=120000}={}){
   return new Promise((resolve,reject)=>{

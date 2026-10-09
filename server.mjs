@@ -44,7 +44,8 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
   const save = () => { fs.writeFileSync(dbPath+'.tmp', JSON.stringify(db, null, 2)); fs.renameSync(dbPath+'.tmp', dbPath); };
   db.jobs ??= []; db.schema=2;
   db.settings.asrEngine ??= 'builtin';
-  db.settings.ttsVoice ??= 'zf_xiaobei';
+  db.settings.ttsVoice ??= 'zh-CN-XiaoxiaoNeural';
+  if(!/^zh-/.test(db.settings.ttsVoice)) db.settings.ttsVoice='zh-CN-XiaoxiaoNeural';
   for(const j of db.jobs) if(['running','queued'].includes(j.state)){j.state='interrupted';j.error='服务已重启，请点击重试';}
   save();
   let runningJob=null,voiceBusy=false;

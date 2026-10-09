@@ -5,23 +5,19 @@ if (-not (Test-Path -LiteralPath $pythonPath)) {
     uv venv --python 3.10 .venv-tts
     if ($LASTEXITCODE -ne 0) { throw 'Python venv creation failed' }
 }
-uv pip install --python $pythonPath 'kokoro-onnx' 'soundfile'
+uv pip install --python $pythonPath 'edge-tts'
 if ($LASTEXITCODE -ne 0) { throw 'dependency install failed' }
 
-$modelDir = Join-Path $PSScriptRoot 'models\kokoro'
-New-Item -ItemType Directory -Force -Path $modelDir | Out-Null
-$modelPath = Join-Path $modelDir 'kokoro-v1.0.int8.onnx'
-$voicesPath = Join-Path $modelDir 'voices-v1.0.bin'
-$relBase = 'https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/'
-if (-not (Test-Path -LiteralPath $modelPath)) {
-    Invoke-WebRequest -Uri ($relBase + 'kokoro-v1.0.int8.onnx') -OutFile $modelPath
-    if ($LASTEXITCODE -ne 0) { throw 'model download failed; retry later (partial download is kept)' }
+# ffmpeg is required to decode edge-tts Opus output into WAV.
+if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
+    throw 'ffmpeg not found on PATH. Install ffmpeg and re-run (it turns edge-tts audio into WAV).'
 }
-if (-not (Test-Path -LiteralPath $voicesPath)) {
-    Invoke-WebRequest -Uri ($relBase + 'voices-v1.0.bin') -OutFile $voicesPath
-    if ($LASTEXITCODE -ne 0) { throw 'voices download failed; retry later' }
-}
-# One-shot synthesis probe to verify the full chain (model + voices + espeak + synth)
+
+# Drop the old Kokoro models if still present (engine has moved to edge-tts).
+$oldKokoro = Join-Path $PSScriptRoot 'models\kokoro'
+if (Test-Path -LiteralPath $oldKokoro) { Remove-Item -LiteralPath $oldKokoro -Recurse -Force }
+
+# One-shot synthesis probe: edge-tts (cloud) -> opus -> ffmpeg -> wav.
 $stamp = [guid]::NewGuid().ToString()
 $textFile = Join-Path $env:TEMP ("study-tts-precheck-$stamp.txt")
 $outWav = Join-Path $env:TEMP ("study-tts-precheck-$stamp.wav")
@@ -31,5 +27,5 @@ $code = $LASTEXITCODE
 Remove-Item -LiteralPath $textFile -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $outWav -ErrorAction SilentlyContinue
 if ($code -ne 0) { throw ('TTS self-check failed: ' + (($out -join ' ') + " (exit $code)")) }
-Set-Content -LiteralPath (Join-Path $PSScriptRoot '.venv-tts\tts-ready.flag') -Value 'kokoro-onnx' -Encoding UTF8
-Write-Output 'Local read-aloud ready; refresh the Study Companion page to use it.'
+Set-Content -LiteralPath (Join-Path $PSScriptRoot '.venv-tts\tts-ready.flag') -Value 'edge-tts' -Encoding UTF8
+Write-Output 'Read-aloud ready (edge-tts, cloud voices; needs internet). Refresh the Study Companion page to use it.'
