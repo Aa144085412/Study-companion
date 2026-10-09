@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import { transcribeLocal, asrStatus } from './transcription.mjs';
+import { ttsStatus, synthesize } from './tts.mjs';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
@@ -33,7 +34,7 @@ export function parseSrt(input) {
   return segments;
 }
 
-export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetch, transcriber = transcribeLocal } = {}) {
+export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetch, transcriber = transcribeLocal, ttsSynthesizer = synthesize } = {}) {
   fs.mkdirSync(path.join(dataDir, 'media'), { recursive: true });
   const dbPath = path.join(dataDir, 'store.json');
   let db = fs.existsSync(dbPath) ? JSON.parse(fs.readFileSync(dbPath, 'utf8')) : {
@@ -43,6 +44,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
   const save = () => { fs.writeFileSync(dbPath+'.tmp', JSON.stringify(db, null, 2)); fs.renameSync(dbPath+'.tmp', dbPath); };
   db.jobs ??= []; db.schema=2;
   db.settings.asrEngine ??= 'builtin';
+  db.settings.ttsVoice ??= 'zf_xiaobei';
   for(const j of db.jobs) if(['running','queued'].includes(j.state)){j.state='interrupted';j.error='服务已重启，请点击重试';}
   save();
   let runningJob=null,voiceBusy=false;
@@ -98,7 +100,18 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src 'self' blob:; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'");
       const u = new URL(req.url,`http://${host}`), p=u.pathname;
       if(req.method==='GET' && p==='/api/state') return json(res,db);
-      if(req.method==='GET' && p==='/api/health') return json(res,{app:'study-companion',version:'0.2.0',asr:asrStatus(),busy:!!runningJob||voiceBusy});
+      if(req.method==='GET' && p==='/api/health') return json(res,{app:'study-companion',version:'0.2.0',asr:asrStatus(),tts:ttsStatus(),busy:!!runningJob||voiceBusy});
+      if(req.method==='POST' && p==='/api/tts'){
+        const x=await body(req);const value=String(x.text??'').trim();
+        if(!value)throw fail('请输入要朗读的文字');
+        if(value.length>2000)throw fail('要朗读的文字过长（上限 2000 字），请缩短或分段朗读',413);
+        const controller=new AbortController();const onClose=()=>{if(!res.writableEnded)controller.abort();};res.on('close',onClose);
+        let audio;
+        try{audio=await ttsSynthesizer(value,{signal:controller.signal,voice:db.settings.ttsVoice||''});}
+        catch(e){throw e.status?e:fail('本地朗读失败：'+e.message,502);}
+        finally{res.removeListener('close',onClose);}
+        res.writeHead(200,{'Content-Type':audio.mime,'Content-Length':audio.bytes.length});res.end(audio.bytes);
+      }
       if(req.method==='POST' && p==='/api/upload'){
         const notebookId=u.searchParams.get('notebookId');book(notebookId);
         const title=text(u.searchParams.get('title'),200),ext=path.extname(title).toLowerCase();
@@ -142,7 +155,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       }
       if(req.method==='POST' && p==='/api/settings') {
         const x=await body(req);
-        db.settings={llmUrl:localURL(x.llmUrl),model:text(x.model,200),asrUrl:localURL(x.asrUrl),asrModel:text(x.asrModel,200),asrEngine:x.asrEngine==='external'?'external':'builtin'}; save(); return json(res,{ok:true});
+        db.settings={llmUrl:localURL(x.llmUrl),model:text(x.model,200),asrUrl:localURL(x.asrUrl),asrModel:text(x.asrModel,200),asrEngine:x.asrEngine==='external'?'external':'builtin',ttsVoice:text(x.ttsVoice,50)}; save(); return json(res,{ok:true});
       }
       if(req.method==='POST' && p==='/api/models') {
         let r; try { r=await modelFetch(localURL(db.settings.llmUrl)+'/models',{signal:AbortSignal.timeout(5000),redirect:'error'}); } catch { throw fail('本地语言模型服务未连接，请先启动服务。',502); }
