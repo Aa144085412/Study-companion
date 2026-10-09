@@ -34,7 +34,7 @@ export function parseSrt(input) {
   return segments;
 }
 
-export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetch, transcriber = transcribeLocal, ttsSynthesizer = synthesize } = {}) {
+export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetch, transcriber = transcribeLocal, ttsSynthesizer = synthesize, skillsDir = path.join(ROOT, 'skills') } = {}) {
   fs.mkdirSync(path.join(dataDir, 'media'), { recursive: true });
   const dbPath = path.join(dataDir, 'store.json');
   let db = fs.existsSync(dbPath) ? JSON.parse(fs.readFileSync(dbPath, 'utf8')) : {
@@ -91,6 +91,31 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     }
     return out;
   }
+  function parseSkillMeta(content){
+    const meta={};
+    const m=/^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
+    if(m) for(const line of m[1].split(/\r?\n/)){ const kv=/^(name|title|description):\s*(.+)$/.exec(line.trim()); if(kv) meta[kv[1]]=kv[2].trim(); }
+    meta.steps=(content.match(/^###\s+\d+\./gm)||[]).length;
+    return meta;
+  }
+  function listSkills(){
+    let names=[];
+    try{ names=fs.readdirSync(skillsDir,{withFileTypes:true}).filter(e=>e.isFile()&&e.name.endsWith('.md')).map(e=>e.name); }catch{ return []; }
+    return names.map(fn=>{
+      const content=fs.readFileSync(path.join(skillsDir,fn),'utf8');
+      const meta=parseSkillMeta(content);
+      const name=meta.name||fn.replace(/\.md$/,'');
+      return {name,title:meta.title||name,description:meta.description||'',steps:meta.steps};
+    }).sort((a,b)=>a.name.localeCompare(b.name));
+  }
+  function readSkill(name){
+    if(!/^[a-z0-9-]+$/.test(String(name||''))) throw fail('skill 名称无效',400);
+    const file=path.join(skillsDir,String(name)+'.md');
+    if(!fs.existsSync(file)) throw fail('skill 不存在，请选择左侧下拉中的一个',404);
+    const content=fs.readFileSync(file,'utf8');
+    const meta=parseSkillMeta(content);
+    return {name:String(name),title:meta.title||String(name),description:meta.description||'',steps:meta.steps,content};
+  }
   return http.createServer(async(req,res)=> {
     try {
       const host = req.headers.host || '';
@@ -101,6 +126,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       const u = new URL(req.url,`http://${host}`), p=u.pathname;
       if(req.method==='GET' && p==='/api/state') return json(res,db);
       if(req.method==='GET' && p==='/api/health') return json(res,{app:'study-companion',version:'0.2.0',asr:asrStatus(),tts:ttsStatus(),busy:!!runningJob||voiceBusy});
+      if(req.method==='GET' && p==='/api/skills') return json(res,listSkills());
       if(req.method==='POST' && p==='/api/tts'){
         const x=await body(req);const value=String(x.text??'').trim();
         if(!value)throw fail('请输入要朗读的文字');
@@ -226,6 +252,45 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const content=raw.replace(/\[S(\d+)\]/g,(all,n)=>refs.some(e=>e.label==='S'+n)?all:'[引用无效，待核对]');
         const reply={id:uuid(),notebookId:x.notebookId,role:'assistant',type:p==='/api/generate'?'draft':'chat',text:content,citations:refs.filter(e=>used.has(e.label)),noteRevisionId:note?.id,selection,createdAt:now(),truncated:items.length>refs.length || items.some((e,i)=>e.text.length>(refs[i]?.text.length||0)) || (note?.content.length||0)>800};
         db.messages.push({id:uuid(),notebookId:x.notebookId,role:'user',type:reply.type,text:question,createdAt:now()},reply);save();return json(res,reply);
+      }
+      if(req.method==='POST' && p==='/api/skill-ask'){
+        const x=await body(req);
+        const skill=readSkill(x.skill);
+        const question=text(x.question,1200).trim();
+        if(!question) throw fail('请输入问题');
+        if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
+        const system='你是实验操作助手，正陪用户做实验《'+skill.title+'》。只依据下方 skill 步骤给指导：先判断用户大概在哪一步，然后给出这一步该做什么 + 关键参数 + 易错/安全提醒 + 下一步预告。参数缺失时说“待核对/需按实际确认”，不要编造具体数值。若用户描述对不上任何步骤，如实说明并建议核对。安全事项优先。简洁、分点回答。';
+        const history=db.messages.filter(m=>m.type==='skill'&&m.skill===skill.name).slice(-2).map(m=>({role:m.role,content:m.text.slice(0,400)}));
+        const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:system},{role:'user',content:'以下是该实验的操作 skill（markdown）：\n'+skill.content},...history,{role:'user',content:question}]});
+        const raw=text(answer.choices?.[0]?.message?.content).replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+        if(!raw) throw fail('模型未返回有效文字',502);
+        const reply={id:uuid(),role:'assistant',type:'skill',skill:skill.name,text:raw,createdAt:now()};
+        db.messages.push({id:uuid(),role:'user',type:'skill',skill:skill.name,text:question,createdAt:now()},reply);save();return json(res,reply);
+      }
+      if(req.method==='POST' && p==='/api/skills/generate'){
+        const x=await body(req);book(x.notebookId);
+        if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
+        const note=[...db.revisions].reverse().find(r=>r.notebookId===x.notebookId);
+        const items=evidence(x.notebookId);
+        let budget=2400;const refs=[];
+        for(const e of items){if(budget<=0)break;const chunk=e.text.slice(0,Math.min(1200,budget));budget-=chunk.length;refs.push({title:e.title,text:chunk});}
+        if(!note?.content && !refs.length) throw fail('这个笔记本还没有笔记或文字资料，无法生成 skill');
+        const material=JSON.stringify({note:note?.content.slice(0,1600)||'',sources:refs});
+        const system='你是实验笔记整理助手。把用户提供的实验笔记/材料整理成一份可复用的「实验操作 skill」。严格按下面模板输出 markdown，从第一个 --- 行开始，不要输出模板以外的解释：\n'+'---\nname: <小写英文短横线 slug，如 dh5a-gfp-transformation>\ntitle: <实验中文标题>\ndescription: <一句话：方法 + 关键筛选/培养>\n---\n# <实验中文标题>\n\n## 目标\n<一句话>\n\n## 材料\n<逐行列出；无则写“材料未说明/待核对”>\n\n## 步骤\n### 1. <步骤名>\n- 操作：<...>\n- 参数：<温度/时间/体积/浓度；缺失写“待核对”>\n- 注意：<易错点>\n- 检查点：<如何确认成功>\n（每个步骤同构，编号递增）\n\n## 安全\n<生物安全/废液/防护>。\n只依据材料，缺失参数写“待核对”，不要编造数值。';
+        const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:system},{role:'user',content:'以下是该实验的笔记与材料（JSON 数据）：\n'+material+'\n请输出完整 skill markdown。'}]});
+        let content=text(answer.choices?.[0]?.message?.content).replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+        if(!content) throw fail('模型未返回有效文字',502);
+        const fm=/^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
+        let name='';
+        if(fm){const nl=fm[1].split(/\r?\n/).map(l=>l.trim()).find(l=>/^name:/.test(l));if(nl){const v=nl.replace(/^name:\s*/,'').trim();if(/^[a-z0-9-]+$/.test(v))name=v;}}
+        if(!name){name=content.split(/\r?\n/)[0].replace(/^#\s*/,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+        if(!name||!/^[a-z0-9-]+$/.test(name)) name='skill-'+Date.now();
+        fs.mkdirSync(skillsDir,{recursive:true});
+        if(fs.existsSync(path.join(skillsDir,name+'.md'))){let n=2;while(fs.existsSync(path.join(skillsDir,name+'-'+n+'.md')))n++;name=name+'-'+n;if(fm)content=content.replace(/^(name:).*/m,'name:'+name);}
+        const file=path.join(skillsDir,name+'.md');
+        fs.writeFileSync(file,content,'utf8');
+        const meta=parseSkillMeta(content);
+        return json(res,{name,title:meta.title||name,description:meta.description||'',steps:meta.steps,path:file},201);
       }
       if(req.method==='POST' && p==='/api/transcribe') {
         const x=await body(req);const bytes=Buffer.from(text(x.base64,45*1024*1024),'base64');if(!bytes.length||bytes.length>32*1024*1024)throw fail('录音为空或超过 32 MB');

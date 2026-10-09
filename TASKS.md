@@ -6,10 +6,8 @@
 
 ## 待认领（open）
 
-- **T8 · 实验学习 agent（录音/视频 → 实验笔记 → 实验 skill → 实操指导）** — `open` · owner: — · **待用户拍板范围**
-  - 用户 2026-10-09 提出的方向：师兄师姐教实验时**录音视频** → 上传 agent → **自动整理成方便人看的实验笔记** + **AI 共读**逐步熟练 → 把整理好的笔记**沉淀为可复用的「实验 skill」** → 每次做实验时**问 agent，agent 调用对应实验 skill 指导实操**。
-  - 现状对照：前半段（录音视频→转写→整理笔记→AI 共读）**大部分已具备**（录音/媒体导入、faster-whisper 转写、「从资料整理」草稿、AI 共读）；**新增核心 = 「实验 skill」层**（把笔记结构化为 agent 可检索/可调用的实操指引，并在实操时按当前步骤注入）。
-  - 待用户决策：skill 的载体形态（独立 skill 文件 / store 内结构化笔记 / Claude Code skill）、"实操时指导"的触发与注入方式（主动提问 vs 步骤跟随）、是否要先扩 UI 录视频入口等。拍板后拆子任务。
+- **T8b · 实验 skill 铺开（垂直切片之后的下一步，待用户拍板）** — `open` · owner: —
+  - T8 垂直切片已收口（见 done）。铺开方向：①多个 skill + 按问题自动路由到最相关 skill；②"步骤陪跑"checklist 式跟跑（而非纯问答）；③录音/录视频入口 + 音视频→笔记→skill 一键管线打通；④skill 在 app 内可视化编辑（现靠手改 `skills/*.md`）。
 - **T3 · 真实脱敏实验样例替换** — `open` · owner: —
   - 用真实脱敏的实验规程/讲义替换当前自造 DH5α 转化规程（M0 剩余项）。
 - **T5 · 长任务断点续传（可选）** — `open` · owner: —
@@ -27,6 +25,11 @@
 
 ## 已完成（done）
 
+- **T8 · 实验 skill 实操指导（垂直切片）** — `done` · 用户 2026-10-09 拍板：skill 载体=**SKILL.md 文件**、指导=**问答式**、范围=**先做垂直切片**。
+  - `skills/dh5a-gfp-transformation.md`：由现有「酵母转化」笔记整理的 1 个真实 skill（frontmatter `name/title/description` + 6 步骤，每步 操作/参数/注意/检查点，参数缺失如实标"待核对"，含安全段）。
+  - 后端：`createApp` 新增 `skillsDir` 注入缝；`listSkills()`/`readSkill(name)`（手写 frontmatter 解析，零依赖，`[a-z0-9-]` 路径校验）；`GET /api/skills`（列 `skills/*.md`）；`POST /api/skill-ask`（问答式，LLM 只依据 skill 全文定位当前步骤→给操作/参数/易错安全/下一步，存 `db.messages` 新 `type:'skill'` + `skill` 字段，无 notebookId 故不污染共读列表）；`POST /api/skills/generate`（笔记/材料→LLM→写 skill，**同名文件自动加后缀不覆盖**）。
+  - 前端：新 tab「实验指导」（`data-tab="skillGuide"`）：skill 下拉 + 问答输入 + 回答渲染（含「朗读」复用 Kokoro `speak()`）+「从当前笔记生成 skill」。
+  - 验证：`tests/skill.test.mjs` 7 项（列目录/空目录/问答存消息/空问题400·不存在404/generate 落文件·需材料400/同名不覆盖）；`npm test` 18/18。活体：选 DH5α skill 问「我准备加质粒，下一步？」→ 回答准确定位**第 2 步**（加质粒+冰浴）+参数(5μL/50ng·μL⁻¹/30min)+安全+预告第 3 步热激；「朗读」触发 `POST /api/tts` 200 `audio/wav`；回归共读/生成/转写/删除不受影响、skill 消息不泄漏进共读列表。详见 `docs/开发进度.md`。
 - v0.1 骨架 / v0.2 M0 真实模型联调 / M1 材料与来源验收 —— 见 `docs/开发进度.md`。
 - **T6 · GitHub 备份首次 push** — 项目专属 repo + 三件套 + 首次 push 到 `origin=Aa144085412/Study-companion`（`main`）。
 - **T1 · 删除笔记本/来源能力** — `DELETE /api/notebooks/{id}` + `DELETE /api/sources/{id}`（版本链双向级联 + 孤儿媒体文件清理，带守卫）+ 界面删除按钮（`.danger`）+ 二次确认。回归 `tests/delete.test.mjs` 2 项；浏览器实测笔记本删除全流程通过。
