@@ -1,0 +1,9 @@
+data/
+*.log
+node_modules/
+
+.venv/
+models/
+backups/
+__pycache__/
+*.pyc
