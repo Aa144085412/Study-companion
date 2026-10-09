@@ -60,17 +60,35 @@ $('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.noteboo
 $('exportButton').onclick=()=>run(()=>{needBook();const title=state.notebooks.find(b=>b.id===current).title;const sources=state.sources.filter(s=>s.notebookId===current);const content=`# ${title}\n\n${$('noteEditor').value}\n\n## 资料清单\n${sources.map(s=>`- ${s.title}（ID: ${s.id}）`).join('\n')}\n\n## 疑问\n${state.questions.filter(q=>q.notebookId===current).map(q=>`- [${q.status}] ${q.question}`).join('\n')}\n`;const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'}));const a=node('a');a.href=url;a.download=title.replace(/[<>:"/\\|?*]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 let ttsAudio=null;
 function stopSpeak(){if(ttsAudio){ttsAudio.pause();if(String(ttsAudio.src).startsWith('blob:'))URL.revokeObjectURL(ttsAudio.src);ttsAudio=null;}try{speechSynthesis.cancel();}catch{}}
+function stripMarkdown(v){
+  let s=String(v??'');
+  s=s.replace(/```[a-zA-Z0-9_+-]*\r?\n?/g,'').replace(/```/g,'');
+  s=s.replace(/`([^`]*)`/g,'$1');
+  s=s.replace(/!\[[^\]]*\]\([^)]*\)/g,'');
+  s=s.replace(/\[([^\]]*)\]\([^)]*\)/g,'$1');
+  s=s.replace(/^[\t ]*#{1,6}\s*/gm,'');
+  s=s.replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$/gm,'');
+  s=s.replace(/^[ \t]*[-*+][ \t]/gm,'');
+  s=s.replace(/^[ \t]*\d+[.)][ \t]/gm,'');
+  s=s.replace(/\*\*|__/g,'');
+  s=s.replace(/(^|[^*])\*(?!\s)([^*\n]*[^\s*])?\*([^*])/g,'$1');
+  s=s.replace(/_([^_\n]+)_/g,'$1');
+  s=s.replace(/^[ \t]*>+[ \t]?/gm,'');
+  s=s.replace(/\r?\n{3,}/g,'\n\n');
+  return s.replace(/\s+/g,' ').trim();
+}
 async function speak(value){
+  const clean=stripMarkdown(value);
   stopSpeak();
   try{
-    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:value})});
+    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean})});
     if(r.ok){const blob=await r.blob();const url=URL.createObjectURL(blob);ttsAudio=new Audio(url);ttsAudio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null;};await ttsAudio.play();return;}
   }catch{}
   if(!('speechSynthesis'in window))throw Error('当前浏览器不支持朗读');
   const voice=speechSynthesis.getVoices().find(v=>v.localService&&/^zh/i.test(v.lang));
   if(!voice)throw Error('没有可用的本地中文语音，请在系统中安装中文语音包');
   speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(value);u.voice=voice;u.lang=voice.lang;speechSynthesis.speak(u);
+  const u=new SpeechSynthesisUtterance(clean);u.voice=voice;u.lang=voice.lang;speechSynthesis.speak(u);
 }
 let recorder,stream,chunks=[],holding=false,recordTimer,recordMs=0,recordBusy=false,recordCancelled=false,voiceController,serviceHealth;
 async function checkHealth(){try{serviceHealth=await api('/api/health');$('serviceStatus').textContent=serviceHealth.asr.message+' · '+serviceHealth.asr.device;$('voiceHint').textContent=serviceHealth.asr.ready?'本地识别已就绪 · 录音后可编辑文字':'本地识别未就绪，查看模型与语音设置';}catch{$('voiceHint').textContent='服务暂时不可用，请刷新或重启';}}
