@@ -4,11 +4,6 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
-## 进行中
-
-- **T6 · GitHub 备份首次 push** — `doing` · owner: claude
-  - 建项目专属 repo（已完成）+ 三件套（本文件）+ 首次 commit → 用 gh 建私有远程仓库 → 首次 push（push 前与用户确认仓库名/可见性）。
-
 ## 待认领（open）
 
 - **T1 · 删除笔记本/来源能力** — `open` · owner: —
@@ -31,3 +26,4 @@
 ## 已完成（done）
 
 - v0.1 骨架 / v0.2 M0 真实模型联调 / M1 材料与来源验收 —— 见 `docs/开发进度.md`。
+- **T6 · GitHub 备份首次 push** — 项目专属 repo + 三件套 + 首次 push 到 `origin=Aa144085412/Study-companion`（`main`）。
