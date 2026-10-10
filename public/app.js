@@ -1,6 +1,6 @@
 const $ = id=>document.getElementById(id);
 function confirmAction(message){ return new Promise(resolve=>{ $('confirmText').textContent=message; const d=$('confirmDialog'); d.onclose=()=>resolve(d.returnValue==='yes'); d.showModal(); }); }
-let state, current=localStorage.getItem('study.current'), selection='', dirty=false, busy=false, historyView=false;
+let state, current=localStorage.getItem('study.current'), selection='', dirty=false, busy=false, historyView=false, noteView='read';
 const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
 function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.add('hidden'),6500);}
 async function api(url,data,method='POST'){const r=await fetch(url,data===undefined?{}:{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const x=await r.json();if(!r.ok)throw Error(x.error||'请求失败');return x;}
@@ -33,14 +33,53 @@ function render(loadNote){
   $('questionList').replaceChildren();if(!questions.length)$('questionList').append(node('div','empty','把问题写在右侧，点击「记下疑问」。不急着一次弄懂。'));
   for(const q of questions){const c=node('div','question-card');c.append(node('p','',q.question));const sel=node('select');['未解决','学习中','已理解'].forEach(s=>sel.append(new Option(s,s)));sel.value=q.status;sel.onchange=()=>run(async()=>{await api('/api/questions/'+q.id,{status:sel.value},'PATCH');await refresh();});c.append(sel);$('questionList').append(c);}
   renderMessages(); renderJobs(); renderSkillMessages();
+  renderNote();
 }
-function renderMessages(){const messages=state.messages.filter(m=>m.notebookId===current);if(!messages.length){$('messages').replaceChildren(node('div','chat-welcome','✧\n\n从一个「为什么」开始\n\n选中笔记中的一句话，问问它的原理、目的，或前后联系。'));return;}$('messages').replaceChildren();for(const m of messages){const c=node('article','message '+m.role);c.append(node('div','message-label',m.role==='user'?'你':m.type==='draft'?'研习伴 · 笔记草稿':'研习伴'),node('div','message-text',m.text));if(m.role==='assistant'){const actions=node('div','message-actions');actions.append(button('朗读',()=>speak(m.text)),button('停止',stopSpeak),button('追加到笔记',async()=>{if(!await confirmAction('将这段回答追加到编辑区？检查后点击保存版本。'))return;$('noteEditor').value+='\n\n'+m.text+'\n\n'+(m.citations||[]).map(e=>`来源 [${e.label}]：${e.title}${e.start!==undefined?' '+time(e.start):''}`).join('\n');dirty=true;$('revisionLabel').textContent='有未保存的修改';}));c.append(actions);for(const ref of m.citations||[])c.append(button(`[${ref.label}] ${ref.title}${ref.start!==undefined?' · '+time(ref.start):''}`,()=>showReference(ref),'citation'));if(m.truncated)c.append(node('p','hint','本次材料超过上下文预算，仅使用部分内容；请拆分笔记本后再核对。'));}$('messages').append(c);}$('messages').scrollTop=$('messages').scrollHeight;}
+function renderMessages(){const messages=state.messages.filter(m=>m.notebookId===current);if(!messages.length){$('messages').replaceChildren(node('div','chat-welcome','✧\n\n从一个「为什么」开始\n\n选中笔记中的一句话，问问它的原理、目的，或前后联系。'));return;}$('messages').replaceChildren();for(const m of messages){const c=node('article','message '+m.role);c.append(node('div','message-label',m.role==='user'?'你':m.type==='draft'?'研习伴 · 笔记草稿':'研习伴'),node('div','message-text',m.text));if(m.role==='assistant'){const actions=node('div','message-actions');actions.append(button('朗读',()=>speak(m.text)),button('停止',stopSpeak),button('追加到笔记',async()=>{if(!await confirmAction('将这段回答追加到编辑区？检查后点击保存版本。'))return;$('noteEditor').value+='\n\n'+m.text+'\n\n'+(m.citations||[]).map(e=>`来源 [${e.label}]：${e.title}${e.start!==undefined?' '+time(e.start):''}`).join('\n');dirty=true;$('revisionLabel').textContent='有未保存的修改';renderNote();}));c.append(actions);for(const ref of m.citations||[])c.append(button(`[${ref.label}] ${ref.title}${ref.start!==undefined?' · '+time(ref.start):''}`,()=>showReference(ref),'citation'));if(m.truncated)c.append(node('p','hint','本次材料超过上下文预算，仅使用部分内容；请拆分笔记本后再核对。'));}$('messages').append(c);}$('messages').scrollTop=$('messages').scrollHeight;}
 function showSource(s){if(s.kind==='media')return play(s.id,0);$('sourceDialogTitle').textContent=s.title;$('sourceContent').replaceChildren();if(s.segments?.length){for(const seg of s.segments){const e=node('div','segment');e.id='seg-'+seg.id;if(s.mediaId)e.append(button(time(seg.start),()=>{$('sourceDialog').close();play(s.mediaId,seg.start,seg.end);}));else e.append(node('small','',time(seg.start)+' — '+time(seg.end)+'\n'));e.append(node('span','',seg.text));$('sourceContent').append(e);}}else $('sourceContent').textContent=s.content;$('sourceDialog').showModal();}
 function showReference(ref){const s=state.sources.find(s=>s.id===ref.sourceId);if(!s)throw Error('来源缺失');if(s.mediaId&&ref.start!==undefined)return play(s.mediaId,ref.start,ref.end);showSource(s);if(ref.segmentId)document.getElementById('seg-'+ref.segmentId)?.scrollIntoView({block:'center'});}
 let mediaEnd;function play(id,start,end){const s=state.sources.find(s=>s.id===id);if(!s)throw Error('原媒体不存在');$('mediaTitle').textContent=s.title;$('mediaArea').classList.remove('hidden');const player=$('player');mediaEnd=end;player.src='/api/media/'+id;player.onloadedmetadata=()=>{player.currentTime=start/1000;player.play().catch(()=>toast('请点击播放器开始播放'));};player.ontimeupdate=()=>{if(mediaEnd!==undefined&&player.currentTime>=mediaEnd/1000){player.pause();mediaEnd=undefined;}};}
 function selectionChanged(){$('selectionBox').textContent=selection?'正在讨论：'+selection:'整篇笔记 · 也可选中一段文字';$('noteSelEcho').textContent=selection?'正在讨论：「'+(selection.length>24?selection.slice(0,24)+'…':selection)+'」':'选中一段即可共读';}
 $('noteEditor').onselect=()=>{const e=$('noteEditor');selection=e.value.slice(e.selectionStart,e.selectionEnd).trim();selectionChanged();};
 $('noteEditor').oninput=()=>{dirty=true;if(!historyView)$('revisionLabel').textContent='有未保存的修改';};
+function renderNote(){
+  const noBook=state.notebooks.length===0;
+  const content=$('noteEditor').value;
+  const box=$('noteRender'),editor=$('noteEditor');
+  const read=noteView==='read';
+  $('readViewBtn').classList.toggle('active',read);
+  $('editViewBtn').classList.toggle('active',!read);
+  box.classList.toggle('hidden',!read||noBook);
+  editor.classList.toggle('hidden',read||noBook);
+  if(read&&!noBook)box.innerHTML=content?renderMarkdown(content):'<p class="note-empty">还没有内容。切到「编辑」写第一版，或导入资料后点「从资料整理」。</p>';
+}
+function renderMarkdown(md){
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const inline=t=>{let s=esc(t);s=s.replace(/`([^`]+)`/g,'<code>$1</code>');s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');return s;};
+  const out=[],para=[];const flush=()=>{if(para.length)out.push('<p>'+inline(para.join(' '))+'</p>');para.length=0;};
+  let listType=null;const endList=()=>{if(listType){out.push('<'+listType+'></'+listType+'>');listType=null;}};
+  for(const line of md.replace(/\r\n/g,'\n').split('\n')){
+    const h=line.match(/^(#{1,6})\s+(.*)$/);
+    if(h){flush();endList();const l=h[1].length;out.push('<h'+l+'>'+inline(h[2])+'</h'+l+'>');continue;}
+    if(/^\s*(---|\*\*\*|___)\s*$/.test(line)){flush();endList();out.push('<hr>');continue;}
+    if(/^\s*>\s?/.test(line)){flush();endList();out.push('<blockquote>'+inline(line.replace(/^\s*>\s?/,''))+'</blockquote>');continue;}
+    const ul=line.match(/^\s*[-*+]\s+(.*)$/),ol=line.match(/^\s*\d+[.)]\s+(.*)$/);
+    if(ul||ol){flush();const want=ul?'ul':'ol';if(listType&&listType!==want)endList();if(listType!==want){out.push('<'+want+'>');listType=want;}out.push('<li>'+inline((ul||ol)[1])+'</li>');continue;}
+    if(!line.trim()){flush();endList();continue;}
+    para.push(line);
+  }
+  flush();endList();
+  return out.join('\n');
+}
+function toggleNoteView(v){
+  noteView=v;
+  if(v==='edit'&&!historyView)$('noteEditor').focus();
+  renderNote();
+}
+$('readViewBtn').onclick=()=>toggleNoteView('read');
+$('editViewBtn').onclick=()=>toggleNoteView('edit');
+$('noteRender').addEventListener('mouseup',()=>{const sel=window.getSelection();if(sel&&sel.type==='Range'){const t=sel.toString().trim();if(t){selection=t;selectionChanged();}}});
+$('noteRender').addEventListener('keyup',()=>$('noteRender').dispatchEvent(new MouseEvent('mouseup',{bubbles:true})));
 $('newBook').onclick=()=>{ $('newBookTitle').value=''; $('newBookDialog').showModal(); };
 $('createFirstBook').onclick=()=>{ $('newBookTitle').value=''; $('newBookDialog').showModal(); };
 $('newBookForm').onsubmit=e=>{e.preventDefault();run(async()=>{const title=$('newBookTitle').value.trim();if(!title)return;if(dirty&&!await confirmAction('当前笔记未保存，仍要新建吗？'))return;const b=await api('/api/notebooks',{title});current=b.id;dirty=false;localStorage.setItem('study.current',current);$('newBookDialog').close();await refresh(true);});};
@@ -62,7 +101,7 @@ async function saveSettings(){await api('/api/settings',Object.fromEntries(new F
 $('settingsForm').onsubmit=e=>{e.preventDefault();run(async()=>{await saveSettings();$('settings').close();toast('设置已保存');});};
 $('detectModels').onclick=()=>run(async()=>{await saveSettings();const x=await api('/api/models',{});const ids=(x.data||[]).map(m=>m.id);if(!ids.length)throw Error('服务已连接，但没有加载模型');$('settingsForm').elements.model.value=ids[0];toast('检测到：'+ids.join('、')+'；已填入首个模型，请保存');});
 $('closeMedia').onclick=()=>{$('player').pause();$('mediaArea').classList.add('hidden');};
-async function loadRevision(r){if(dirty&&!await confirmAction('放弃当前未保存修改？'))return;$('noteEditor').value=r.content;$('noteEditor').readOnly=true;$('noteEditor').classList.add('is-historical');historyView=true;dirty=false;selection='';selectionChanged();$('revisionLabel').textContent='只读 · 历史版本';$('continueEdit').classList.remove('hidden');$('sourceDialog').close();}
+async function loadRevision(r){if(dirty&&!await confirmAction('放弃当前未保存修改？'))return;$('noteEditor').value=r.content;$('noteEditor').readOnly=true;$('noteEditor').classList.add('is-historical');historyView=true;dirty=false;selection='';selectionChanged();$('revisionLabel').textContent='只读 · 历史版本';$('continueEdit').classList.remove('hidden');$('sourceDialog').close();renderNote();}
 $('historyButton').onclick=()=>{const revisions=state.revisions.filter(r=>r.notebookId===current).reverse();$('sourceDialogTitle').textContent='笔记历史版本';$('sourceContent').replaceChildren();for(const r of revisions){const c=node('div','segment');c.append(button(new Date(r.createdAt).toLocaleString()+' · 只读预览',async()=>{await loadRevision(r);}));c.append(node('p','',r.content.slice(0,150)));$('sourceContent').append(c);}if(!revisions.length)$('sourceContent').textContent='尚无保存版本';$('sourceDialog').showModal();};
 $('continueEdit').onclick=()=>{if(!historyView)return;historyView=false;$('noteEditor').readOnly=false;$('noteEditor').classList.remove('is-historical');$('continueEdit').classList.add('hidden');dirty=true;$('revisionLabel').textContent='有未保存的修改';};
 $('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.notebooks.find(x=>x.id===current);if(!await confirmAction('删除笔记本「'+b.title+'」？其全部资料、笔记版本、问答、任务与媒体文件都会删除，无法撤销。'))return;await api('/api/notebooks/'+current,'','DELETE');current=null;localStorage.setItem('study.current','');dirty=false;selection='';await refresh(true);toast('已删除笔记本');});
