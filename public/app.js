@@ -226,17 +226,6 @@ async function sendSkill(){
 $('skillSend').onclick=()=>run(sendSkill);
 $('skillQuestion').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();run(sendSkill);}};
 $('skillSelect').onchange=()=>run(renderSkillMessages);
-$('genSkill').onclick=()=>run(async()=>{
-  needBook();
-  if(!state.revisions.some(r=>r.notebookId===current)&&!state.sources.some(s=>s.notebookId===current&&s.kind==='text'))throw Error('请先保存笔记或导入文字资料，再生成 skill');
-  $('skillState').textContent='正在根据笔记整理 skill……';
-  const x=await api('/api/skills/generate',{notebookId:current});
-  $('skillState').textContent='';
-  await loadSkills();
-  $('skillSelect').value=x.name;
-  renderSkillMessages();
-  toast('已生成 skill「'+x.title+'」，可继续微调 skills/'+x.name+'.md');
-});
 let agentBusy=false;
 function setAgentBusy(b){agentBusy=b;$('agentStart').disabled=b;$('agentGoal').disabled=b;$('agentCrawl').disabled=b;}
 function agentLog(line){if(!line)return;const p=node('p','',line);$('agentLog').append(p);$('agentLog').scrollTop=$('agentLog').scrollHeight;}
@@ -290,7 +279,7 @@ function renderAgentReport(run){
   grid.append(node('div','agent-step','skill：'+(skill.name?skill.name+' · '+(skill.steps||0)+' 步':'未生成')));
   box.append(grid);
   if(skill.name){
-    const go=button('去实验指导问答 →',async()=>{const tab=document.querySelector('[data-tab="skillGuide"]');if(tab)tab.click();await loadSkills();const sel=$('skillSelect');if([...sel.options].some(o=>o.value===skill.name))sel.value=skill.name;renderSkillMessages();},'primary');
+    const go=button('去实验指导问答 →',async()=>{$('agentDialog').close();const tab=document.querySelector('[data-tab="skillGuide"]');if(tab)tab.click();await loadSkills();const sel=$('skillSelect');if([...sel.options].some(o=>o.value===skill.name))sel.value=skill.name;renderSkillMessages();},'primary');
     box.append(go);
   }
   if(gaps.length){
@@ -302,5 +291,7 @@ function renderAgentReport(run){
   box.scrollTop=0;
 }
 $('agentForm').onsubmit=e=>{e.preventDefault();run(startAgentPipeline);};
+$('agentOpen').onclick=()=>{agentLog('');$('agentReport').classList.add('hidden');$('agentReport').replaceChildren();$('agentState').textContent='';$('agentDialog').showModal();};
+$('closeAgent').onclick=()=>$('agentDialog').close();
 checkHealth();
 run(()=>loadSkills());

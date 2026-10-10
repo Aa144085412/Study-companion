@@ -33,6 +33,17 @@
 
 ## 已完成（done）
 
+- **T23 · 实验 Agent 层级修正（移出并列 tab → 侧栏 dialog）+ 去除实验指导冗余「从当前笔记生成 skill」按钮** — done · owner: claude code · 2026-10-10
+  - 起因：用户反馈「实验agent 不应该和另外三个并列，**层级错误**」——T22 把实验 Agent 做成工作区第 5 个并列 tab，但它其实是**跨笔记本的编排入口**（给关键词自动建本+导入+skill），不应与某个笔记本内的四个视图 tab 同级；另「实验agent 就能完成 skill 的闭环，实验指导中的『从当前笔记生成 skill』**冗余了**」——T20 的生成按钮与 Agent 管线末端的 skill 产出重复。目标：把实验 Agent 降到侧栏触发的 dialog（与设置/新建笔记本等 dialog 同层级），并删掉「实验指导」里冗余的 genSkill 按钮。
+  - 方案（纯前端，零后端改动、零新依赖）：
+    - `public/index.html`：① tablist 删掉第 5 个 `data-tab="agentRun"` 按钮（恢复为 4 tab：共读/学习资料/疑问清单/实验指导）；② 侧栏 `nav-label` 行后加 `<button id="agentOpen" class="agent-open">⚙ 实验 Agent · 一键整理</button>`；③ 原 `#agentRun` panel 移除，改在 dialog 区放 `<dialog id="agentDialog">`（内含原 `#agentForm`：goal/crawl 输入 + `#agentStart` + `#agentState` + `#agentLog` + `#agentReport`），与设置/新建本等 dialog 同级；④ `#skillGuide` panel 删掉 `#genSkill` 按钮（保留 skill 下拉 + 问答区）。
+    - `public/app.js`：删除 `$('genSkill').onclick` 整块（原「从当前笔记生成 skill」handler）；新增 `$('agentOpen').onclick`（清 log/报告/状态 → `showModal()`）与 `$('closeAgent').onclick`（`close()`）；「去实验指导问答 →」handler 开头加 `$('agentDialog').close()`（先关 dialog 再切 tab，避免 dialog 遮罩盖住切出的「实验指导」）。管线/轮询/报告渲染逻辑不变。
+    - `public/style.css`：新增 `.agent-open`（侧栏满宽触发按钮样式）。
+  - 活体（单实例 8765，预览面板）：① 恢复 4 tab（`notes/sources/questions/skillGuide`，无 agent tab）；② 侧栏「⚙ 实验 Agent · 一键整理」存在；③ 「实验指导」panel 无「从当前笔记生成 skill」按钮；④ 点侧栏按钮 → dialog 打开（goal 输入 + ☐重新采集默认关 + ▶开始跑）；⑤ `goal:"酵母转化"`（reuse）→ ~20s `status:done`，报告在**打开的 dialog 内**渲染（✓ 运行完成 + 4 格 steps + 待核对清单 4 条 `【步骤 N · …】` 无 `[object]` 前缀）；⑥ 点「去实验指导问答 →」→ **dialog 关闭**（`dialogOpen:false`）+ 切到「实验指导」tab（`activeTab:skillGuide`）+ `skillSelect` 自动选中 `yeast-liac-peg-transformation`；⑦ 全程控制台零报错。
+  - 验证：`node --check public/app.js` 过；`node --test --test-concurrency=1 tests/*.test.mjs` **32/32**（纯前端改动，零后端/接口/store 改动，无回归）；`grep genSkill` 确认 app.js/index.html 零残留。
+  - 边界（如实）：`POST /api/skills/generate` 后端端点**保留**（仅移除前端入口按钮），仍可经 API/管线使用；实验 Agent 现为跨笔记本编排入口，产出落到 `小红书实验学习 · <goal>` 笔记本；skill 由 Agent 管线统一产出后，「实验指导」tab 只负责「选 skill + 问答指导」，职责更单一。
+  - 提交：本地 commit（`public/index.html`、`public/app.js`、`public/style.css`、`TASKS.md`、`CONTEXT.md`），**未 push**（push 需用户授权）。
+
 - **T22 · 前端「实验 Agent」tab（一键触发前半段管线 + 报告 + 跳转实验指导）** — done · owner: claude code · 2026-10-10
   - 起因：承接 T21（前半段管线已有 `POST /api/agent/pipeline` 后端 + python 驱动，但只能直接调 API）。用户「可以」批准加前端 agent 触发入口；用户选择**独立「实验 Agent」tab**（工作区第 5 个 tab）。目标：给一行关键词 → 前端一键启动 T21 管线 → 轮询进度 → 渲染结构化报告（5 步 + 待核对清单）→ 一键「去实验指导问答」跳到 T20 的「实验指导」tab 并自动选中新 skill，实现「任何 agent 可调用指导实验」的完整闭环在 UI 内可操作。
   - 方案（纯前端，零后端改动、零新依赖）：
