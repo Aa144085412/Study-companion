@@ -108,8 +108,8 @@ $('historyButton').onclick=()=>{const revisions=state.revisions.filter(r=>r.note
 $('continueEdit').onclick=()=>{if(!historyView)return;historyView=false;$('noteEditor').readOnly=false;$('noteEditor').classList.remove('is-historical');$('continueEdit').classList.add('hidden');dirty=true;$('revisionLabel').textContent='有未保存的修改';};
 $('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.notebooks.find(x=>x.id===current);if(!await confirmAction('删除笔记本「'+b.title+'」？其全部资料、笔记版本、问答、任务与媒体文件都会删除，无法撤销。'))return;await api('/api/notebooks/'+current,'','DELETE');current=null;localStorage.setItem('study.current','');dirty=false;selection='';await refresh(true);toast('已删除笔记本');});
 $('exportButton').onclick=()=>run(()=>{needBook();const title=state.notebooks.find(b=>b.id===current).title;const sources=state.sources.filter(s=>s.notebookId===current);const content=`# ${title}\n\n${$('noteEditor').value}\n\n## 资料清单\n${sources.map(s=>`- ${s.title}（ID: ${s.id}）`).join('\n')}\n\n## 疑问\n${state.questions.filter(q=>q.notebookId===current).map(q=>`- [${q.status}] ${q.question}`).join('\n')}\n`;const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'}));const a=node('a');a.href=url;a.download=title.replace(/[<>:"/\\|?*]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
-let ttsAudio=null;
-function stopSpeak(){if(ttsAudio){ttsAudio.pause();if(String(ttsAudio.src).startsWith('blob:'))URL.revokeObjectURL(ttsAudio.src);ttsAudio=null;}try{speechSynthesis.cancel();}catch{}}
+let ttsAudio=null,ttsSeq=0,ttsCtrl=null;
+function stopSpeak(){ttsSeq++;if(ttsCtrl){try{ttsCtrl.abort();}catch{}ttsCtrl=null;}if(ttsAudio){try{ttsAudio.pause();}catch{}if(String(ttsAudio.src).startsWith('blob:'))URL.revokeObjectURL(ttsAudio.src);ttsAudio=null;}try{speechSynthesis.cancel();}catch{}}
 function stripMarkdown(v){
   let s=String(v??'');
   s=s.replace(/```[a-zA-Z0-9_+-]*\r?\n?/g,'').replace(/```/g,'');
@@ -130,14 +130,28 @@ function stripMarkdown(v){
 async function speak(value){
   const clean=stripMarkdown(value);
   stopSpeak();
+  const my=ttsSeq;
   try{
-    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean})});
-    if(r.ok){const blob=await r.blob();const url=URL.createObjectURL(blob);ttsAudio=new Audio(url);ttsAudio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null;};await ttsAudio.play();return;}
-  }catch{}
+    ttsCtrl=new AbortController();
+    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean}),signal:ttsCtrl.signal});
+    if(ttsCtrl)ttsCtrl=null;
+    if(r.ok){
+      const blob=await r.blob();
+      if(my!==ttsSeq)return;
+      const url=URL.createObjectURL(blob);
+      ttsAudio=new Audio(url);
+      const token=ttsSeq;
+      ttsAudio.onended=()=>{if(token===ttsSeq){URL.revokeObjectURL(url);ttsAudio=null;}};
+      await ttsAudio.play();
+      return;
+    }
+  }catch(e){
+    if(my===ttsSeq)throw e;
+    return;
+  }
   if(!('speechSynthesis'in window))throw Error('当前浏览器不支持朗读');
   const voice=speechSynthesis.getVoices().find(v=>v.localService&&/^zh/i.test(v.lang));
   if(!voice)throw Error('没有可用的本地中文语音，请在系统中安装中文语音包');
-  speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(clean);u.voice=voice;u.lang=voice.lang;speechSynthesis.speak(u);
 }
 let recorder,stream,chunks=[],holding=false,recordTimer,recordMs=0,recordBusy=false,recordCancelled=false,voiceController,serviceHealth;
