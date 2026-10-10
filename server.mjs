@@ -438,6 +438,33 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         }
         return json(res,{runId,status:'running',goal,mode:base.mode,note:'异步执行：轮询 GET /api/agent/runs（可按 ?id 或 ?notebookId 过滤）查看进度与报告'},202);
       }
+      if(req.method==='POST' && p==='/api/agent/media'){
+        const x=await body(req);
+        const source=String(x.source??'');
+        const url=String(x.url??'').trim();
+        if(!['douyin','xhs-video','wechat'].includes(source))throw fail('source 需为 douyin / xhs-video / wechat');
+        if(!/^https?:\/\/.+/i.test(url))throw fail('请提供合法的 http(s) URL');
+        const goal=String(x.goal??'').trim().slice(0,40);
+        const cookieFile=String(x.cookieFile??'').trim();
+        const runId=uuid();
+        const label={douyin:'抖音视频→笔记→skill','xhs-video':'小红书视频→笔记→skill',wechat:'微信图文→笔记→skill'}[source];
+        const base={id:runId,kind:'pipeline',goal:goal||url.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:label,mode:'url',source,url,status:'running',createdAt:now(),updatedAt:now()};
+        db.agentRuns.push(base);save();
+        const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
+        const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+        const args=[path.join(ROOT,'scripts','url_pipeline.py'),'--source',source,'--url',url,'--api',localBase,'--run-id',runId];
+        if(goal)args.push('--goal',goal);
+        if(cookieFile)args.push('--cookie-file',cookieFile);
+        try{
+          const child=pipelineLauncher(py,args,{cwd:ROOT,detached:true,stdio:'ignore'});
+          child.on('error',()=>{const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error='启动 URL pipeline 驱动失败（检查 python/脚本）';r.updatedAt=now();save();}});
+          child.unref();
+        }catch(e){
+          const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error=e.message;r.updatedAt=now();save();}
+          throw fail('启动 URL pipeline 驱动失败：'+e.message,500);
+        }
+        return json(res,{runId,status:'running',source,note:'异步执行：轮询 GET /api/agent/runs（可按 ?id 过滤）查看进度与报告'},202);
+      }
       {
         const pm=/^\/api\/agent\/pipeline\/([a-f0-9-]+)\/result$/.exec(p);
         if(req.method==='POST'&&pm){

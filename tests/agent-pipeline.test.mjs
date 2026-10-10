@@ -120,3 +120,71 @@ test('GET /api/agent/runs filters by kind and id (pipeline vs skill runs)',async
   assert.equal(byId.body.length,1);
   assert.equal(byId.body[0].id,first.id);
 });
+
+test('POST /api/agent/media rejects invalid source (400)',async t=>{
+  const {call}=await fixture(t);
+  const r=await call('/api/agent/media',{source:'tumblr',url:'https://x.com/v/1'});
+  assert.equal(r.status,400);
+});
+
+test('POST /api/agent/media rejects invalid URL (400)',async t=>{
+  const {call}=await fixture(t);
+  const r=await call('/api/agent/media',{source:'douyin',url:'not a url'});
+  assert.equal(r.status,400);
+});
+
+test('POST /api/agent/media creates a run and launches url_pipeline.py with source+url+api+run-id',async t=>{
+  const {call,calls}=await fixture(t);
+  const url='https://www.douyin.com/video/7123456789012345678';
+  const r=await call('/api/agent/media',{source:'douyin',url});
+  assert.equal(r.status,202);
+  assert.ok(r.body.runId);
+  assert.equal(r.body.status,'running');
+  assert.equal(r.body.source,'douyin');
+  assert.equal(calls.length,1);
+  const {py,args}=calls[0];
+  assert.match(py,/python\.exe$/i);
+  assert.ok(args.some(a=>/url_pipeline\.py$/.test(a)),args.join(' '));
+  const iSrc=args.indexOf('--source');
+  assert.equal(args[iSrc+1],'douyin');
+  const iUrl=args.indexOf('--url');
+  assert.equal(args[iUrl+1],url);
+  const iApi=args.indexOf('--api');
+  assert.ok(args[iApi+1].startsWith('http://127.0.0.1:'));
+  const iRun=args.indexOf('--run-id');
+  assert.equal(args[iRun+1],r.body.runId);
+  // 未传 goal / cookie 时不带相应 flag
+  assert.ok(!args.includes('--goal'));
+  assert.ok(!args.includes('--cookie-file'));
+  // run 落库（kind=pipeline，source=douyin，mode=url）
+  const runs=await call('/api/agent/runs?kind=pipeline',undefined,'GET');
+  const media=runs.body.find(x=>x.source==='douyin');
+  assert.ok(media);
+  assert.equal(media.mode,'url');
+  assert.equal(media.status,'running');
+});
+
+test('POST /api/agent/media passes --goal and --cookie-file through when provided',async t=>{
+  const {call,calls}=await fixture(t);
+  const r=await call('/api/agent/media',{source:'wechat',url:'https://mp.weixin.qq.com/s/AbCd',goal:'酵母转化',cookieFile:'C:/cookies.txt'});
+  assert.equal(r.status,202);
+  const {args}=calls[0];
+  const iGoal=args.indexOf('--goal');
+  assert.equal(args[iGoal+1],'酵母转化');
+  const iCookie=args.indexOf('--cookie-file');
+  assert.equal(args[iCookie+1],'C:/cookies.txt');
+});
+
+test('POST /api/agent/media result callback flips a media run to done (shared pipeline /result)',async t=>{
+  const {call}=await fixture(t);
+  const r=await call('/api/agent/media',{source:'wechat',url:'https://mp.weixin.qq.com/s/AbCd'});
+  const runId=r.body.runId;
+  const report={source:'wechat',mode:'url',status:'done',notebook:{id:'nb1',title:'微信实验学习 · 酵母转化'},steps:{skill:{skill:{name:'yeast-liac-peg'}}}};
+  const res=await call(`/api/agent/pipeline/${runId}/result`,report);
+  assert.equal(res.status,200);
+  assert.equal(res.body.status,'done');
+  const one=await call(`/api/agent/runs?id=${runId}`,undefined,'GET');
+  assert.equal(one.body[0].status,'done');
+  assert.equal(one.body[0].notebookId,'nb1');
+  assert.equal(one.body[0].result.steps.skill.skill.name,'yeast-liac-peg');
+});

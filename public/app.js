@@ -227,21 +227,39 @@ $('skillSend').onclick=()=>run(sendSkill);
 $('skillQuestion').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();run(sendSkill);}};
 $('skillSelect').onchange=()=>run(renderSkillMessages);
 let agentBusy=false;
-function setAgentBusy(b){agentBusy=b;$('agentStart').disabled=b;$('agentGoal').disabled=b;$('agentCrawl').disabled=b;}
+function setAgentBusy(b){agentBusy=b;$('agentStart').disabled=b;$('agentGoal').disabled=b;$('agentCrawl').disabled=b;$('agentUrl').disabled=b;$('agentSource').disabled=b;}
 function agentLog(line){if(!line)return;const p=node('p','',line);$('agentLog').append(p);$('agentLog').scrollTop=$('agentLog').scrollHeight;}
+const AGENT_SRC_LABEL={keyword:'小红书图文',wechat:'微信公众号图文',douyin:'抖音视频','xhs-video':'小红书视频'};
+function syncAgentMode(){
+  const isUrl=$('agentSource').value!=='keyword';
+  $('agentGoal').required=!isUrl;
+  $('agentUrl').required=isUrl;
+  $('agentGoal').closest('label').classList.toggle('hidden',isUrl);
+  $('agentCrawl').closest('label').classList.toggle('hidden',isUrl);
+  $('agentUrl').closest('label').classList.toggle('hidden',!isUrl);
+}
 async function startAgentPipeline(){
-  const goal=$('agentGoal').value.trim();
-  if(!goal)throw Error('请输入实验关键词');
-  const crawl=$('agentCrawl').checked;
+  const source=$('agentSource').value;
   if(agentBusy)return;
+  let payload;
+  if(source==='keyword'){
+    const goal=$('agentGoal').value.trim();
+    if(!goal)throw Error('请输入实验关键词');
+    payload={goal,crawl:$('agentCrawl').checked};
+  }else{
+    const url=$('agentUrl').value.trim();
+    if(!/^https?:\/\/.+/i.test(url))throw Error('请粘贴合法的 http(s) 链接');
+    payload={source,url,goal:$('agentGoal').value.trim()};
+  }
   setAgentBusy(true);
   $('agentLog').replaceChildren();
   $('agentReport').classList.add('hidden');$('agentReport').replaceChildren();
   $('agentState').textContent='正在启动 agent 运行…';
   try{
-    const x=await api('/api/agent/pipeline',{goal,crawl});
-    agentLog('已启动 run '+x.runId+'（模式：'+(x.mode==='crawl'?'重新采集':'复用已有采集')+'）');
-    agentLog('流程：采集[可选] → OCR → 导入 → 建本 → 笔记 → skill，完成后自动回写报告。');
+    const endpoint=source==='keyword'?'/api/agent/pipeline':'/api/agent/media';
+    const x=await api(endpoint,payload);
+    agentLog('已启动 run '+x.runId+'（'+AGENT_SRC_LABEL[source]+(source==='keyword'?(x.mode==='crawl'?' · 重新采集':' · 复用已有采集'):'')+'）');
+    agentLog('流程：'+(source==='keyword'?'采集[可选] → OCR → 导入 → 建本 → 笔记 → skill':(source==='wechat'?'抓图文 → 导入 → 建本 → 笔记 → skill':'下载视频 → 音轨转写 + 抽帧 → 导入 → 建本 → 笔记 → skill'))+'，完成后自动回写报告。');
     $('agentState').textContent='运行中…（每 4 秒刷新）';
     const run=await pollAgentRun(x.runId);
     renderAgentReport(run);
@@ -270,11 +288,19 @@ function renderAgentReport(run){
   const skillStep=steps.skill||{};
   const skill=skillStep.skill||{};
   const gaps=skillStep.gaps||[];
+  if(report.url)box.append(node('p','agent-src-url',report.url));
   if(report.summary)box.append(node('p','agent-summary',report.summary));
   if(report.error)box.append(node('p','agent-error',report.error));
   const grid=node('div','agent-steps');
-  grid.append(node('div','agent-step','模式：'+(report.mode==='crawl'?'重新采集':'复用已有采集')));
-  grid.append(node('div','agent-step','导入：'+(counts.imported??'-')+' 篇 · 跳过 '+(counts.skipped??'-')));
+  grid.append(node('div','agent-step','来源：'+(report.source?AGENT_SRC_LABEL[report.source]:(report.mode==='crawl'?'重新采集':'复用已有采集'))));
+  if(report.source==='wechat'){
+    grid.append(node('div','agent-step','正文图片：'+(steps.fetch?.images??'-')+' 张'));
+  }else if(report.source==='douyin'||report.source==='xhs-video'){
+    grid.append(node('div','agent-step','音轨转写：'+(steps.transcribe?.chars??0)+' 字'));
+    grid.append(node('div','agent-step','画面关键帧：'+(steps.download?.frames??0)+' 张'));
+  }else{
+    grid.append(node('div','agent-step','导入：'+(counts.imported??'-')+' 篇 · 跳过 '+(counts.skipped??'-')));
+  }
   grid.append(node('div','agent-step','笔记：'+(note.chars??'-')+' 字'+(note.firstLine?' · '+(note.firstLine.length>18?note.firstLine.slice(0,18)+'…':note.firstLine):'')));
   grid.append(node('div','agent-step','skill：'+(skill.name?skill.name+' · '+(skill.steps||0)+' 步':'未生成')));
   box.append(grid);
@@ -291,7 +317,8 @@ function renderAgentReport(run){
   box.scrollTop=0;
 }
 $('agentForm').onsubmit=e=>{e.preventDefault();run(startAgentPipeline);};
-$('agentOpen').onclick=()=>{agentLog('');$('agentReport').classList.add('hidden');$('agentReport').replaceChildren();$('agentState').textContent='';$('agentDialog').showModal();};
+$('agentSource').onchange=syncAgentMode;
+$('agentOpen').onclick=()=>{agentLog('');$('agentReport').classList.add('hidden');$('agentReport').replaceChildren();$('agentState').textContent='';syncAgentMode();$('agentDialog').showModal();};
 $('closeAgent').onclick=()=>$('agentDialog').close();
 checkHealth();
 run(()=>loadSkills());
