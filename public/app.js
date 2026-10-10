@@ -237,5 +237,70 @@ $('genSkill').onclick=()=>run(async()=>{
   renderSkillMessages();
   toast('已生成 skill「'+x.title+'」，可继续微调 skills/'+x.name+'.md');
 });
+let agentBusy=false;
+function setAgentBusy(b){agentBusy=b;$('agentStart').disabled=b;$('agentGoal').disabled=b;$('agentCrawl').disabled=b;}
+function agentLog(line){if(!line)return;const p=node('p','',line);$('agentLog').append(p);$('agentLog').scrollTop=$('agentLog').scrollHeight;}
+async function startAgentPipeline(){
+  const goal=$('agentGoal').value.trim();
+  if(!goal)throw Error('请输入实验关键词');
+  const crawl=$('agentCrawl').checked;
+  if(agentBusy)return;
+  setAgentBusy(true);
+  $('agentLog').replaceChildren();
+  $('agentReport').classList.add('hidden');$('agentReport').replaceChildren();
+  $('agentState').textContent='正在启动 agent 运行…';
+  try{
+    const x=await api('/api/agent/pipeline',{goal,crawl});
+    agentLog('已启动 run '+x.runId+'（模式：'+(x.mode==='crawl'?'重新采集':'复用已有采集')+'）');
+    agentLog('流程：采集[可选] → OCR → 导入 → 建本 → 笔记 → skill，完成后自动回写报告。');
+    $('agentState').textContent='运行中…（每 4 秒刷新）';
+    const run=await pollAgentRun(x.runId);
+    renderAgentReport(run);
+    $('agentState').textContent=run.status==='done'?'已完成':'失败';
+    toast(run.status==='done'?'agent 运行完成':'agent 运行失败，见报告');
+  }finally{setAgentBusy(false);}
+}
+async function pollAgentRun(runId){
+  for(let i=0;i<3600;i++){ // ~2 小时上限
+    const list=await api('/api/agent/runs?id='+encodeURIComponent(runId),undefined,'GET');
+    const run=Array.isArray(list)?list[0]:list;
+    if(run&&(run.status==='done'||run.status==='failed'))return run;
+    if(run?.result?.steps)agentLog('进度：'+Object.keys(run.result.steps).filter(k=>k!=='error').join(' → '));
+    await new Promise(r=>setTimeout(r,4000));
+  }
+  throw Error('等待 agent 运行超时，请刷新查看');
+}
+function renderAgentReport(run){
+  const box=$('agentReport');const report=run.result||{};
+  const failed=run.status==='failed';
+  box.replaceChildren();box.classList.remove('hidden');
+  box.append(node('div','agent-report-title '+(failed?'fail':'ok'),failed?'✕ 运行失败':'✓ 运行完成'));
+  const steps=report.steps||{};
+  const counts=steps.import?.counts||{};
+  const note=steps.note||{};
+  const skillStep=steps.skill||{};
+  const skill=skillStep.skill||{};
+  const gaps=skillStep.gaps||[];
+  if(report.summary)box.append(node('p','agent-summary',report.summary));
+  if(report.error)box.append(node('p','agent-error',report.error));
+  const grid=node('div','agent-steps');
+  grid.append(node('div','agent-step','模式：'+(report.mode==='crawl'?'重新采集':'复用已有采集')));
+  grid.append(node('div','agent-step','导入：'+(counts.imported??'-')+' 篇 · 跳过 '+(counts.skipped??'-')));
+  grid.append(node('div','agent-step','笔记：'+(note.chars??'-')+' 字'+(note.firstLine?' · '+(note.firstLine.length>18?note.firstLine.slice(0,18)+'…':note.firstLine):'')));
+  grid.append(node('div','agent-step','skill：'+(skill.name?skill.name+' · '+(skill.steps||0)+' 步':'未生成')));
+  box.append(grid);
+  if(skill.name){
+    const go=button('去实验指导问答 →',async()=>{const tab=document.querySelector('[data-tab="skillGuide"]');if(tab)tab.click();await loadSkills();const sel=$('skillSelect');if([...sel.options].some(o=>o.value===skill.name))sel.value=skill.name;renderSkillMessages();},'primary');
+    box.append(go);
+  }
+  if(gaps.length){
+    box.append(node('h4','agent-gaps-title','待核对清单 · '+gaps.length));
+    const ul=node('ul','agent-gaps');
+    for(const g of gaps)ul.append(node('li','',(g.where?('【'+g.where+'】'):'')+g.text));
+    box.append(ul);
+  }
+  box.scrollTop=0;
+}
+$('agentForm').onsubmit=e=>{e.preventDefault();run(startAgentPipeline);};
 checkHealth();
 run(()=>loadSkills());
