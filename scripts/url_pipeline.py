@@ -95,10 +95,12 @@ def generate_note(api_base, notebook_id):
             'firstLine': text.splitlines()[0].strip()[:120]}
 
 
-def run_skill(api_base, notebook_id, force):
+def run_skill(api_base, notebook_id, force, kind='experiment'):
     payload = {'notebookId': notebook_id}
     if force:
         payload['mode'] = 'force'
+    if kind and kind != 'experiment':
+        payload['kind'] = kind
     run = api(api_base, '/api/agent/skill', payload, timeout=300)
     r = run.get('result') or {}
     sk = r.get('skill') or {}
@@ -124,6 +126,7 @@ def main():
     ap.add_argument('--source', required=True, choices=['douyin', 'xhs-video', 'wechat'])
     ap.add_argument('--url', required=True)
     ap.add_argument('--goal', default='', help='笔记本关键词（默认由标题/域名推导）')
+    ap.add_argument('--kind', default='experiment', choices=['experiment', 'knowledge'], help='skill 产出类型：实验操作 / 知识总结')
     ap.add_argument('--api', default='http://127.0.0.1:8765')
     ap.add_argument('--app-root', type=Path, default=Path(__file__).resolve().parents[1])
     ap.add_argument('--cookie-file', type=Path, default=None)
@@ -206,7 +209,7 @@ def main():
         emit(event='note-done', revisionId=report['steps']['note'].get('revisionId') if report['steps']['note'] else None)
 
         # 5) 生成 skill
-        report['steps']['skill'] = run_skill(args.api, nb['id'], args.force_skill)
+        report['steps']['skill'] = run_skill(args.api, nb['id'], args.force_skill, args.kind)
         sk = report['steps']['skill']['skill']
         report['status'] = 'done'
         report['summary'] = (

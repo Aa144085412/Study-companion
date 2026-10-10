@@ -83,3 +83,46 @@ test('GET /api/agent/runs returns [] when no runs',async t=>{
   assert.equal(r.status,200);
   assert.deepEqual(r.body,[]);
 });
+
+test('POST /api/sources deduplicates identical text content within a notebook',async t=>{
+  const {call}=await fixture(t,modelFetchReturning(GEN_SKILL));
+  const payload={notebookId:'nb1',title:'a.txt',content:'醋酸锂 PEG 转化，感受态冰上融化。'};
+  const first=await call('/api/sources',payload);
+  assert.equal(first.status,201);
+  assert.equal(typeof first.body.hash,'string');
+  const second=await call('/api/sources',payload);
+  assert.equal(second.status,200);
+  assert.equal(second.body.duplicate,true);
+  assert.equal(second.body.id,first.body.id);
+  // fixture starts with 1 source; only one new one should be added, not two
+  const st=await call('/api/state',undefined,'GET');
+  assert.equal(st.body.sources.length,2);
+});
+
+test('POST /api/agent/skill supports kind=knowledge and keeps it separate from experiment',async t=>{
+  const GEN_KNOWLEDGE='---\nname: ai-agent-conflict\nkind: knowledge\ntitle: 多 Agent 防冲突要点\ndescription: 视频核心知识总结\n---\n# 多 Agent 防冲突要点\n\n## 核心要点\n- 参数待核对。\n\n## 来源\n- 抖音视频。\n';
+  const {call,skillsDir}=await fixture(t,modelFetchReturning(GEN_KNOWLEDGE));
+  const k=await call('/api/agent/skill',{notebookId:'nb1',kind:'knowledge'});
+  assert.equal(k.status,201);
+  assert.equal(k.body.result.skill.kind,'knowledge');
+  assert.equal(k.body.result.skill.name,'ai-agent-conflict');
+  assert.ok(fs.existsSync(path.join(skillsDir,'ai-agent-conflict.md')));
+  const list=await call('/api/skills/list',undefined,'GET');
+  assert.equal(list.status,200);
+  const entry=list.body.find(s=>s.name==='ai-agent-conflict');
+  assert.ok(entry);
+  assert.equal(entry.kind,'knowledge');
+});
+
+test('GET /api/skills/list reflects generated skills with parsed meta',async t=>{
+  const {call,skillsDir}=await fixture(t,modelFetchReturning(GEN_SKILL));
+  const r=await call('/api/agent/skill',{notebookId:'nb1'});
+  assert.equal(r.status,201);
+  const list=await call('/api/skills/list',undefined,'GET');
+  assert.equal(list.status,200);
+  const entry=list.body.find(s=>s.name==='acetic-lithium-transform');
+  assert.ok(entry);
+  assert.equal(entry.title,'醋酸锂转化酵母');
+  assert.equal(entry.kind,'experiment');
+  assert.ok(fs.existsSync(entry.path));
+});

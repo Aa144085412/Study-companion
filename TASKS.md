@@ -33,6 +33,15 @@
 
 ## 已完成（done）
 
+- **T26 · 修复抖音"两个源"重复 + 知识总结产出模式 + 全局「Skill 库」面板（列表 + 资源管理器打开）** — done · owner: claude code · 2026-10-10
+  - 起因：用户「抖音视频学习资料为什么有两个源？不对」+「有时需求是**抖音知识总结**，写成 skill 方便调用」+「没有 skill 文件列表，像 claude code desktop 那样从列表选 open in explorer」。
+  - **修重复源**：`POST /api/sources` 文本分支加规范化 hash（sha256，运行时间戳 `\b\d{8}-\d{6}\b`→`TS`，复刻 `/api/upload` 口径），同 notebook 同 kind 同 hash → `duplicate:true`+既有 id（200，不新增）；数据层清掉抖音本那条重复源（保留最早 createdAt，备份 `store.json.bak-dedup`，停 8765→改→重启）。
+  - **知识总结模式（skill kind）**：`parseSkillMeta` 认 `kind:`；`generateSkillForNotebook(id, kind)` 用 `SKILL_PROMPTS[kind]`（experiment 原模板 / knowledge 新模板：什么时候用/核心要点/关键概念/知识要点/方法流程/常见误区/来源，参考专业 SKILL.md 写法，未知标"待核对"）；`POST /api/agent/skill {kind}` 按 kind 复用/重生成 + `result.skill.kind` 回传 + 类型标签；`url_pipeline.py`·`experiment_pipeline.py` 加 `--kind`；Agent dialog 加「产出类型」下拉。
+  - **Skill 库面板**：后端 `GET /api/skills/list`（扫 `skills/*.md` 解析 frontmatter）+ `POST /api/skills/reveal {name}`（`[a-z0-9-]` 校验 + win32 `explorer /select`/darwin `open -R`/其他 `xdg-open`）；前端侧栏「📚 Skill 库」按钮 + `#skillsDialog`（`#skillLibrary` 卡片 +「在资源管理器中显示」）。
+  - 验证：`node --check server.mjs public/app.js` 过；python `ast` 过；`npm test` **33/33**（新增 3 项：文本源去重 / kind=knowledge 独立于 experiment / skills list meta）无回归。浏览器活体（单实例 8765，预览面板）：抖音本「学习资料 1」、dialog「产出类型」下拉在位、Skill 库列 3 skill 带 meta、点「在资源管理器中显示」→ `POST /api/skills/reveal` 200。
+  - 诚实边界：抖音本自身 skill `skills/multi-ai-agent-concurrency-conflict-prevention.md` 当前**不在磁盘**（会话前已 `D`、仍 track 于 HEAD），故不在 Skill 库列出，待用户决定是否恢复。用户新方向「agent 可安装自己的 agent / 自写 skill 只在 pre-queue / 使用时调度去 skill-queue」语义未定，待澄清另立项。
+  - 提交：本地 commit（`server.mjs`、`public/index.html`、`public/app.js`、`public/style.css`、`scripts/url_pipeline.py`、`scripts/experiment_pipeline.py`、`tests/agent-skill.test.mjs`、`CONTEXT.md`、`TASKS.md`），**未 push**（push 需用户授权）。既有删除 `skills/multi-ai-agent-concurrency-conflict-prevention.md` 未纳入。
+
 - **T25 · 彻底删除「实验指导」功能 + 修复抖音笔记本乱码** — done · owner: claude code · 2026-10-10
   - 起因：用户「解决乱码问题，此外实验指导是一个冗余的功能，彻底删除」。截图=抖音笔记本标题/来源文件名乱码（U+FFFD）。
   - 删除「实验指导」（后端+前端+测试+遗留数据）：`server.mjs` 删 `GET /api/skills`、`POST /api/skill-ask`、`POST /api/skills/generate` + `listSkills()`/`readSkill()`（**保留** `/api/agent/skill` 及助手，它是管线产出 skill 的核心交付物）；前端删「实验指导」tab/面板 + 全部 skill 问答 JS + CSS；删 `tests/skill.test.mjs`、`tests/agent-skill.test.mjs` 去 `/api/skill-ask` 子断言；清 `db.messages` 全部 `type:'skill'` 遗留记录。

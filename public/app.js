@@ -183,7 +183,7 @@ let correctionSource;
 function editSource(source){correctionSource=source;$('correctionTitle').textContent='校对 · '+source.title;$('correctionFields').replaceChildren();if(source.segments?.length){for(const seg of source.segments){const label=node('label','',time(seg.start)+' — '+time(seg.end));const input=node('textarea');input.dataset.segmentId=seg.id;input.value=seg.text;label.append(input);$('correctionFields').append(label);}}else{const input=node('textarea');input.value=source.content;input.id='correctionText';$('correctionFields').append(input);}$('correctionDialog').showModal();}
 $('closeCorrection').onclick=()=>$('correctionDialog').close();$('saveCorrection').onclick=()=>run(async()=>{const inputs=[...$('correctionFields').querySelectorAll('textarea')];const value=correctionSource.segments?.length?{segments:inputs.map(i=>({id:i.dataset.segmentId,text:i.value}))}:{content:inputs[0].value};await api('/api/sources/'+correctionSource.id+'/corrections',value);$('correctionDialog').close();await refresh();toast('校对版本已保存，原始识别结果保留');});
 let agentBusy=false;
-function setAgentBusy(b){agentBusy=b;$('agentStart').disabled=b;$('agentGoal').disabled=b;$('agentCrawl').disabled=b;$('agentUrl').disabled=b;$('agentSource').disabled=b;}
+function setAgentBusy(b){agentBusy=b;$('agentStart').disabled=b;$('agentGoal').disabled=b;$('agentCrawl').disabled=b;$('agentUrl').disabled=b;$('agentSource').disabled=b;$('agentSkillKind').disabled=b;}
 function agentLog(line){if(!line)return;const p=node('p','',line);$('agentLog').append(p);$('agentLog').scrollTop=$('agentLog').scrollHeight;}
 const AGENT_SRC_LABEL={keyword:'小红书图文',wechat:'微信公众号图文',douyin:'抖音视频','xhs-video':'小红书视频'};
 function syncAgentMode(){
@@ -201,11 +201,11 @@ async function startAgentPipeline(){
   if(source==='keyword'){
     const goal=$('agentGoal').value.trim();
     if(!goal)throw Error('请输入实验关键词');
-    payload={goal,crawl:$('agentCrawl').checked};
+    payload={goal,crawl:$('agentCrawl').checked,skillKind:$('agentSkillKind').value};
   }else{
     const url=$('agentUrl').value.trim();
     if(!/^https?:\/\/.+/i.test(url))throw Error('请粘贴合法的 http(s) 链接');
-    payload={source,url,goal:$('agentGoal').value.trim()};
+    payload={source,url,goal:$('agentGoal').value.trim(),skillKind:$('agentSkillKind').value};
   }
   setAgentBusy(true);
   $('agentLog').replaceChildren();
@@ -258,7 +258,8 @@ function renderAgentReport(run){
     grid.append(node('div','agent-step','导入：'+(counts.imported??'-')+' 篇 · 跳过 '+(counts.skipped??'-')));
   }
   grid.append(node('div','agent-step','笔记：'+(note.chars??'-')+' 字'+(note.firstLine?' · '+(note.firstLine.length>18?note.firstLine.slice(0,18)+'…':note.firstLine):'')));
-  grid.append(node('div','agent-step','skill：'+(skill.name?skill.name+' · '+(skill.steps||0)+' 步':'未生成')));
+  const kindLabel=skill.kind==='knowledge'?'知识总结':'实验操作';
+  grid.append(node('div','agent-step','skill：'+(skill.name?kindLabel+' · '+skill.name+' · '+(skill.steps||0)+' 个编号步骤':'未生成')));
   box.append(grid);
   if(gaps.length){
     box.append(node('h4','agent-gaps-title','待核对清单 · '+gaps.length));
@@ -272,4 +273,23 @@ $('agentForm').onsubmit=e=>{e.preventDefault();run(startAgentPipeline);};
 $('agentSource').onchange=syncAgentMode;
 $('agentOpen').onclick=()=>{agentLog('');$('agentReport').classList.add('hidden');$('agentReport').replaceChildren();$('agentState').textContent='';syncAgentMode();$('agentDialog').showModal();};
 $('closeAgent').onclick=()=>$('agentDialog').close();
+async function loadSkillsLibrary(){
+  const list=$('skillLibrary');
+  list.replaceChildren(node('p','hint','加载中…'));
+  let items=[];
+  try{items=await api('/api/skills/list',undefined,'GET');}catch{items=[];}
+  list.replaceChildren();
+  if(!items.length){list.append(node('p','hint','还没有 skill。用「实验 Agent」整理一个笔记本后，会在这里生成标准 SKILL.md 文件。'));return;}
+  for(const s of items){
+    const card=node('div','skill-card');
+    const kindLabel=s.kind==='knowledge'?'知识总结':'实验操作';
+    card.append(node('b','',s.title||s.name));
+    card.append(node('span','skill-card-meta','['+kindLabel+'] '+s.name+'.md'+(s.steps?' · '+s.steps+' 个编号步骤':'')));
+    if(s.description)card.append(node('p','skill-card-desc',s.description));
+    card.append(button('在资源管理器中显示',async()=>{try{await api('/api/skills/reveal',{name:s.name});toast('已在资源管理器中定位 '+s.file);}catch(e){toast('打开失败：'+e.message);}}));
+    list.append(card);
+  }
+}
+$('skillsOpen').onclick=()=>{loadSkillsLibrary();$('skillsDialog').showModal();};
+$('closeSkills').onclick=()=>$('skillsDialog').close();
 checkHealth();

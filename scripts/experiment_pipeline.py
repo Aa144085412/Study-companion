@@ -124,10 +124,12 @@ def generate_note(api_base, notebook_id):
     return {'revisionId': rev.get('id'), 'chars': len(text), 'firstLine': text.splitlines()[0].strip()[:120]}
 
 
-def run_skill(api_base, notebook_id, force):
+def run_skill(api_base, notebook_id, force, kind='experiment'):
     payload = {'notebookId': notebook_id}
     if force:
         payload['mode'] = 'force'
+    if kind and kind != 'experiment':
+        payload['kind'] = kind
     run = api(api_base, '/api/agent/skill', payload)
     r = run.get('result') or {}
     sk = r.get('skill') or {}
@@ -144,6 +146,7 @@ def main():
         sys.stdout.reconfigure(encoding='utf-8')
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--goal', required=True, help='实验关键词（= 小红书搜索词 / 笔记本后缀）')
+    ap.add_argument('--kind', default='experiment', choices=['experiment', 'knowledge'], help='skill 产出类型：实验操作 / 知识总结')
     ap.add_argument('--api', default='http://127.0.0.1:8765')
     ap.add_argument('--app-root', type=Path, default=Path(__file__).resolve().parents[1])
     ap.add_argument('--crawler-root', type=Path, default=Path.home() / 'Desktop' / 'MediaCrawler')
@@ -199,7 +202,7 @@ def main():
         emit(event='note-done', revisionId=report['steps']['note'].get('revisionId') if report['steps']['note'] else None)
 
         # 5) 生成 skill（T20）
-        report['steps']['skill'] = run_skill(args.api, nb['id'], args.force_skill)
+        report['steps']['skill'] = run_skill(args.api, nb['id'], args.force_skill, args.kind)
         emit(event='skill-done', name=report['steps']['skill']['skill'].get('name'),
              steps=report['steps']['skill']['skill'].get('steps'), gapCount=report['steps']['skill']['gapCount'])
 

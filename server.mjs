@@ -122,19 +122,26 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     return imgs;
   }
   function parseSkillMeta(content){
-    const meta={};
+    const meta={kind:'experiment'};
     const m=/^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
-    if(m) for(const line of m[1].split(/\r?\n/)){ const kv=/^(name|title|description):\s*(.+)$/.exec(line.trim()); if(kv) meta[kv[1]]=kv[2].trim(); }
+    if(m) for(const line of m[1].split(/\r?\n/)){ const kv=/^(name|title|description|kind):\s*(.+)$/.exec(line.trim()); if(kv) meta[kv[1]]=kv[2].trim(); }
     meta.steps=(content.match(/^###\s+\d+\./gm)||[]).length;
     return meta;
   }
   function lastDoneAgentSkill(notebookId){
     for(const r of [...(db.agentRuns||[])].reverse()){
-      if(r.notebookId===notebookId && r.status==='done' && r.result?.skill?.path) return r.result.skill;
+      if(r.notebookId===notebookId && r.status==='done' && r.result?.skill?.path) return r;
     }
     return null;
   }
-  async function generateSkillForNotebook(notebookId){
+  const SKILL_PROMPTS={
+    experiment:'你是实验笔记整理助手。把用户提供的实验笔记/材料整理成一份可复用的「实验操作 skill」。严格按下面模板输出 markdown，从第一个 --- 行开始，不要输出模板以外的解释：\n'
+      +'---\nname: <小写英文短横线 slug，如 dh5a-gfp-transformation>\ntitle: <实验中文标题>\nkind: experiment\ndescription: <一句话：方法 + 关键筛选/培养 + 什么情况下该调用>\n---\n# <实验中文标题>\n\n## 目标\n<一句话>\n\n## 材料\n<逐行列出；无则写“材料未说明/待核对”>\n\n## 步骤\n### 1. <步骤名>\n- 操作：<...>\n- 参数：<温度/时间/体积/浓度；缺失写“待核对”>\n- 注意：<易错点>\n- 检查点：<如何确认成功>\n（每个步骤同构，编号递增）\n\n## 安全\n<生物安全/废液/防护>。\n只依据材料，缺失参数写“待核对”，不要编造数值。',
+    knowledge:'你是知识整理助手。把用户提供的视频/图文材料整理成一份可复用的「知识总结 skill」——围绕一个主题沉淀核心知识，方便日后任何 agent 加载它来回答问题或指导操作。严格按下面模板输出 markdown，从第一个 --- 行开始，不要输出模板以外的解释：\n'
+      +'---\nname: <小写英文短横线 slug，如 ai-agent-conflict-avoidance>\ntitle: <中文标题>\nkind: knowledge\ndescription: <一句话：这个 skill 沉淀了什么知识 + 什么情况下该调用它（把触发场景写具体，便于被正确唤起）>\n---\n# <中文标题>\n\n## 什么时候用\n- <列出该 skill 应被唤起的场景 / 问题类型（具体一点）>\n\n## 核心要点（先看这里）\n- <3-5 条最关键、最改变结论的要点>\n\n## 关键概念与名词\n- <术语 / 缩写>：<一句话释义>（材料里出现的专业词、缩写、专有名词）\n\n## 知识要点（分主题）\n### <主题 1>\n- <要点>（材料未说明处写“待核对”，不要编造）\n### <主题 2>\n- <要点>\n\n## 方法 / 流程（若有可操作步骤）\n1. <步骤>（含关键参数；缺失写“待核对”）\n\n## 常见误区 / 易错点\n- <误区 → 正确做法>\n\n## 来源\n- <来源标注：平台 + 标题；若引用视频可写时间点>\n\n只依据材料；缺失信息写“待核对”，不要编造数值或结论。用祈使句、简洁。'
+  };
+  async function generateSkillForNotebook(notebookId, kind='experiment'){
+    if(!['experiment','knowledge'].includes(kind)) kind='experiment';
     if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
     const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId);
     const items=evidence(notebookId);
@@ -142,8 +149,8 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     for(const e of items){if(budget<=0)break;const chunk=e.text.slice(0,Math.min(1200,budget));budget-=chunk.length;refs.push({title:e.title,text:chunk});}
     if(!note?.content && !refs.length) throw fail('这个笔记本还没有笔记或文字资料，无法生成 skill');
     const material=JSON.stringify({note:note?.content.slice(0,1600)||'',sources:refs});
-    const system='你是实验笔记整理助手。把用户提供的实验笔记/材料整理成一份可复用的「实验操作 skill」。严格按下面模板输出 markdown，从第一个 --- 行开始，不要输出模板以外的解释：\n'+'---\nname: <小写英文短横线 slug，如 dh5a-gfp-transformation>\ntitle: <实验中文标题>\ndescription: <一句话：方法 + 关键筛选/培养>\n---\n# <实验中文标题>\n\n## 目标\n<一句话>\n\n## 材料\n<逐行列出；无则写“材料未说明/待核对”>\n\n## 步骤\n### 1. <步骤名>\n- 操作：<...>\n- 参数：<温度/时间/体积/浓度；缺失写“待核对”>\n- 注意：<易错点>\n- 检查点：<如何确认成功>\n（每个步骤同构，编号递增）\n\n## 安全\n<生物安全/废液/防护>。\n只依据材料，缺失参数写“待核对”，不要编造数值。';
-    const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:system},{role:'user',content:'以下是该实验的笔记与材料（JSON 数据）：\n'+material+'\n请输出完整 skill markdown。'}]});
+    const system=SKILL_PROMPTS[kind];
+    const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:system},{role:'user',content:'以下是该笔记本的笔记与材料（JSON 数据）：\n'+material+'\n请输出完整 skill markdown。'}]});
     let content=text(answer.choices?.[0]?.message?.content).replace(/<think>[\s\S]*?<\/think>/g,'').trim();
     if(!content) throw fail('模型未返回有效文字',502);
     const fm=/^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
@@ -156,7 +163,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     const file=path.join(skillsDir,name+'.md');
     fs.writeFileSync(file,content,'utf8');
     const meta=parseSkillMeta(content);
-    return {name,title:meta.title||name,description:meta.description||'',steps:meta.steps,path:file,slugSource:name};
+    return {name,title:meta.title||name,description:meta.description||'',kind:meta.kind,steps:meta.steps,path:file,slugSource:name};
   }
   function extractGaps(content){
     const gaps=[];
@@ -252,7 +259,12 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const s={id:uuid(),notebookId:x.notebookId,title:text(x.title,200),createdAt:now()};
         if(['.txt','.md','.srt'].includes(ext)) {
           if(String(x.content??'').length>200000) throw fail('文本超过 200,000 字符，请拆分后导入');
-          s.kind='text'; s.content=text(x.content); s.segments=ext==='.srt'?parseSrt(s.content):[];
+          const content=text(x.content);
+          // normalize the pipeline's embedded run-timestamp (YYYYMMDD-HHMMSS) so re-imports of the same media dedup despite a fresh header
+          const hash=createHash('sha256').update(content.replace(/\b\d{8}-\d{6}\b/g,'TS')).digest('hex');
+          const dup=db.sources.find(s2=>s2.notebookId===x.notebookId && s2.kind==='text' && s2.hash===hash);
+          if(dup) return json(res,{...dup,duplicate:true});
+          s.kind='text'; s.content=content; s.hash=hash; s.segments=ext==='.srt'?parseSrt(content):[];
           if(ext==='.srt' && !s.segments.length) throw fail('没有识别到有效 SRT 时间戳');
         } else if(['.mp3','.wav','.m4a','.mp4','.webm','.ogg'].includes(ext)) {
           const bytes=Buffer.from(text(x.base64,45*1024*1024),'base64'); if(!bytes.length || bytes.length>32*1024*1024) throw fail('媒体文件须在 1 字节至 32 MB 之间');
@@ -332,32 +344,36 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       }
       if(req.method==='POST' && p==='/api/agent/skill'){
         const x=await body(req);const nb=book(x.notebookId);
+        const kind=['experiment','knowledge'].includes(x.kind)?x.kind:'experiment';
         const force=x.mode==='force'||x.force===true;
-        const base={id:uuid(),notebookId:nb.id,notebookTitle:nb.title,goal:'资料→可复用实验 skill',mode:force?'force':'auto',status:'running',createdAt:now(),updatedAt:now()};
+        const base={id:uuid(),notebookId:nb.id,notebookTitle:nb.title,kind,goal:kind==='knowledge'?'资料→可复用知识 skill':'资料→可复用实验 skill',mode:force?'force':'auto',status:'running',createdAt:now(),updatedAt:now()};
         db.agentRuns.push(base);save();
         try{
           const prior=lastDoneAgentSkill(nb.id);
+          const priorSkill=prior?.result?.skill;
           let reused=false;let skill;
-          if(!force && prior && fs.existsSync(prior.path)){
-            const content=fs.readFileSync(prior.path,'utf8');
+          // reuse only when the previously generated skill is the same kind (a knowledge skill can't stand in for an experiment one, or vice versa)
+          if(!force && priorSkill && prior.kind===kind && fs.existsSync(priorSkill.path)){
+            const content=fs.readFileSync(priorSkill.path,'utf8');
             const meta=parseSkillMeta(content);
-            skill={name:meta.name||prior.name,title:meta.title||prior.title,description:meta.description||'',steps:meta.steps,path:prior.path};
+            skill={name:meta.name||priorSkill.name,title:meta.title||priorSkill.title,description:meta.description||'',kind:meta.kind||kind,steps:meta.steps,path:priorSkill.path};
             reused=true;
           }else{
-            if(force && prior && fs.existsSync(prior.path)) fs.rmSync(prior.path);
-            const gen=await generateSkillForNotebook(nb.id);
-            skill={name:gen.name,title:gen.title,description:gen.description||'',steps:gen.steps,path:gen.path};
+            if(force && priorSkill && fs.existsSync(priorSkill.path)) fs.rmSync(priorSkill.path);
+            const gen=await generateSkillForNotebook(nb.id,kind);
+            skill={name:gen.name,title:gen.title,description:gen.description||'',kind:gen.kind||kind,steps:gen.steps,path:gen.path};
           }
           const gaps=extractGaps(fs.readFileSync(skill.path,'utf8'));
           base.status='done';
+          const kindLabel=kind==='knowledge'?'知识总结':'实验操作';
           base.result={
             experiment:skill.title,
-            skill:{name:skill.name,title:skill.title,description:skill.description,steps:skill.steps||0,path:skill.path,portable:true,format:'Agent Skills (SKILL.md)'},
+            skill:{name:skill.name,title:skill.title,description:skill.description,kind:skill.kind,steps:skill.steps||0,path:skill.path,portable:true,format:'Agent Skills (SKILL.md)'},
             reused,
             gaps,
             gapCount:gaps.length,
-            summary:`已${reused?'复用已存在':'生成'} skill「${skill.name}」（${skill.steps||0} 步，${gaps.length} 项待核对）。该 skill 为标准 Agent Skills 格式，任何 agent 可加载 ${path.basename(skill.path)} 指导该实验。`,
-            note:'本 skill 为 YAML frontmatter + 步骤的标准 Agent Skills 格式，任何 agent 均可加载该文件指导该实验。'
+            summary:`已${reused?'复用已存在':'生成'}${kindLabel} skill「${skill.name}」（${skill.steps||0} 个编号步骤，${gaps.length} 项待核对）。该 skill 为标准 Agent Skills 格式，任何 agent 可加载 ${path.basename(skill.path)}。`,
+            note:'本 skill 为 YAML frontmatter + 正文的标准 Agent Skills 格式，任何 agent 均可加载该文件指导该实验或调用该知识。'
           };
           base.completedAt=now();base.updatedAt=now();save();
           return json(res,base,201);
@@ -365,6 +381,29 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           base.status='failed';base.error=e.message;base.updatedAt=now();save();
           throw e;
         }
+      }
+      if(req.method==='GET' && p==='/api/skills/list'){
+        let files=[];
+        try{ files=fs.readdirSync(skillsDir,{withFileTypes:true}).filter(e=>e.isFile()&&e.name.endsWith('.md')); }catch{}
+        const list=files.map(e=>{
+          let content='';try{ content=fs.readFileSync(path.join(skillsDir,e.name),'utf8'); }catch{}
+          const meta=parseSkillMeta(content);
+          return {name:meta.name||e.name.replace(/\.md$/,''),title:meta.title||e.name.replace(/\.md$/,''),description:meta.description||'',kind:meta.kind,steps:meta.steps||0,file:e.name,path:path.join(skillsDir,e.name)};
+        }).sort((a,b)=>a.name.localeCompare(b.name));
+        return json(res,list);
+      }
+      if(req.method==='POST' && p==='/api/skills/reveal'){
+        const x=await body(req);
+        const name=String(x.name||'');
+        if(!/^[a-z0-9-]+$/.test(name)) throw fail('skill 名称无效',400);
+        const file=path.join(skillsDir,name+'.md');
+        if(!fs.existsSync(file)) throw fail('skill 文件不存在',404);
+        try{
+          if(process.platform==='darwin') spawn('open',['-R',file],{detached:true,stdio:'ignore'}).unref();
+          else if(process.platform==='win32') spawn('explorer',['/select,',file],{detached:true,stdio:'ignore'}).unref();
+          else spawn('xdg-open',[path.dirname(file)],{detached:true,stdio:'ignore'}).unref();
+        }catch(e){ throw fail('无法打开资源管理器：'+e.message,500); }
+        return json(res,{ok:true,file});
       }
       if(req.method==='GET' && p==='/api/agent/runs'){
         const sp=new URL(req.url,`http://${req.headers.host||'127.0.0.1'}`).searchParams;
@@ -382,14 +421,16 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(goal.length>80)throw fail('goal 过长（≤80 字符）');
         const crawl=x.crawl===true;
         const force=x.force===true;
+        const skillKind=['experiment','knowledge'].includes(x.skillKind)?x.skillKind:'experiment';
         const runId=uuid();
-        const base={id:runId,kind:'pipeline',goal,notebookId:null,notebookTitle:null,goalLabel:'资料→笔记→skill 端到端',mode:crawl?'crawl':'reuse',status:'running',createdAt:now(),updatedAt:now()};
+        const base={id:runId,kind:'pipeline',skillKind,goal,notebookId:null,notebookTitle:null,goalLabel:skillKind==='knowledge'?'资料→笔记→知识 skill 端到端':'资料→笔记→skill 端到端',mode:crawl?'crawl':'reuse',status:'running',createdAt:now(),updatedAt:now()};
         db.agentRuns.push(base);save();
         const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
         const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
         const args=[path.join(ROOT,'scripts','experiment_pipeline.py'),'--goal',goal,'--api',localBase,'--run-id',runId];
         if(crawl)args.push('--crawl');
         if(force)args.push('--force-skill');
+        if(skillKind!=='experiment')args.push('--kind',skillKind);
         try{
           const child=pipelineLauncher(py,args,{cwd:ROOT,detached:true,stdio:'ignore'});
           child.on('error',()=>{const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error='启动 pipeline 驱动失败（检查 python/脚本）';r.updatedAt=now();save();}});
@@ -408,15 +449,17 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(!/^https?:\/\/.+/i.test(url))throw fail('请提供合法的 http(s) URL');
         const goal=String(x.goal??'').trim().slice(0,40);
         const cookieFile=String(x.cookieFile??'').trim();
+        const skillKind=['experiment','knowledge'].includes(x.skillKind)?x.skillKind:'experiment';
         const runId=uuid();
         const label={douyin:'抖音视频→笔记→skill','xhs-video':'小红书视频→笔记→skill',wechat:'微信图文→笔记→skill'}[source];
-        const base={id:runId,kind:'pipeline',goal:goal||url.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:label,mode:'url',source,url,status:'running',createdAt:now(),updatedAt:now()};
+        const base={id:runId,kind:'pipeline',skillKind,goal:goal||url.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:skillKind==='knowledge'?label.replace('skill','知识 skill'):label,mode:'url',source,url,status:'running',createdAt:now(),updatedAt:now()};
         db.agentRuns.push(base);save();
         const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
         const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
         const args=[path.join(ROOT,'scripts','url_pipeline.py'),'--source',source,'--url',url,'--api',localBase,'--run-id',runId];
         if(goal)args.push('--goal',goal);
         if(cookieFile)args.push('--cookie-file',cookieFile);
+        if(skillKind!=='experiment')args.push('--kind',skillKind);
         try{
           const child=pipelineLauncher(py,args,{cwd:ROOT,detached:true,stdio:'ignore'});
           child.on('error',()=>{const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error='启动 URL pipeline 驱动失败（检查 python/脚本）';r.updatedAt=now();save();}});
