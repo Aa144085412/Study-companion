@@ -126,3 +126,22 @@ test('GET /api/skills/list reflects generated skills with parsed meta',async t=>
   assert.equal(entry.kind,'experiment');
   assert.ok(fs.existsSync(entry.path));
 });
+
+test('skill tiering: new skill defaults to pre; POST /api/skills/queue toggles active/pre',async t=>{
+  const {call}=await fixture(t,modelFetchReturning(GEN_SKILL));
+  await call('/api/agent/skill',{notebookId:'nb1'});
+  let list=await call('/api/skills/list',undefined,'GET');
+  let entry=list.body.find(s=>s.name==='acetic-lithium-transform');
+  assert.ok(entry);
+  assert.equal(entry.status,'pre'); // self-generated skills start in pre-queue
+  const up=await call('/api/skills/queue',{name:'acetic-lithium-transform',status:'active'});
+  assert.equal(up.status,200);
+  assert.equal(up.body.status,'active');
+  list=await call('/api/skills/list',undefined,'GET');
+  assert.equal(list.body.find(s=>s.name==='acetic-lithium-transform').status,'active');
+  const down=await call('/api/skills/queue',{name:'acetic-lithium-transform',status:'pre'});
+  assert.equal(down.status,200);
+  assert.equal(down.body.status,'pre');
+  assert.equal((await call('/api/skills/queue',{name:'acetic-lithium-transform',status:'nope'})).status,400);
+  assert.equal((await call('/api/skills/queue',{name:'does-not-exist',status:'active'})).status,404);
+});

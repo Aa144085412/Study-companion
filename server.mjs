@@ -43,7 +43,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     settings: { llmUrl: 'http://127.0.0.1:1234/v1', model: '', asrUrl: 'http://127.0.0.1:8000/v1', asrModel: 'whisper-1' }
   };
   const save = () => { fs.writeFileSync(dbPath+'.tmp', JSON.stringify(db, null, 2)); fs.renameSync(dbPath+'.tmp', dbPath); };
-  db.jobs ??= []; db.agentRuns ??= []; db.schema=2;
+  db.jobs ??= []; db.agentRuns ??= []; db.skillsQueue ??= {}; db.schema=2;
   db.settings.asrEngine ??= 'builtin';
   db.settings.ttsVoice ??= 'zh-CN-XiaoxiaoNeural';
   if(!/^zh-/.test(db.settings.ttsVoice)) db.settings.ttsVoice='zh-CN-XiaoxiaoNeural';
@@ -386,9 +386,10 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         let files=[];
         try{ files=fs.readdirSync(skillsDir,{withFileTypes:true}).filter(e=>e.isFile()&&e.name.endsWith('.md')); }catch{}
         const list=files.map(e=>{
+          const fname=e.name.replace(/\.md$/,'');
           let content='';try{ content=fs.readFileSync(path.join(skillsDir,e.name),'utf8'); }catch{}
           const meta=parseSkillMeta(content);
-          return {name:meta.name||e.name.replace(/\.md$/,''),title:meta.title||e.name.replace(/\.md$/,''),description:meta.description||'',kind:meta.kind,steps:meta.steps||0,file:e.name,path:path.join(skillsDir,e.name)};
+          return {name:fname,title:meta.title||fname,description:meta.description||'',kind:meta.kind,steps:meta.steps||0,status:db.skillsQueue?.[fname]||'pre',file:e.name,path:path.join(skillsDir,e.name)};
         }).sort((a,b)=>a.name.localeCompare(b.name));
         return json(res,list);
       }
@@ -404,6 +405,19 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           else spawn('xdg-open',[path.dirname(file)],{detached:true,stdio:'ignore'}).unref();
         }catch(e){ throw fail('无法打开资源管理器：'+e.message,500); }
         return json(res,{ok:true,file});
+      }
+      if(req.method==='POST' && p==='/api/skills/queue'){
+        const x=await body(req);
+        const name=String(x.name||'');
+        const status=x.status==='active'?'active':x.status==='pre'?'pre':'';
+        if(!/^[a-z0-9-]+$/.test(name)) throw fail('skill 名称无效',400);
+        if(!status) throw fail('status 需为 pre（pre-queue）或 active（skill-queue）',400);
+        const file=path.join(skillsDir,name+'.md');
+        if(!fs.existsSync(file)) throw fail('skill 文件不存在',404);
+        db.skillsQueue ??= {};
+        db.skillsQueue[name]=status;
+        save();
+        return json(res,{ok:true,name,status});
       }
       if(req.method==='GET' && p==='/api/agent/runs'){
         const sp=new URL(req.url,`http://${req.headers.host||'127.0.0.1'}`).searchParams;

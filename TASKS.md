@@ -33,6 +33,13 @@
 
 ## 已完成（done）
 
+- **T27 · skill 分级：pre-queue → skill-queue（自写 skill 默认 pre，可调度到 skill-queue）** — done · owner: claude code · 2026-10-10
+  - 起因：用户「自己写的 skill 只在 pre-queue，我使用时可以选择调度去 skill-queue 来使用」。语义=自写/生成 skill 默认进 pre-queue（待激活），用户可「调度」到 skill-queue（已激活、可被任何 agent 调用）。
+  - 方案（存储留 `store.json`，`SKILL.md` 文件保持可移植干净）：`db.skillsQueue`（`name→'pre'|'active'`，缺省 `pre`）；`GET /api/skills/list` 加 `status`（以磁盘文件名 stem 为 key，与 reveal 一致）；新增 `POST /api/skills/queue {name,status}`（`[a-z0-9-]` + 文件存在 + status∈{pre,active}，否则 400/404）；前端 Skill 库面板分「skill-queue（已激活）/ pre-queue（待激活）」两组，每卡状态徽标 + 「调度到 skill-queue（激活）」/「退回 pre-queue」+「在资源管理器中显示」，切换后重载。
+  - 验证：`node --check server.mjs public/app.js` 过；`npm test` **34/34**（新增 1 项 tiering：默认 pre→active→pre + 非法 status 400 + 不存在 404）无回归。浏览器活体（重启单实例 8765 预览面板）：list 全默认 pre、queue promote/demote/400/404 正确、UI 两组分组 + 点「调度」把 dh5a 移入 skill-queue 组 + 蓝左边框样式；收尾恢复演示 skill 回 pre。
+  - 边界（如实）：只做 skill 分级 + 激活状态；「skill-queue 被 agent 实际加载调用」运行时行为属后续「安装自己的 agent」方向（用户已选先做分级）。抖音本自身 skill 仍不在磁盘（既有删除，未恢复/未提交）。
+  - 提交：本地 commit（`server.mjs`、`public/index.html`、`public/app.js`、`public/style.css`、`tests/agent-skill.test.mjs`、`CONTEXT.md`、`TASKS.md`），**未 push**（push 需用户授权）。
+
 - **T26 · 修复抖音"两个源"重复 + 知识总结产出模式 + 全局「Skill 库」面板（列表 + 资源管理器打开）** — done · owner: claude code · 2026-10-10
   - 起因：用户「抖音视频学习资料为什么有两个源？不对」+「有时需求是**抖音知识总结**，写成 skill 方便调用」+「没有 skill 文件列表，像 claude code desktop 那样从列表选 open in explorer」。
   - **修重复源**：`POST /api/sources` 文本分支加规范化 hash（sha256，运行时间戳 `\b\d{8}-\d{6}\b`→`TS`，复刻 `/api/upload` 口径），同 notebook 同 kind 同 hash → `duplicate:true`+既有 id（200，不新增）；数据层清掉抖音本那条重复源（保留最早 createdAt，备份 `store.json.bak-dedup`，停 8765→改→重启）。

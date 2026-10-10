@@ -280,15 +280,32 @@ async function loadSkillsLibrary(){
   try{items=await api('/api/skills/list',undefined,'GET');}catch{items=[];}
   list.replaceChildren();
   if(!items.length){list.append(node('p','hint','还没有 skill。用「实验 Agent」整理一个笔记本后，会在这里生成标准 SKILL.md 文件。'));return;}
-  for(const s of items){
-    const card=node('div','skill-card');
+  const renderCard=(s)=>{
+    const active=s.status==='active';
+    const card=node('div','skill-card'+(active?' is-active':''));
     const kindLabel=s.kind==='knowledge'?'知识总结':'实验操作';
+    const statusLabel=active?'已激活 · skill-queue':'pre-queue · 待激活';
     card.append(node('b','',s.title||s.name));
-    card.append(node('span','skill-card-meta','['+kindLabel+'] '+s.name+'.md'+(s.steps?' · '+s.steps+' 个编号步骤':'')));
+    card.append(node('span','skill-card-meta','['+kindLabel+'] '+s.name+'.md'+(s.steps?' · '+s.steps+' 个编号步骤':'')+' · '+statusLabel));
     if(s.description)card.append(node('p','skill-card-desc',s.description));
-    card.append(button('在资源管理器中显示',async()=>{try{await api('/api/skills/reveal',{name:s.name});toast('已在资源管理器中定位 '+s.file);}catch(e){toast('打开失败：'+e.message);}}));
-    list.append(card);
-  }
+    const actions=node('div','skill-card-actions');
+    actions.append(button(active?'退回 pre-queue':'调度到 skill-queue（激活）',async()=>{
+      const next=active?'pre':'active';
+      try{await api('/api/skills/queue',{name:s.name,status:next},'POST');toast(active?('「'+s.name+'」已退回 pre-queue'):('「'+s.name+'」已调度到 skill-queue'));loadSkillsLibrary();}
+      catch(e){toast('操作失败：'+e.message);}
+    }));
+    actions.append(button('在资源管理器中显示',async()=>{try{await api('/api/skills/reveal',{name:s.name});toast('已在资源管理器中定位 '+s.file);}catch(e){toast('打开失败：'+e.message);}}));
+    card.append(actions);
+    return card;
+  };
+  const group=(label,desc,arr)=>{
+    if(!arr.length)return;
+    list.append(node('h3','skill-queue-heading',label));
+    list.append(node('p','skill-queue-hint',desc));
+    for(const s of arr)list.append(renderCard(s));
+  };
+  group('skill-queue（已激活）','已调度的 skill，可被任何 agent 加载调用。',items.filter(s=>s.status==='active'));
+  group('pre-queue（待激活）','自写 / 生成的 skill 默认在这里。选「调度到 skill-queue」后进入已激活队列。',items.filter(s=>s.status!=='active'));
 }
 $('skillsOpen').onclick=()=>{loadSkillsLibrary();$('skillsDialog').showModal();};
 $('closeSkills').onclick=()=>$('skillsDialog').close();
