@@ -6,11 +6,11 @@
 
 - **Status**：v0.2.0 开发版；核心流程已实现，未完成完整产品验收。
 - **Goal**：音视频 → 转写与校对 → 笔记 → AI 共读/语音提问 → 实验 skill 问答指导。
-- **Active task**：本轮 T11 双 agent 进度对齐完成。发现 OCR 未提交开发文件，owner 尚未确认，后续不要覆盖、删除或代为提交。
-- **Last verified state**：2026-10-10 本地 `npm.cmd test` 18/18 通过，`npm.cmd run check` 通过；真实 HTTP 访问 8765 被拒绝，服务当时未运行。本轮没有启动/重启生产服务，没有重新执行真实 LLM、ASR、TTS 或浏览器验收。
-- **Code baseline**：核对起点 main / `483abf3`（朗读前剥离 Markdown）；其后本次仅文档对齐。接手时重新读取 HEAD，不把此基线当作永远最新。
-- **Current blocker**：没有阻碍继续开发的确定故障；真实材料、OCR 在研归属和扩展优先级待确认。服务未运行不等于代码损坏。
-- **Next safe action**：先确认 OCR 文件是否仍由另一 agent 开发；选择 TASKS.md 中未被认领的任务。优先处理真实材料验收、长文上下文和稳定来源关联；不要重复安装已就绪的 ASR 或重新实现已有 skill/TTS。
+- **Active task**：T15 小红书图文 → OCR → 研习伴导入已完成；用户本人完成扫码。
+- **Last verified state**：2026-10-10 三关键词各 8 篇，24 篇/131 张图片完整性验证通过，全部 OCR 与 API 导入（各笔记本 8 份）；真实界面可见，草稿和共读回答有来源引用。新增采集测试 3/3、导入测试 2/2；应用业务代码未变，18/18 回归结果沿用此前记录。8765 当前运行单实例。
+- **Code baseline**：本轮基于 main/f5c71fd（独立 OCR worker）；新增 scripts/import_xhs.py、测试与操作文档。接手重新读 Git HEAD。
+- **Current blocker**：采集导入链路无阻塞；应用内一键 OCR 尚未接入，共读长文预算限制仍需 T13 处理。关键词检索结果未逐篇验证实验适用性。
+- **Next safe action**：T12 接入应用内图片/PDF OCR，或 T13 长文上下文；用户可先使用三个“小红书实验学习”笔记本。复用运行中的服务，避免双开共享 store。
 - **Files involved**：server.mjs、public/*、transcription.mjs、asr_worker.py、tts.mjs、tts_worker.py、skills/*、tests/*。
 
 ## 已实现及证据等级
@@ -23,7 +23,7 @@
 | M3 语音 | 设备选择、录音/文件提问、取消、权限提示、中文朗读和 Markdown 清洗 | 历史浏览器与模型验证；本轮未重新使用麦克风或云端服务 |
 | M4 学习与交付 | 疑问状态、Markdown 导出 | 缺复述练习、备份恢复 UI、完整 20 问及工作台集成 |
 | 扩展实验 skill | skills/*.md、列表、生成、问答、同名保护、朗读 | 7 个相关单测及历史联调；不是已完成自动路由或 checklist |
-| OCR | 独立 ocr_worker.py 和测试素材 | 未提交、owner 未确认、无应用导入接口；不能标为已集成 |
+| OCR | 已提交独立 worker + scripts/import_xhs.py 命令行 OCR/导入 | 24 篇真实图文已识别导入；尚无应用内图片/PDF 上传 OCR 路由 |
 
 ## 当前架构、配置与约束
 
@@ -53,3 +53,11 @@
 4. 真实录音、语义引用与 10 段时间定位仍需独立验收；模拟测试通过不能代替。
 
 历史决策和更早验证保留于 `docs/开发进度.md`；任务列表以 `TASKS.md` 为准。
+
+## 2026-10-10 T15 小红书真实链路验收
+
+- 采集仓库：C:\Users\a1440\Desktop\MediaCrawler；独立 Edge 档案扫码，goto 已改 domcontentloaded/90s。没有改 base_config.py 里的既有用户配置。
+- 关键词：大肠杆菌转化、菌种活化、PCR 实验；各 8 篇图文，共 131 张图片。JSONL、图片、Markdown、验收 JSON 均留在该仓库 data/xhs 下，不纳入 Git。
+- 研习伴按关键词创建三个笔记本；仅通过 /api/sources 导入，现有用户笔记未覆盖。草稿和问答验收留在“大肠杆菌转化”的共读对话中，未自动写入正式笔记。
+- 操作说明：docs/小红书图文导入.md；导入支持 OCR 缓存与来源标记去重，重复运行已验证。
+- 质量边界：OCR 数字/单位需要核对原图；仅关键词检索，未筛选所有帖子的科学可靠性；共读出现 truncated 提示，只用了部分资料。

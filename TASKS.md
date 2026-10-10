@@ -6,8 +6,8 @@
 
 ## 待认领（open）
 
-- **T12 · OCR 在研工作归属与应用集成** — open · owner: 待确认
-  - 发现未提交的 ocr_worker.py、tests/make_ocr_test_image.py 和 tests/fixtures/ocr-test/；存在独立环境。尚无应用 OCR/PDF 导入路由。先确认另一 agent 是否仍在编辑，再认领；勿删除或代提交这些文件。
+- **T12 · OCR 应用内集成** — open · owner: 待确认
+  - OCR worker 与测试素材已由另一 agent 提交于 f5c71fd；T15 已完成小红书图文的命令行 OCR → 文本资料导入。应用内图片/PDF 上传、OCR 任务队列与校对定位仍待实现；不重复改写 worker。
 - **T13 · 长文上下文与来源映射** — open · owner: —
   - 当前共读来源仅 1800 字符、笔记前 800 字符，简单关键词排序。应按模型能力设计预算、全篇分段整理和稳定笔记块来源关联，补长资料覆盖测试。
 - **T14 · 交付验收与数据恢复** — open · owner: —
@@ -32,6 +32,13 @@
   - 在真实使用里手工选取 10 个片段，确认回放时间戳定位准确。
 
 ## 已完成（done）
+
+- **T15 · 小红书图文采集 → OCR → 资料导入** — done · owner: codex · 2026-10-10
+  - 修复首页 goto 等待 load 超时；搜索只取图文、每关键词最多 8 篇，并处理末页；用户本人扫码成功。
+  - 三关键词各 8 篇，共 24 篇/131 张图；全部 OCR、Markdown 落盘，API 导入三个笔记本各 8 份。图像完整性验证通过。
+  - 新增 scripts/import_xhs.py：按图片哈希复用 OCR/防重复导入，跳过视频和未完整下载的图片；仅调用现有 API，不改 store.json。
+  - 验证：采集逻辑 3/3、导入边界 2/2；真实 UI 中可见资料，生成草稿与共读问答均返回引用。上下文截断仍存在，结果仅基于选取片段。
+  - 使用说明 docs/小红书图文导入.md；验收报告在 MediaCrawler/data/xhs/import-report-2026-10-10.json。未改 base_config、OCR worker 或应用业务代码，未 push。
 
 - **T11 · 双 agent 进度对齐** — done · owner: codex · 2026-10-10
   - 基线 main/483abf3；以实际代码与配置更新 README/CONTEXT，补充协作和接手入口，记录 OCR 未提交边界；业务文件和用户数据未修改。
