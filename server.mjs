@@ -42,7 +42,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     settings: { llmUrl: 'http://127.0.0.1:1234/v1', model: '', asrUrl: 'http://127.0.0.1:8000/v1', asrModel: 'whisper-1' }
   };
   const save = () => { fs.writeFileSync(dbPath+'.tmp', JSON.stringify(db, null, 2)); fs.renameSync(dbPath+'.tmp', dbPath); };
-  db.jobs ??= []; db.schema=2;
+  db.jobs ??= []; db.agentRuns ??= []; db.schema=2;
   db.settings.asrEngine ??= 'builtin';
   db.settings.ttsVoice ??= 'zh-CN-XiaoxiaoNeural';
   if(!/^zh-/.test(db.settings.ttsVoice)) db.settings.ttsVoice='zh-CN-XiaoxiaoNeural';
@@ -144,6 +144,49 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     const content=fs.readFileSync(file,'utf8');
     const meta=parseSkillMeta(content);
     return {name:String(name),title:meta.title||String(name),description:meta.description||'',steps:meta.steps,content};
+  }
+  function lastDoneAgentSkill(notebookId){
+    for(const r of [...(db.agentRuns||[])].reverse()){
+      if(r.notebookId===notebookId && r.status==='done' && r.result?.skill?.path) return r.result.skill;
+    }
+    return null;
+  }
+  async function generateSkillForNotebook(notebookId){
+    if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
+    const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId);
+    const items=evidence(notebookId);
+    let budget=2400;const refs=[];
+    for(const e of items){if(budget<=0)break;const chunk=e.text.slice(0,Math.min(1200,budget));budget-=chunk.length;refs.push({title:e.title,text:chunk});}
+    if(!note?.content && !refs.length) throw fail('这个笔记本还没有笔记或文字资料，无法生成 skill');
+    const material=JSON.stringify({note:note?.content.slice(0,1600)||'',sources:refs});
+    const system='你是实验笔记整理助手。把用户提供的实验笔记/材料整理成一份可复用的「实验操作 skill」。严格按下面模板输出 markdown，从第一个 --- 行开始，不要输出模板以外的解释：\n'+'---\nname: <小写英文短横线 slug，如 dh5a-gfp-transformation>\ntitle: <实验中文标题>\ndescription: <一句话：方法 + 关键筛选/培养>\n---\n# <实验中文标题>\n\n## 目标\n<一句话>\n\n## 材料\n<逐行列出；无则写“材料未说明/待核对”>\n\n## 步骤\n### 1. <步骤名>\n- 操作：<...>\n- 参数：<温度/时间/体积/浓度；缺失写“待核对”>\n- 注意：<易错点>\n- 检查点：<如何确认成功>\n（每个步骤同构，编号递增）\n\n## 安全\n<生物安全/废液/防护>。\n只依据材料，缺失参数写“待核对”，不要编造数值。';
+    const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:system},{role:'user',content:'以下是该实验的笔记与材料（JSON 数据）：\n'+material+'\n请输出完整 skill markdown。'}]});
+    let content=text(answer.choices?.[0]?.message?.content).replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+    if(!content) throw fail('模型未返回有效文字',502);
+    const fm=/^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
+    let name='';
+    if(fm){const nl=fm[1].split(/\r?\n/).map(l=>l.trim()).find(l=>/^name:/.test(l));if(nl){const v=nl.replace(/^name:\s*/,'').trim();if(/^[a-z0-9-]+$/.test(v))name=v;}}
+    if(!name){name=content.split(/\r?\n/)[0].replace(/^#\s*/,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+    if(!name||!/^[a-z0-9-]+$/.test(name)) name='skill-'+Date.now();
+    fs.mkdirSync(skillsDir,{recursive:true});
+    if(fs.existsSync(path.join(skillsDir,name+'.md'))){let n=2;while(fs.existsSync(path.join(skillsDir,name+'-'+n+'.md')))n++;name=name+'-'+n;if(fm)content=content.replace(/^(name:).*/m,'name:'+name);}
+    const file=path.join(skillsDir,name+'.md');
+    fs.writeFileSync(file,content,'utf8');
+    const meta=parseSkillMeta(content);
+    return {name,title:meta.title||name,description:meta.description||'',steps:meta.steps,path:file,slugSource:name};
+  }
+  function extractGaps(content){
+    const gaps=[];
+    const lines=String(content||'').split(/\r?\n/);
+    let step='';
+    for(const line of lines){
+      const sm=/^#{2,3}\s*(\d+)[\.、]?\s*(.*)$/.exec(line);
+      if(/^##\s*步骤/.test(line)) continue;
+      if(sm){step=`步骤 ${sm[1]}${sm[2]?` · ${sm[2].trim()}`:''}`;continue;}
+      if(/^##\s*(材料|安全|目标)$/.test(line)){step=line.replace(/^##\s*/,'').trim();continue;}
+      if(/待核对|材料未说明|未说明/.test(line)) gaps.push({where:step,text:line.replace(/^[>\-\s]+/,'').trim()});
+    }
+    return gaps;
   }
   return http.createServer(async(req,res)=> {
     try {
@@ -321,28 +364,49 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       }
       if(req.method==='POST' && p==='/api/skills/generate'){
         const x=await body(req);book(x.notebookId);
-        if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
-        const note=[...db.revisions].reverse().find(r=>r.notebookId===x.notebookId);
-        const items=evidence(x.notebookId);
-        let budget=2400;const refs=[];
-        for(const e of items){if(budget<=0)break;const chunk=e.text.slice(0,Math.min(1200,budget));budget-=chunk.length;refs.push({title:e.title,text:chunk});}
-        if(!note?.content && !refs.length) throw fail('这个笔记本还没有笔记或文字资料，无法生成 skill');
-        const material=JSON.stringify({note:note?.content.slice(0,1600)||'',sources:refs});
-        const system='你是实验笔记整理助手。把用户提供的实验笔记/材料整理成一份可复用的「实验操作 skill」。严格按下面模板输出 markdown，从第一个 --- 行开始，不要输出模板以外的解释：\n'+'---\nname: <小写英文短横线 slug，如 dh5a-gfp-transformation>\ntitle: <实验中文标题>\ndescription: <一句话：方法 + 关键筛选/培养>\n---\n# <实验中文标题>\n\n## 目标\n<一句话>\n\n## 材料\n<逐行列出；无则写“材料未说明/待核对”>\n\n## 步骤\n### 1. <步骤名>\n- 操作：<...>\n- 参数：<温度/时间/体积/浓度；缺失写“待核对”>\n- 注意：<易错点>\n- 检查点：<如何确认成功>\n（每个步骤同构，编号递增）\n\n## 安全\n<生物安全/废液/防护>。\n只依据材料，缺失参数写“待核对”，不要编造数值。';
-        const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:system},{role:'user',content:'以下是该实验的笔记与材料（JSON 数据）：\n'+material+'\n请输出完整 skill markdown。'}]});
-        let content=text(answer.choices?.[0]?.message?.content).replace(/<think>[\s\S]*?<\/think>/g,'').trim();
-        if(!content) throw fail('模型未返回有效文字',502);
-        const fm=/^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
-        let name='';
-        if(fm){const nl=fm[1].split(/\r?\n/).map(l=>l.trim()).find(l=>/^name:/.test(l));if(nl){const v=nl.replace(/^name:\s*/,'').trim();if(/^[a-z0-9-]+$/.test(v))name=v;}}
-        if(!name){name=content.split(/\r?\n/)[0].replace(/^#\s*/,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
-        if(!name||!/^[a-z0-9-]+$/.test(name)) name='skill-'+Date.now();
-        fs.mkdirSync(skillsDir,{recursive:true});
-        if(fs.existsSync(path.join(skillsDir,name+'.md'))){let n=2;while(fs.existsSync(path.join(skillsDir,name+'-'+n+'.md')))n++;name=name+'-'+n;if(fm)content=content.replace(/^(name:).*/m,'name:'+name);}
-        const file=path.join(skillsDir,name+'.md');
-        fs.writeFileSync(file,content,'utf8');
-        const meta=parseSkillMeta(content);
-        return json(res,{name,title:meta.title||name,description:meta.description||'',steps:meta.steps,path:file},201);
+        const r=await generateSkillForNotebook(x.notebookId);
+        return json(res,{name:r.name,title:r.title,description:r.description,steps:r.steps,path:r.path},201);
+      }
+      if(req.method==='POST' && p==='/api/agent/skill'){
+        const x=await body(req);const nb=book(x.notebookId);
+        const force=x.mode==='force'||x.force===true;
+        const base={id:uuid(),notebookId:nb.id,notebookTitle:nb.title,goal:'资料→可复用实验 skill',mode:force?'force':'auto',status:'running',createdAt:now(),updatedAt:now()};
+        db.agentRuns.push(base);save();
+        try{
+          const prior=lastDoneAgentSkill(nb.id);
+          let reused=false;let skill;
+          if(!force && prior && fs.existsSync(prior.path)){
+            const content=fs.readFileSync(prior.path,'utf8');
+            const meta=parseSkillMeta(content);
+            skill={name:meta.name||prior.name,title:meta.title||prior.title,description:meta.description||'',steps:meta.steps,path:prior.path};
+            reused=true;
+          }else{
+            if(force && prior && fs.existsSync(prior.path)) fs.rmSync(prior.path);
+            const gen=await generateSkillForNotebook(nb.id);
+            skill={name:gen.name,title:gen.title,description:gen.description||'',steps:gen.steps,path:gen.path};
+          }
+          const gaps=extractGaps(fs.readFileSync(skill.path,'utf8'));
+          base.status='done';
+          base.result={
+            experiment:skill.title,
+            skill:{name:skill.name,title:skill.title,description:skill.description,steps:skill.steps||0,path:skill.path,portable:true,format:'Agent Skills (SKILL.md)'},
+            reused,
+            gaps,
+            gapCount:gaps.length,
+            summary:`已${reused?'复用已存在':'生成'} skill「${skill.name}」（${skill.steps||0} 步，${gaps.length} 项待核对）。该 skill 为标准 Agent Skills 格式，任何 agent 可加载 ${path.basename(skill.path)} 指导该实验。`,
+            note:'本 skill 为 YAML frontmatter + 步骤的标准 Agent Skills 格式；研习伴 /api/skill-ask 与外部 agent 均可加载。'
+          };
+          base.completedAt=now();base.updatedAt=now();save();
+          return json(res,base,201);
+        }catch(e){
+          base.status='failed';base.error=e.message;base.updatedAt=now();save();
+          throw e;
+        }
+      }
+      if(req.method==='GET' && p==='/api/agent/runs'){
+        const q=new URL(req.url,`http://${req.headers.host||'127.0.0.1'}`).searchParams.get('notebookId');
+        const list=[...(db.agentRuns||[])].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+        return json(res,q?list.filter(r=>r.notebookId===q):list);
       }
       if(req.method==='POST' && p==='/api/transcribe') {
         const x=await body(req);const bytes=Buffer.from(text(x.base64,45*1024*1024),'base64');if(!bytes.length||bytes.length>32*1024*1024)throw fail('录音为空或超过 32 MB');

@@ -33,6 +33,24 @@
 
 ## 已完成（done）
 
+- **T20 · 资料→skill 端到端 agent 切片（每个实验产出可移植 SKILL.md）** — done · owner: claude code · 2026-10-10
+  - 起因：用户「资料→skill 端到端 agent 切片开始搭，每个实验最终都要生成一个 skill……我不仅可以从网上整理出大量可靠实验来学，也可以在我要做某实验时通过**任何 agent** 调用来指导我」。要点：skill 必须是**可移植的标准 Agent Skills 格式**（YAML frontmatter `name/title/description` + 步骤），任何 agent 都能加载，不只是研习伴自己的 `/api/skill-ask`。
+  - 方案：把 T8 垂直切片里的「笔记/材料→LLM→SKILL.md」抽成共享助手 `generateSkillForNotebook(notebookId)`（取最新笔记 + `evidence()` 材料→喂 LLM 按模板生成→写 `skills/<slug>.md`），`/api/skills/generate` 复用同一助手（行为不变）。新增 **agent 编排端点 `POST /api/agent/skill`**：计划→（auto 幂等复用 / force 重生成）→验证→**确定性提取「待核对」gap 清单**→结构化报告，并把每次 run 落盘到 `db.agentRuns`（新顶层键，schema 向后兼容，`??=[]` 初始化）。新增 **`GET /api/agent/runs`**（可按 `notebookId` 过滤，倒序）。
+  - 幂等/命名：`lastDoneAgentSkill(notebookId)` 按 agentRuns 历史找该笔记本最近一次 done 的 skill 复用；force 模式先删旧文件再重生成（不产生 `-2` 副本）。文件名用 LLM 给的 ASCII slug，与 frontmatter `name:` 一致（`/api/skill-ask` 按 name 加载）。
+  - gap 提取（`extractGaps`）：确定性扫 skill 正文，凡含「待核对/材料未说明/未说明」的 `操作/参数/注意/检查点` 行归入所属步骤/小节，输出 `[{where,text}]`——不靠 LLM 判断，可复核。
+  - 落地文件：`server.mjs`（`db.agentRuns` 初始化 + 3 助手 `lastDoneAgentSkill`/`generateSkillForNotebook`/`extractGaps` + `/api/skills/generate` 重构复用助手 + `POST /api/agent/skill` + `GET /api/agent/runs`）；`tests/agent-skill.test.mjs`（5 项：生成→portable+gap 提取+run 落盘+`/api/skill-ask` 可加载 / 二次 run 复用不产 `-2` / force 重生成不产 `-2` / 未知 notebook 404 / 无 run 时 `GET /api/agent/runs` 回 `[]`）。
+  - 验证：`node --check` 过；`node --test tests/*.test.mjs` **24/24**（agent-skill 5 + 既有 19，无回归）。**活体**（单实例 8765）：对「小红书实验学习 · 酵母转化」笔记本 `POST /api/agent/skill` → 201，`status:done`、`reused:false`，产出 `skills/yeast-liac-peg-transformation.md`（frontmatter `name/title/description` + **12 步**，每步 操作/参数/注意/检查点 + 安全段，纯酵母转化主题非双杂交）；`portable:true`、`format:"Agent Skills (SKILL.md)"`；**gapCount:4**（Carrier DNA 预处理时长/变性、质粒浓度、涂板量）；summary 明示「任何 agent 可加载 yeast-liac-peg-transformation.md 指导该实验」。二次 run `reused:true`、同 path、无 `-2`；`GET /api/skills` 列出该 skill；`/api/skill-ask` 加载该 skill 问「加入质粒后下一步」→ 准确定位步骤 5、给 30℃ 孵育 30min→42℃ 热激 15min + 安全提醒；`GET /api/agent/runs?notebookId=` 列出两条 run（reused false→true）。
+  - 边界（如实）：gap 提取为确定性关键词匹配（「待核对」等词触发），不覆盖未用这些词的缺口；`/api/skill-ask` 的步骤定位是 LLM 软判断（靠 skill 全文 + 问题）；skill 由材料整理生成≠已确认规程（受 1800 字符共读预算限制，open T13）；本次仅资料→skill 后半段，前端「实验指导」tab 尚未加 agent 触发入口（现直接调 API），采集/import→笔记 的前半段管线未打通（需用户已登录 Edge/CDP，另立项）。
+  - 提交：本地 commit（`server.mjs`、`tests/agent-skill.test.mjs`），**未 push**（push 需用户授权）。生成的 `skills/yeast-liac-peg-transformation.md` 为 git 管理产物。
+
+- **T19 · 小红书「酵母转化」采集→导入→共读笔记（+ 双杂交/转化 误标修复）** — done · owner: claude code · 2026-10-10
+  - 起因：用户「从小红书上找酵母转化笔记整理攻读笔记」。用 MediaCrawler（`CDP_CONNECT_EXISTING=True` 连用户已登录小红书的 Edge，免扫码）采集关键词「酵母转化」8 篇 → OCR → 导入新笔记本「小红书实验学习 · 酵母转化」（8 条文字资料，`content` 头带 `图片目录：` 供 T18 图片能力用）。
+  - **发现并修复的口径错误**：XHS 关键词搜索偏模糊，8 篇实为混合——4 篇真·转化（#2 步骤原理 / #3 Y1H 转化操作 / #6 醋酸锂原理 / #8 感受态制备与转化）、2 篇双杂交蛋白互作检测（#1/#7）、1 篇单杂交（#5）、1 篇涂板 tips（#4）。首版 `/api/generate` 固定提示词 + 1800 字符预算导致笔记主体被最长的**双杂交**来源(#1)主导，笔记标题/正文写的是「酵母双杂交检测蛋白互作」，与笔记本主题「酵母转化」不符。用户指出「酵母转化和酵母双杂交不是一个东西」——确认为真·口径错误。
+  - 修复（数据层，零代码改动）：用 `/api/chat` 传入聚焦「酵母转化」的自定义问题（该端点按问题词元给 evidence 排序 → 偏向 4 篇纯转化来源、压低双杂交/单杂交），并在问题里要求「双杂交/单杂交只在末尾『相关但不同技术』小节一句话点明区别、不作正文主体；涂板仅作转化后计数步骤」。重新生成 3131 字笔记（标题「酵母转化实验学习笔记」，正文=目的/LiAc-PEG 原理/感受态/Carrier DNA 预处理/分步参数/涂板计数/注意事项/8 项待核对 + 末尾「相关但不同技术」列双杂交·单杂交），`POST /api/notes` 存为新版本 `aec8d9be`（旧双杂交版 `80e666b9` 保留为只读历史版本）。8 条来源**全部保留**（用户要求「沾边的要暴露」，无任何一篇属完全不相关故未删）。
+  - 验证：`store.json` 两版本 head 行核对（新=`## 酵母转化实验学习笔记`、旧=`…酵母双杂交…`）；新笔记全文逐节确认为转化主题；单实例 8765 未双开。
+  - 诚实边界：受 1800 字符共读预算限制（open T13），新笔记正文主要引用 S1(双杂交，仅用于"相关"小节)+S2(转化步骤)，#6/#8 等其余转化来源未完全并入正文；如需覆盖全部 8 篇需 T13 分段上下文。
+  - 提交：无 Study companion 代码改动（数据在 gitignored `data/store.json`），本任务无需 commit。MediaCrawler `config/base_config.py` 的 `CDP_CONNECT_EXISTING=True` 属另一仓库，未在其提交。
+
 - **T18 · 共读 LLM 视觉接入来源原图 + 学习资料 UI 展示原图** — done · owner: claude code · 2026-10-10
   - 起因：用户反馈「笔记来源不能更好地提取图片…不利于大模型对获取内容的准确理解」，并确认本地接入 Claude Code 的 Qwen（18081，`local-qwen38-gsq`）具备图片识别能力。原 `/api/chat` 只发纯文本（OCR 转录），LLM 看不到原图里的图表/流程图/培养皿等视觉信息。
   - 方案：`/api/chat` 把本轮选中来源的**原图**以 OpenAI 视觉格式（`content:[{type:'text'},{type:'image_url':{url:'data:<mime>;base64,…'}}]`）随材料一起发给本地 VLM。图片来源=来源 `content` 头部嵌入的 `图片目录：<绝对路径>`（XHS 导入来源才有）；按「关键词排序后的 top 来源」顺序取图，跨来源去重、总量上限 `MAX_CHAT_IMAGES=4`。纯文本来源（.txt/.srt 等无 `图片目录`）贡献 0 图 → 自动回退纯文本（行为不变）。
