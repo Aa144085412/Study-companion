@@ -38,7 +38,8 @@
   - 方案：笔记面板加「阅读 / 编辑」切换，默认**阅读**——手写零依赖 `renderMarkdown()` 把 markdown 渲染成排版文本（标题 h1–h6、`**` 加粗、`*` 斜体、`` ` `` 行内代码、无序/有序列表、`>` 引用块、`---` 分隔线）；**编辑**回到原 textarea 原样编辑，选中一段共读逻辑不变。
   - 落地：仅 `public/index.html`（`#noteRender` 容器 + `.view-toggle` 两按钮 + 脚注文案）、`public/app.js`（`noteView` 状态 + `renderNote()` + `renderMarkdown()` + 阅读态 `mouseup` 选中回显 + `saveNote`/`loadRevision`/追加到笔记后同步刷新）、`public/style.css`（`.view-toggle`、`.note-render` 排版）；纯前端零新依赖，后端/接口/store/共读链路零改动。
   - 验证：`node --check` 过；浏览器活体——阅读/编辑两态显隐往返正确，阅读态渲染 1 h1/9 h2/20 ul/1 blockquote/51 strong 且无残留原始符号，阅读态与编辑态选中均触发右侧共读回显，控制台零报错，单实例 8765。
-  - `[S#]` 来源引用渲染为**右上角上标徽章**（`<sup class="cite">`）；笔记阅读态整体采用 **Typora 主题风格**（h1 下边框、居中 760px、引用块斜体）。
+  - `[S#]` 来源引用渲染为**右上角上标徽章**（`<sup class="cite">`）；笔记阅读态整体采用 **Typora 主题风格**（h1 下边框、居中、引用块斜体）。
+  - 修首屏竞态（`state` 未赋值时 `renderSkillMessages` 读 `state.messages` 抛 "Cannot read properties of undefined"）：`renderMessages`/`renderSkillMessages` 改 `(state?.messages||[])` 空值保护。布局收紧——右栏（共读）固定窄栏（基础 `minmax(330px,400px)`、≤1100px `minmax(300px,380px)`），笔记阅读/编辑内容均限宽 720px 居中。
   - 边界：渲染为轻量子集（不支持表格/链接/嵌套列表/图片）；`[S#]` 只匹配 `S`+数字 转上标，不误伤真实 `[链接](url)`；保存读隐藏编辑框的值，阅读态也能保存。
   - 提交：本地 commit（仅三前端文件），**未 push**（push 需用户授权）。
 
