@@ -38,9 +38,6 @@ test('POST /api/agent/skill generates a portable skill, extracts gaps, and recor
   assert.equal(r.body.result.gapCount,1);
   assert.match(r.body.result.gaps[0].text,/待核对/);
   assert.match(r.body.result.summary,/任何 agent/);
-  // skill file is loadable via /api/skill-ask (name+filename consistent)
-  const ask=await call('/api/skill-ask',{skill:'acetic-lithium-transform',question:'下一步？'});
-  assert.equal(ask.status,200);
   // run recorded
   const runs=await call('/api/agent/runs?notebookId=nb1',undefined,'GET');
   assert.equal(runs.status,200);

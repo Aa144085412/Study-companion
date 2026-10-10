@@ -128,24 +128,6 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     meta.steps=(content.match(/^###\s+\d+\./gm)||[]).length;
     return meta;
   }
-  function listSkills(){
-    let names=[];
-    try{ names=fs.readdirSync(skillsDir,{withFileTypes:true}).filter(e=>e.isFile()&&e.name.endsWith('.md')).map(e=>e.name); }catch{ return []; }
-    return names.map(fn=>{
-      const content=fs.readFileSync(path.join(skillsDir,fn),'utf8');
-      const meta=parseSkillMeta(content);
-      const name=meta.name||fn.replace(/\.md$/,'');
-      return {name,title:meta.title||name,description:meta.description||'',steps:meta.steps};
-    }).sort((a,b)=>a.name.localeCompare(b.name));
-  }
-  function readSkill(name){
-    if(!/^[a-z0-9-]+$/.test(String(name||''))) throw fail('skill 名称无效',400);
-    const file=path.join(skillsDir,String(name)+'.md');
-    if(!fs.existsSync(file)) throw fail('skill 不存在，请选择左侧下拉中的一个',404);
-    const content=fs.readFileSync(file,'utf8');
-    const meta=parseSkillMeta(content);
-    return {name:String(name),title:meta.title||String(name),description:meta.description||'',steps:meta.steps,content};
-  }
   function lastDoneAgentSkill(notebookId){
     for(const r of [...(db.agentRuns||[])].reverse()){
       if(r.notebookId===notebookId && r.status==='done' && r.result?.skill?.path) return r.result.skill;
@@ -199,7 +181,6 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       const u = new URL(req.url,`http://${host}`), p=u.pathname;
       if(req.method==='GET' && p==='/api/state') return json(res,db);
       if(req.method==='GET' && p==='/api/health') return json(res,{app:'study-companion',version:'0.2.0',asr:asrStatus(),tts:ttsStatus(),busy:!!runningJob||voiceBusy});
-      if(req.method==='GET' && p==='/api/skills') return json(res,listSkills());
       if(req.method==='POST' && p==='/api/tts'){
         const x=await body(req);const value=String(x.text??'').trim();
         if(!value)throw fail('请输入要朗读的文字');
@@ -349,25 +330,6 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const reply={id:uuid(),notebookId:x.notebookId,role:'assistant',type:p==='/api/generate'?'draft':'chat',text:content,citations:refs.filter(e=>used.has(e.label)),images:chatImages.length,noteRevisionId:note?.id,selection,createdAt:now(),truncated:items.length>refs.length || items.some((e,i)=>e.text.length>(refs[i]?.text.length||0)) || (note?.content.length||0)>800};
         db.messages.push({id:uuid(),notebookId:x.notebookId,role:'user',type:reply.type,text:question,createdAt:now()},reply);save();return json(res,reply);
       }
-      if(req.method==='POST' && p==='/api/skill-ask'){
-        const x=await body(req);
-        const skill=readSkill(x.skill);
-        const question=text(x.question,1200).trim();
-        if(!question) throw fail('请输入问题');
-        if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
-        const system='你是实验操作助手，正陪用户做实验《'+skill.title+'》。只依据下方 skill 步骤给指导：先判断用户大概在哪一步，然后给出这一步该做什么 + 关键参数 + 易错/安全提醒 + 下一步预告。参数缺失时说“待核对/需按实际确认”，不要编造具体数值。若用户描述对不上任何步骤，如实说明并建议核对。安全事项优先。简洁、分点回答。';
-        const history=db.messages.filter(m=>m.type==='skill'&&m.skill===skill.name).slice(-2).map(m=>({role:m.role,content:m.text.slice(0,400)}));
-        const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:system},{role:'user',content:'以下是该实验的操作 skill（markdown）：\n'+skill.content},...history,{role:'user',content:question}]});
-        const raw=text(answer.choices?.[0]?.message?.content).replace(/<think>[\s\S]*?<\/think>/g,'').trim();
-        if(!raw) throw fail('模型未返回有效文字',502);
-        const reply={id:uuid(),role:'assistant',type:'skill',skill:skill.name,text:raw,createdAt:now()};
-        db.messages.push({id:uuid(),role:'user',type:'skill',skill:skill.name,text:question,createdAt:now()},reply);save();return json(res,reply);
-      }
-      if(req.method==='POST' && p==='/api/skills/generate'){
-        const x=await body(req);book(x.notebookId);
-        const r=await generateSkillForNotebook(x.notebookId);
-        return json(res,{name:r.name,title:r.title,description:r.description,steps:r.steps,path:r.path},201);
-      }
       if(req.method==='POST' && p==='/api/agent/skill'){
         const x=await body(req);const nb=book(x.notebookId);
         const force=x.mode==='force'||x.force===true;
@@ -395,7 +357,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
             gaps,
             gapCount:gaps.length,
             summary:`已${reused?'复用已存在':'生成'} skill「${skill.name}」（${skill.steps||0} 步，${gaps.length} 项待核对）。该 skill 为标准 Agent Skills 格式，任何 agent 可加载 ${path.basename(skill.path)} 指导该实验。`,
-            note:'本 skill 为 YAML frontmatter + 步骤的标准 Agent Skills 格式；研习伴 /api/skill-ask 与外部 agent 均可加载。'
+            note:'本 skill 为 YAML frontmatter + 步骤的标准 Agent Skills 格式，任何 agent 均可加载该文件指导该实验。'
           };
           base.completedAt=now();base.updatedAt=now();save();
           return json(res,base,201);

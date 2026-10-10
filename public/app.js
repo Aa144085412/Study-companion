@@ -33,7 +33,7 @@ function render(loadNote){
   }
   $('questionList').replaceChildren();if(!questions.length)$('questionList').append(node('div','empty','把问题写在右侧，点击「记下疑问」。不急着一次弄懂。'));
   for(const q of questions){const c=node('div','question-card');c.append(node('p','',q.question));const sel=node('select');['未解决','学习中','已理解'].forEach(s=>sel.append(new Option(s,s)));sel.value=q.status;sel.onchange=()=>run(async()=>{await api('/api/questions/'+q.id,{status:sel.value},'PATCH');await refresh();});c.append(sel);$('questionList').append(c);}
-  renderMessages(); renderJobs(); renderSkillMessages();
+  renderMessages(); renderJobs();
   renderNote();
 }
 function renderMessages(){const messages=(state?.messages||[]).filter(m=>m.notebookId===current);if(!messages.length){$('messages').replaceChildren(node('div','chat-welcome','✧\n\n从一个「为什么」开始\n\n选中笔记中的一句话，问问它的原理、目的，或前后联系。'));return;}$('messages').replaceChildren();for(const m of messages){const c=node('article','message '+m.role);c.append(node('div','message-label',m.role==='user'?'你':m.type==='draft'?'研习伴 · 笔记草稿':'研习伴'),node('div','message-text',m.text));if(m.role==='assistant'){const actions=node('div','message-actions');actions.append(button('朗读',()=>speak(m.text)),button('停止',stopSpeak),button('追加到笔记',async()=>{if(!await confirmAction('将这段回答追加到编辑区？检查后点击保存版本。'))return;$('noteEditor').value+='\n\n'+m.text+'\n\n'+(m.citations||[]).map(e=>`来源 [${e.label}]：${e.title}${e.start!==undefined?' '+time(e.start):''}`).join('\n');dirty=true;$('revisionLabel').textContent='有未保存的修改';renderNote();}));c.append(actions);for(const ref of m.citations||[])c.append(button(`[${ref.label}] ${ref.title}${ref.start!==undefined?' · '+time(ref.start):''}`,()=>showReference(ref),'citation'));if(m.truncated)c.append(node('p','hint','本次材料超过上下文预算，仅使用部分内容；请拆分笔记本后再核对。'));}$('messages').append(c);}$('messages').scrollTop=$('messages').scrollHeight;}
@@ -182,50 +182,6 @@ let pollBusy=false;setInterval(async()=>{if(pollBusy||!state?.jobs?.some(j=>['qu
 let correctionSource;
 function editSource(source){correctionSource=source;$('correctionTitle').textContent='校对 · '+source.title;$('correctionFields').replaceChildren();if(source.segments?.length){for(const seg of source.segments){const label=node('label','',time(seg.start)+' — '+time(seg.end));const input=node('textarea');input.dataset.segmentId=seg.id;input.value=seg.text;label.append(input);$('correctionFields').append(label);}}else{const input=node('textarea');input.value=source.content;input.id='correctionText';$('correctionFields').append(input);}$('correctionDialog').showModal();}
 $('closeCorrection').onclick=()=>$('correctionDialog').close();$('saveCorrection').onclick=()=>run(async()=>{const inputs=[...$('correctionFields').querySelectorAll('textarea')];const value=correctionSource.segments?.length?{segments:inputs.map(i=>({id:i.dataset.segmentId,text:i.value}))}:{content:inputs[0].value};await api('/api/sources/'+correctionSource.id+'/corrections',value);$('correctionDialog').close();await refresh();toast('校对版本已保存，原始识别结果保留');});
-let skillList=[];
-async function loadSkills(){
-  let list=[];
-  try{list=await api('/api/skills',undefined,'GET');}catch{list=[];}
-  skillList=list;
-  const sel=$('skillSelect');
-  const prev=sel.value;
-  sel.replaceChildren();
-  if(!list.length){sel.append(new Option('（还没有 skill，先点「从当前笔记生成」）',''));$('skillState').textContent='';renderSkillMessages();return;}
-  for(const s of list)sel.append(new Option(s.title+' · '+(s.steps||0)+' 步',s.name));
-  sel.value=(prev&&list.some(s=>s.name===prev))?prev:(list[0]?.name||'');
-  renderSkillMessages();
-}
-function renderSkillMessages(){
-  const sel=$('skillSelect'),skill=sel.value,box=$('skillMessages');
-  const descEl=$('skillDesc'),d=skill?((skillList.find(s=>s.name===skill)||{}).description||''):'';
-  descEl.textContent=d;descEl.classList.toggle('hidden',!d);
-  if(!skill){box.replaceChildren(node('div','chat-welcome','选一个实验 skill 开始。\n例如问：「我现在加感受态细胞，下一步做什么？」'));return;}
-  const msgs=(state?.messages||[]).filter(m=>m.type==='skill'&&m.skill===skill);
-  box.replaceChildren();
-  if(!msgs.length){box.append(node('div','chat-welcome','已选择实验 skill。\n问我你做到哪一步，我告诉你下一步与注意事项。'));return;}
-  for(const m of msgs){
-    const c=node('article','message '+m.role);
-    c.append(node('div','message-label',m.role==='user'?'你':'实验助手'));
-    c.append(node('div','message-text',m.text));
-    if(m.role==='assistant'){const a=node('div','message-actions');a.append(button('朗读',()=>speak(m.text)),button('停止',stopSpeak));c.append(a);}
-    box.append(c);
-  }
-  box.scrollTop=box.scrollHeight;
-}
-let skillBusy=false;
-async function sendSkill(){
-  const skill=$('skillSelect').value;
-  if(!skill)throw Error('请先选择一个实验 skill');
-  const question=$('skillQuestion').value.trim();
-  if(!question)throw Error('请输入问题');
-  if(skillBusy)return;
-  skillBusy=true;$('skillSend').disabled=true;$('skillState').textContent='正在结合 skill 思考……';
-  try{await api('/api/skill-ask',{skill,question});$('skillQuestion').value='';await refresh();}
-  finally{skillBusy=false;$('skillSend').disabled=false;$('skillState').textContent='';}
-}
-$('skillSend').onclick=()=>run(sendSkill);
-$('skillQuestion').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();run(sendSkill);}};
-$('skillSelect').onchange=()=>run(renderSkillMessages);
 let agentBusy=false;
 function setAgentBusy(b){agentBusy=b;$('agentStart').disabled=b;$('agentGoal').disabled=b;$('agentCrawl').disabled=b;$('agentUrl').disabled=b;$('agentSource').disabled=b;}
 function agentLog(line){if(!line)return;const p=node('p','',line);$('agentLog').append(p);$('agentLog').scrollTop=$('agentLog').scrollHeight;}
@@ -304,10 +260,6 @@ function renderAgentReport(run){
   grid.append(node('div','agent-step','笔记：'+(note.chars??'-')+' 字'+(note.firstLine?' · '+(note.firstLine.length>18?note.firstLine.slice(0,18)+'…':note.firstLine):'')));
   grid.append(node('div','agent-step','skill：'+(skill.name?skill.name+' · '+(skill.steps||0)+' 步':'未生成')));
   box.append(grid);
-  if(skill.name){
-    const go=button('去实验指导问答 →',async()=>{$('agentDialog').close();const tab=document.querySelector('[data-tab="skillGuide"]');if(tab)tab.click();await loadSkills();const sel=$('skillSelect');if([...sel.options].some(o=>o.value===skill.name))sel.value=skill.name;renderSkillMessages();},'primary');
-    box.append(go);
-  }
   if(gaps.length){
     box.append(node('h4','agent-gaps-title','待核对清单 · '+gaps.length));
     const ul=node('ul','agent-gaps');
@@ -321,4 +273,3 @@ $('agentSource').onchange=syncAgentMode;
 $('agentOpen').onclick=()=>{agentLog('');$('agentReport').classList.add('hidden');$('agentReport').replaceChildren();$('agentState').textContent='';syncAgentMode();$('agentDialog').showModal();};
 $('closeAgent').onclick=()=>$('agentDialog').close();
 checkHealth();
-run(()=>loadSkills());

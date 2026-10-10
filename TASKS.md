@@ -33,6 +33,14 @@
 
 ## 已完成（done）
 
+- **T25 · 彻底删除「实验指导」功能 + 修复抖音笔记本乱码** — done · owner: claude code · 2026-10-10
+  - 起因：用户「解决乱码问题，此外实验指导是一个冗余的功能，彻底删除」。截图=抖音笔记本标题/来源文件名乱码（U+FFFD）。
+  - 删除「实验指导」（后端+前端+测试+遗留数据）：`server.mjs` 删 `GET /api/skills`、`POST /api/skill-ask`、`POST /api/skills/generate` + `listSkills()`/`readSkill()`（**保留** `/api/agent/skill` 及助手，它是管线产出 skill 的核心交付物）；前端删「实验指导」tab/面板 + 全部 skill 问答 JS + CSS；删 `tests/skill.test.mjs`、`tests/agent-skill.test.mjs` 去 `/api/skill-ask` 子断言；清 `db.messages` 全部 `type:'skill'` 遗留记录。
+  - 修复乱码（根因=旧编码路径残留，**当前代码已验证干净**）：隔离字节级 round-trip 测试 + 真实 `url_pipeline.py` 活体探测均证当前管线产出干净中文；乱码笔记本 `e4f8c0dc` 是编码修复前残留，乱码只落 3 个显示字符串（笔记本标题+2 来源标题），正文全干净。停 8765 → 程序化修 3 个标题（复刻 `slug()`/`[:40]`）→ 原子写（同 `save()` 格式）→ 重启。
+  - 验证：`node --check server.mjs public/app.js` 过；`npm test` **30/30**（删 `skill.test.mjs` 无回归，`/api/agent/skill` 5 项仍绿）；浏览器活体（预览面板单实例）：抖音本标题/来源/正文干净、「实验指导」tab 消失（tablist 仅剩 共读/学习资料/疑问清单）。
+  - 诚实边界：全库另剩 **1 条**乱码消息=「酵母转化」本里用户手打的共读提问（`type=chat`，100 个 U+FFFD，字节已丢失无法复原），属用户自有数据，留待用户决定（重发/删除），不擅自处理。
+  - 提交：本地 commit（`server.mjs`、`public/index.html`、`public/app.js`、`public/style.css`、`tests/agent-skill.test.mjs`、删 `tests/skill.test.mjs`、`CONTEXT.md`、`TASKS.md`），**未 push**（push 需用户授权）。
+
 - **T24 · 多源 URL 入口：微信公众号图文 / 抖音·小红书视频 → 导入 → 笔记 → skill（含视频音轨转写 + 画面关键帧）** — done · owner: claude code · 2026-10-10
   - 起因：用户「现在的信息源只有小红书，微信公众号图文、抖音视频和小红书视频也有很多优质内容，在 github 上找能摘抄公众号图文、提取抖音/小红书视频**音频**信息的工具，方便让大模型总结；如果能理解视频**画面**并对音频做补充更好」。要点：①扩信息源到 微信图文/抖音视频/小红书视频；②用成熟开源工具（yt-dlp / 纯标准库抓取）拿素材；③视频取**音轨**转成文本供 LLM 总结，并抽**关键帧**让视觉 LLM 理解画面、对音频做补充（多模态）。
   - 方案（后端端点 + 3 个标准库/工具驱动 + 前端入口）：
