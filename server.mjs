@@ -7,6 +7,7 @@ import { ttsStatus, synthesize } from './tts.mjs';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const uuid = () => randomUUID();
@@ -34,7 +35,7 @@ export function parseSrt(input) {
   return segments;
 }
 
-export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetch, transcriber = transcribeLocal, ttsSynthesizer = synthesize, skillsDir = path.join(ROOT, 'skills') } = {}) {
+export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetch, transcriber = transcribeLocal, ttsSynthesizer = synthesize, skillsDir = path.join(ROOT, 'skills'), pipelineLauncher = spawn } = {}) {
   fs.mkdirSync(path.join(dataDir, 'media'), { recursive: true });
   const dbPath = path.join(dataDir, 'store.json');
   let db = fs.existsSync(dbPath) ? JSON.parse(fs.readFileSync(dbPath, 'utf8')) : {
@@ -404,9 +405,52 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         }
       }
       if(req.method==='GET' && p==='/api/agent/runs'){
-        const q=new URL(req.url,`http://${req.headers.host||'127.0.0.1'}`).searchParams.get('notebookId');
-        const list=[...(db.agentRuns||[])].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-        return json(res,q?list.filter(r=>r.notebookId===q):list);
+        const sp=new URL(req.url,`http://${req.headers.host||'127.0.0.1'}`).searchParams;
+        const id=sp.get('id'),nbId=sp.get('notebookId'),kind=sp.get('kind');
+        let list=[...(db.agentRuns||[])].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+        if(id)list=list.filter(r=>r.id===id);
+        if(nbId)list=list.filter(r=>r.notebookId===nbId);
+        if(kind)list=list.filter(r=>r.kind===kind);
+        return json(res,list);
+      }
+      if(req.method==='POST' && p==='/api/agent/pipeline'){
+        const x=await body(req);
+        const goal=String(x.goal??'').trim();
+        if(!goal)throw fail('请提供 goal（实验关键词，如"酵母转化"）');
+        if(goal.length>80)throw fail('goal 过长（≤80 字符）');
+        const crawl=x.crawl===true;
+        const force=x.force===true;
+        const runId=uuid();
+        const base={id:runId,kind:'pipeline',goal,notebookId:null,notebookTitle:null,goalLabel:'资料→笔记→skill 端到端',mode:crawl?'crawl':'reuse',status:'running',createdAt:now(),updatedAt:now()};
+        db.agentRuns.push(base);save();
+        const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
+        const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+        const args=[path.join(ROOT,'scripts','experiment_pipeline.py'),'--goal',goal,'--api',localBase,'--run-id',runId];
+        if(crawl)args.push('--crawl');
+        if(force)args.push('--force-skill');
+        try{
+          const child=pipelineLauncher(py,args,{cwd:ROOT,detached:true,stdio:'ignore'});
+          child.on('error',()=>{const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error='启动 pipeline 驱动失败（检查 python/脚本）';r.updatedAt=now();save();}});
+          child.unref();
+        }catch(e){
+          const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error=e.message;r.updatedAt=now();save();}
+          throw fail('启动 pipeline 驱动失败：'+e.message,500);
+        }
+        return json(res,{runId,status:'running',goal,mode:base.mode,note:'异步执行：轮询 GET /api/agent/runs（可按 ?id 或 ?notebookId 过滤）查看进度与报告'},202);
+      }
+      {
+        const pm=/^\/api\/agent\/pipeline\/([a-f0-9-]+)\/result$/.exec(p);
+        if(req.method==='POST'&&pm){
+          const report=await body(req);
+          const run=db.agentRuns.find(r=>r.id===pm[1]&&r.kind==='pipeline');
+          if(!run)throw fail('找不到该 pipeline run',404);
+          run.status=report.status==='done'?'done':'failed';
+          run.result=report;
+          if(report.notebook){run.notebookId=report.notebook.id;run.notebookTitle=report.notebook.title;}
+          if(report.error)run.error=report.error;
+          run.updatedAt=now();run.completedAt=now();save();
+          return json(res,{ok:true,runId:pm[1],status:run.status});
+        }
       }
       if(req.method==='POST' && p==='/api/transcribe') {
         const x=await body(req);const bytes=Buffer.from(text(x.base64,45*1024*1024),'base64');if(!bytes.length||bytes.length>32*1024*1024)throw fail('录音为空或超过 32 MB');
