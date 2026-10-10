@@ -56,15 +56,16 @@ function renderNote(){
 function renderMarkdown(md){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const inline=t=>{let s=esc(t);s=s.replace(/`([^`]+)`/g,'<code>$1</code>');s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');s=s.replace(/\[(S\d+)\]/g,'<sup class="cite">$1</sup>');return s;};
+  const xhsItem=t=>{const m=t.match(/^S(\d+)\s+(.+?)\s*[（(]\s*([0-9a-f]{24})\s*[）)]\s*$/i);return m?{label:'S'+m[1]+' · '+m[2].trim(),href:'https://www.xiaohongshu.com/explore/'+m[3]}:null;};
   const out=[],para=[];const flush=()=>{if(para.length)out.push('<p>'+inline(para.join(' '))+'</p>');para.length=0;};
-  let listType=null;const endList=()=>{if(listType){out.push('<'+listType+'></'+listType+'>');listType=null;}};
+  let listType=null;const endList=()=>{if(listType){out.push('</'+listType+'>');listType=null;}};
   for(const line of md.replace(/\r\n/g,'\n').split('\n')){
     const h=line.match(/^(#{1,6})\s+(.*)$/);
     if(h){flush();endList();const l=h[1].length;out.push('<h'+l+'>'+inline(h[2])+'</h'+l+'>');continue;}
     if(/^\s*(---|\*\*\*|___)\s*$/.test(line)){flush();endList();out.push('<hr>');continue;}
     if(/^\s*>\s?/.test(line)){flush();endList();out.push('<blockquote>'+inline(line.replace(/^\s*>\s?/,''))+'</blockquote>');continue;}
     const ul=line.match(/^\s*[-*+]\s+(.*)$/),ol=line.match(/^\s*\d+[.)]\s+(.*)$/);
-    if(ul||ol){flush();const want=ul?'ul':'ol';if(listType&&listType!==want)endList();if(listType!==want){out.push('<'+want+'>');listType=want;}out.push('<li>'+inline((ul||ol)[1])+'</li>');continue;}
+    if(ul||ol){flush();const want=ul?'ul':'ol';if(listType&&listType!==want)endList();if(listType!==want){out.push('<'+want+'>');listType=want;}const it=(ul||ol)[1],src=xhsItem(it);out.push('<li>'+(src?('<a href="'+src.href+'" target="_blank" rel="noopener">'+esc(src.label)+'</a>'):inline(it))+'</li>');continue;}
     if(!line.trim()){flush();endList();continue;}
     para.push(line);
   }

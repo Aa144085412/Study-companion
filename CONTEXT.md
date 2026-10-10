@@ -85,4 +85,8 @@
 - 后续2（同一 T17，2026-10-10）：
   - 修首屏竞态：`loadSkills()` 与 `refresh()` 并行，`loadSkills` 先完成并选中首个 skill 时 `state` 尚未赋值，`renderSkillMessages()` 读 `state.messages` 抛 "Cannot read properties of undefined (reading 'messages')"。`renderMessages`/`renderSkillMessages` 改 `(state?.messages||[])` 空值保护（纯前端，不碰后端/store）。多次刷新活体确认不再抛错。
   - 布局收紧：右栏（共读）固定窄栏（基础网格 `minmax(330px,400px)`、≤1100px `minmax(300px,380px)`）；笔记阅读/编辑**填满左栏靠左**（初版曾限宽 720px 居中，用户反馈"太窄"→已去掉限宽居中，改为占满左栏）。
+- 后续3（同一 T17，2026-10-10）：用户反馈"相同级别标题缩进错误 + 资料来源应有网站超链接"。
+  - **修标题缩进 bug**：`renderMarkdown()` 的 `endList()` 误写为 `out.push('<'+listType+'></'+listType+'>')`（推一整对空 `<ul></ul>`），而列表开标签 `<ul>` 另在列表项分支单独 push，导致列表永不闭合、浏览器 HTML 解析器把后续所有 `h2`（二～九）重新嵌套进未闭合的 `<ul>` 内并继承其 `padding-left:22px` → 同级标题错位缩进。改为 `out.push('</'+listType+'>')`（只推闭标签）。活体核验：9 个 `h2` 全部 `pl=0/ml=0`、`parent=DIV.note-render`，`nestedUl=0`。
+  - **资料来源超链接**：笔记「资料来源」行形如 `- S# 标题（<24位hex小红书笔记id>）`。`renderMarkdown()` 新增 `xhsItem()` 识别该模式 → 列表项渲染为 `<a href="https://www.xiaohongshu.com/explore/<id>" target="_blank" rel="noopener">S# · 标题</a>`（标签走 `esc()`，id 为纯 hex，无注入）。三个 XHS 笔记本各 8 条全部命中；正文普通列表项不误伤。
+  - 验证：`node --check` 过；浏览器活体——资料来源 8 条均为蓝色下划线超链接（href 正确）、正文有序/无序列表零嵌套、9 标题零缩进、控制台零报错；`npm test` 18/18。
 - 提交：本地 commit（三前端文件），**未 push**（push 需用户授权）。
