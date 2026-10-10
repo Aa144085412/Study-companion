@@ -6,11 +6,11 @@
 
 - **Status**：v0.2.0 开发版；核心流程已实现，未完成完整产品验收。
 - **Goal**：音视频 → 转写与校对 → 笔记 → AI 共读/语音提问 → 实验 skill 问答指导。
-- **Active task**：T15 小红书图文 → OCR → 研习伴导入已完成；用户本人完成扫码。
-- **Last verified state**：2026-10-10 三关键词各 8 篇，24 篇/131 张图片完整性验证通过，全部 OCR 与 API 导入（各笔记本 8 份）；真实界面可见，草稿和共读回答有来源引用。新增采集测试 3/3、导入测试 2/2；应用业务代码未变，18/18 回归结果沿用此前记录。8765 当前运行单实例。
+- **Active task**：T16 前端 UI 一致性优化（UI Finish-Gate A–G）已完成（commit `e19c58a`，未 push）；待认领 open=T12 应用内 OCR / T13 长文上下文 / T14 交付验收。
+- **Last verified state**：2026-10-10 三关键词各 8 篇，24 篇/131 张图片完整性验证通过，全部 OCR 与 API 导入（各笔记本 8 份）；真实界面可见，草稿和共读回答有来源引用。新增采集测试 3/3、导入测试 2/2；应用业务代码未变，18/18 回归结果沿用此前记录。8765 当前运行单实例。T16 已核验：前端 A–G 七项活体逐一通过（含 375px 窄屏脚注换行零溢出、空笔记本 CTA、skill 描述、历史只读往返），并修掉 `app.js` `loadRevision` 缺 `async` 的确定性语法错误；`node --check` 过、全程无 store 写入、单实例 8765。
 - **Code baseline**：本轮基于 main/f5c71fd（独立 OCR worker）；新增 scripts/import_xhs.py、测试与操作文档。接手重新读 Git HEAD。
 - **Current blocker**：采集导入链路无阻塞；应用内一键 OCR 尚未接入，共读长文预算限制仍需 T13 处理。关键词检索结果未逐篇验证实验适用性。
-- **Next safe action**：T12 接入应用内图片/PDF OCR，或 T13 长文上下文；用户可先使用三个“小红书实验学习”笔记本。复用运行中的服务，避免双开共享 store。
+- **Next safe action**：T12 接入应用内图片/PDF OCR，或 T13 长文上下文；用户可先使用三个“小红书实验学习”笔记本。复用运行中的服务，避免双开共享 store。T16 前端改动已本地 commit，push 需用户另行授权。
 - **Files involved**：server.mjs、public/*、transcription.mjs、asr_worker.py、tts.mjs、tts_worker.py、skills/*、tests/*。
 
 ## 已实现及证据等级
@@ -61,3 +61,13 @@
 - 研习伴按关键词创建三个笔记本；仅通过 /api/sources 导入，现有用户笔记未覆盖。草稿和问答验收留在“大肠杆菌转化”的共读对话中，未自动写入正式笔记。
 - 操作说明：docs/小红书图文导入.md；导入支持 OCR 缓存与来源标记去重，重复运行已验证。
 - 质量边界：OCR 数字/单位需要核对原图；仅关键词检索，未筛选所有帖子的科学可靠性；共读出现 truncated 提示，只用了部分资料。
+
+## 2026-10-10 T16 前端 UI 一致性优化（A–G）
+
+- 起因：用户先让 UI Finish-Gate Reviewer 过一遍研习伴现有前端，出「哪里能更清晰/一致」清单，再「开始优化」。复审结论 HOLD + 7 项必修（A–G）。
+- 落地范围：仅 `public/index.html`、`public/app.js`、`public/style.css`，纯前端零新依赖，后端/接口/store 零改动。
+  - A 语言统一中文；B 状态标签语义互斥（四态实时切换）；C 计数徽标 0 值隐藏 + tab ARIA；D 实验 skill 下拉下方显示 description；E 选择上下文就近反馈（编辑器脚注回显 + 窄屏 flex-wrap）；F 历史版本只读态（is-historical + readOnly + 继续编辑往返）；G 空笔记本首屏 CTA（无笔记本时隐藏编辑器并显示创建入口）。
+- 附带修复：`app.js` `loadRevision` 用 `await` 却非 `async`（语法错误，整个前端脚本会解析失败）→ 改 `async`。
+- 验证：`node --check` 通过；浏览器活体逐一核验 A–G 各态（含 375px 窄屏脚注换行零溢出、空笔记本 CTA 内存态、skill 描述、历史只读往返），全程无 store 写入；单实例 8765（验证前停掉旧进程、由预览面板起单实例，避免双开共享 store）。
+- 提交：本地 commit `e19c58a`（三前端文件），未 push；`.claude/launch.json` 临时预览改动已还原未纳入。
+- 边界：E 的「就近反馈」只是编辑器脚注的选中段摘要回显，未改动右侧共读选区逻辑；G 的 CTA 复用既有 `#newBookDialog`，未新增建本逻辑。
