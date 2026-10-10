@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {createApp} from '../server.mjs';
+
+test('source original images: list, serve, and traversal guard',async t=>{
+  const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'study-img-'));
+  const imgDir=fs.mkdtempSync(path.join(os.tmpdir(),'study-imgsrc-'));
+  fs.writeFileSync(path.join(imgDir,'001.png'),Buffer.from([0x89,0x50,0x4e,0x47,0,1,1,1]));
+  fs.writeFileSync(path.join(imgDir,'002.webp'),Buffer.from([0x52,0x49,0x46,0x46]));
+  const app=createApp({dataDir});
+  await new Promise(r=>app.listen(0,'127.0.0.1',r));
+  const root=`http://127.0.0.1:${app.address().port}`;
+  t.after(async()=>{await new Promise(r=>app.close(r));fs.rmSync(dataDir,{recursive:true,force:true});fs.rmSync(imgDir,{recursive:true,force:true});});
+  const post=(p,data)=>fetch(root+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json());
+  const nb=await post('/api/notebooks',{title:'t'});
+  const src=await post('/api/sources',{notebookId:nb.id,title:'a.md',content:'标题\n图片目录：'+imgDir+'\n正文'});
+  const list=await (await fetch(root+'/api/sources/'+src.id+'/images')).json();
+  assert.equal(list.length,2);
+  assert.deepEqual(list.map(i=>i.name),['001.png','002.webp']);
+  assert.ok(list[0].url===`/api/sources/${src.id}/image?file=001.png`);
+  const img=await fetch(root+list[0].url);
+  assert.equal(img.status,200);
+  assert.match(img.headers.get('content-type'),/image\/png/);
+  assert.deepEqual(Buffer.from(await img.arrayBuffer()),Buffer.from([0x89,0x50,0x4e,0x47,0,1,1,1]));
+  const webp=await fetch(root+list[1].url);
+  assert.equal(webp.status,200);
+  assert.match(webp.headers.get('content-type'),/image\/webp/);
+  const trav=await fetch(root+`/api/sources/${src.id}/image?file=${encodeURIComponent('../store.json')}`);
+  assert.equal(trav.status,400);
+  const dot=await fetch(root+`/api/sources/${src.id}/image?file=..%2f..%2fstore.json`);
+  assert.equal(dot.status,400);
+  const missing=await fetch(root+`/api/sources/${src.id}/image?file=nope.png`);
+  assert.equal(missing.status,404);
+  // a text source without 图片目录 yields an empty list
+  const plain=await post('/api/sources',{notebookId:nb.id,title:'b.txt',content:'只有文字'});
+  const empty=await (await fetch(root+'/api/sources/'+plain.id+'/images')).json();
+  assert.deepEqual(empty,[]);
+  const notFound=await fetch(root+'/api/sources/not-an-id/images');
+  assert.equal(notFound.status,404);
+});

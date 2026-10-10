@@ -96,10 +96,11 @@
   - 验证：脚本精确替换 67 个 hex，核验无残留绿系 hex、`#3a83f7` 就位、红/暖/白保留；活体——logo/保存按钮/激活 tab/导航高亮/引用块/资料来源链接均为 `rgb(58,131,247)`、引用上标 `va=5px/lh=10px`、控制台零报错。
 - 提交：本地 commit（三前端文件），**未 push**（push 需用户授权）。
 
-## 2026-10-10 T18 共读 LLM 视觉接入来源原图
+## 2026-10-10 T18 共读 LLM 视觉接入来源原图 + 学习资料 UI 展示原图
 
-- 起因：用户反馈来源图片没被利用、不利于大模型准确理解内容；并确认本地 18081 Qwen（`local-qwen38-gsq`）具备图片识别能力。原 `/api/chat` 仅发 OCR 纯文本。
-- 方案/落地：仅 `server.mjs`。`/api/chat` 把本轮关键词排序 top 来源的原图（解析各来源 `content` 头部 `图片目录：<绝对路径>`）以 OpenAI 视觉 base64 随材料发送；跨来源去重、总量上限 `MAX_CHAT_IMAGES=4`；prompt 追加「附 N 张来源原图…与原图冲突以原图为准」；reply 加 `images` 计数（store 向后兼容）。零前端、零 schema、零新依赖；仅 chat 送图。
-- 验证：`node --check` 过；`npm test` 18/18；活体——重启单实例 8765，「大肠杆菌转化」笔记本问流程图离心步骤 → `images:4`，LLM 读图给出 3000g/4°C/10min×2 + CaCl₂ + -80°C，**主动发现 OCR 文本 `3000 r/min` 与原图 `3000 g` 单位不一致**（OCR 单靠文本无法发现）；浏览器 UI 渲染正常、控制台零报错。
-- 边界：图序↔来源序为近似映射（prompt 已声明）；仅 top 来源前 4 张；目录缺失/删除静默跳过；依赖本地 VLM 真理解图像（已活体核验）。
-- 提交：本地 commit（仅 `server.mjs`），**未 push**（push 需用户授权）。
+- 起因：用户反馈来源图片没被利用、不利于大模型准确理解内容；并确认本地 18081 Qwen（`local-qwen38-gsq`）具备图片识别能力。原 `/api/chat` 仅发 OCR 纯文本；后续用户又问「8 个来源的学习资料为何不显示图片」→ 补 UI 展示。
+- 方案/落地（后端·LLM 视觉）：`server.mjs` 把本轮 top 来源原图（解析各来源 `content` 头部 `图片目录：<绝对路径>`，目录在 app 外 `MediaCrawler/data/xhs/media`）以 OpenAI 视觉 base64 随材料发给 `/api/chat`；去重、上限 `MAX_CHAT_IMAGES=4`；reply 加 `images` 计数（store 向后兼容）。仅 chat 送图。
+- 方案/落地（后端·展示 API + 前端）：新增 `GET /api/sources/:id/images`（`[{name,url}]`）与 `GET /api/sources/:id/image?file=`（按 mime 流式出图，basename 白名单 + 目录越界防护，`../`→400）。`app.js` `showSource()` 详情对话框顶部渲染 `来源原图 · N 张` 缩略图条（点图新标签开原图），来源卡片加 `📷 N 张原图 · 点击查看`；`style.css` 加 `.source-images`/`.source-card-imgs`。零 schema、零新依赖。
+- 验证：`node --check` 过；新增 `tests/source-images.test.mjs` → `npm test` 19/19；活体（LLM 视觉）——「大肠杆菌转化」问流程图离心步骤 → `images:4`，LLM 读图给出 3000g/4°C/10min×2 + CaCl₂ + -80°C，**主动发现 OCR `3000 r/min` 与原图 `3000 g` 单位不一致**（OCR 单靠文本无法发现）；活体（UI 展示）——8 张来源卡片全部显示 `📷 N 张原图`（5/3/6/2/9/4/6/5），详情对话框渲染 5 张缩略图全部加载、截图确认流程图原图可见、控制台零报错。
+- 边界：图序↔来源序为近似映射（prompt 已声明）；仅 top 来源前 4 张送 LLM（UI 显示该来源全部图）；目录缺失/删除静默跳过；依赖本地 VLM 真理解图像（已活体核验）。图片经服务端从 app 外目录读取，已做 basename 白名单 + 越界防护。
+- 提交：本地 commit（`server.mjs`、`public/app.js`、`public/style.css`、`tests/source-images.test.mjs`），**未 push**（push 需用户授权）。

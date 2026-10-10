@@ -100,6 +100,11 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     try{ if(!fs.existsSync(dir)||!fs.statSync(dir).isDirectory()) return null; }catch{ return null; }
     return dir;
   }
+  function sourceImageList(s){
+    const dir=sourceImageDir(s); if(!dir) return [];
+    let files=[]; try{ files=fs.readdirSync(dir).filter(f=>/\.(jpe?g|png|webp)$/i.test(f)).sort(); }catch{ return []; }
+    return files.map(f=>{const ext=(f.match(/\.([a-z0-9]+)$/i)[1].toLowerCase());return {name:f,mime:'image/'+(ext==='jpg'?'jpeg':ext)};});
+  }
   function collectChatImages(sources, maxTotal){
     const seen=new Set(); const imgs=[];
     for(const s of sources){
@@ -248,6 +253,21 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           res.setHeader('Content-Range',`bytes ${start}-${end}/${size}`);
         }
         res.writeHead(status,{'Content-Type':s.mime,'Content-Length':end-start+1,'Accept-Ranges':'bytes'});return fs.createReadStream(file,{start,end}).pipe(res);
+      }
+      if(req.method==='GET' && /^\/api\/sources\/[^/]+\/images$/.test(p)) {
+        const s=db.sources.find(s=>s.id===p.split('/')[3] && s.kind==='text');if(!s) throw fail('文字资料不存在',404);
+        return json(res,sourceImageList(s).map(im=>({name:im.name,url:`/api/sources/${s.id}/image?file=${encodeURIComponent(im.name)}`})));
+      }
+      if(req.method==='GET' && /^\/api\/sources\/[^/]+\/image$/.test(p)) {
+        const s=db.sources.find(s=>s.id===p.split('/')[3] && s.kind==='text');if(!s) throw fail('文字资料不存在',404);
+        const dir=sourceImageDir(s);if(!dir) throw fail('该资料没有原图',404);
+        const name=u.searchParams.get('file')||'';
+        if(!/^[0-9A-Za-z._-]+$/.test(name)) throw fail('文件名无效',400);
+        const file=path.join(dir,name),rel=path.relative(dir,path.resolve(file));
+        if(rel.startsWith('..')||path.isAbsolute(rel)) throw fail('路径越界',400);
+        if(!fs.existsSync(file)||!fs.statSync(file).isFile()) throw fail('图片不存在',404);
+        const ext=(name.match(/\.([a-z0-9]+)$/i)||['',''])[1].toLowerCase();
+        res.writeHead(200,{'Content-Type':'image/'+(ext==='jpg'?'jpeg':ext)});return fs.createReadStream(file).pipe(res);
       }
       if(req.method==='POST' && p==='/api/notes') {
         const x=await body(req);book(x.notebookId);
