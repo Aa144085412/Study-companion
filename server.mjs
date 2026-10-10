@@ -165,6 +165,21 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     const meta=parseSkillMeta(content);
     return {name,title:meta.title||name,description:meta.description||'',kind:meta.kind,steps:meta.steps,path:file,slugSource:name};
   }
+  async function classifyNotebookKind(notebookId){
+    if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
+    const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId);
+    const items=evidence(notebookId);
+    let budget=1800;const refs=[];
+    for(const e of items){if(budget<=0)break;const chunk=e.text.slice(0,Math.min(1000,budget));budget-=chunk.length;refs.push({title:e.title,text:chunk});}
+    if(!note?.content && !refs.length) throw fail('这个笔记本还没有笔记或文字资料，无法判断 skill 类型');
+    const material=JSON.stringify({note:note?.content.slice(0,1200)||'',sources:refs});
+    const prompt='下面是一份学习笔记/材料的 JSON 数据。判断：如果它是可操作、可复现的实验/操作流程（有明确步骤与参数），应生成实验 skill；如果只是概念、原理、知识点的讲解，应生成知识总结 skill。只输出 experiment 或 knowledge 两个词之一，不要任何解释。\n'+material;
+    const answer=await model('/chat/completions',{model:db.settings.model,temperature:0,max_tokens:20,messages:[{role:'user',content:prompt}]});
+    const out=text(answer.choices?.[0]?.message?.content).replace(/<think>[\s\S]*?<\/think>/g,'').toLowerCase().trim();
+    if(out.includes('experiment'))return 'experiment';
+    if(out.includes('knowledge'))return 'knowledge';
+    return 'knowledge';
+  }
   function extractGaps(content){
     const gaps=[];
     const lines=String(content||'').split(/\r?\n/);
@@ -267,11 +282,11 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     },
     {
       name:'make_skill',
-      description:'把一个笔记本的资料整理成一份可被任意 agent 加载的「可移植 skill」（Agent Skills / SKILL.md 格式）并落盘到 skills/。当要把某个笔记本沉淀为可复用知识或实验 skill 时调用。参数：notebookId（必填，import_to_notebook 返回的笔记本 id）；kind（experiment|knowledge，默认 knowledge）。返回 name、title、kind、steps、gapCount、path、portable。',
-      parameters:{type:'object',properties:{notebookId:{type:'string'},kind:{type:'string',enum:['experiment','knowledge']}},required:['notebookId']},
+      description:'把一个笔记本的资料整理成一份可被任意 agent 加载的「可移植 skill」（Agent Skills / SKILL.md 格式）并落盘到 skills/。会自动判断该材料应生成「实验操作」还是「知识总结」skill，并据此生成。当要把某个笔记本沉淀为可复用 skill 时调用。参数：notebookId（必填，import_to_notebook 返回的笔记本 id）。返回 name、title、kind、steps、gapCount、path、portable。',
+      parameters:{type:'object',properties:{notebookId:{type:'string'}},required:['notebookId']},
       async run(args){
         const nbId=String(args.notebookId||'').trim();
-        const kind=['experiment','knowledge'].includes(args.kind)?args.kind:'knowledge';
+        const kind=await classifyNotebookKind(nbId);
         const gen=await generateSkillForNotebook(nbId,kind);
         const gaps=extractGaps(fs.readFileSync(gen.path,'utf8'));
         return {name:gen.name,title:gen.title,kind:gen.kind||kind,steps:gen.steps||0,gapCount:gaps.length,path:gen.path,portable:true};
@@ -310,11 +325,11 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       throw e;
     }
   }
-  async function runToolsLoop({source,url,goal,kind}){
+  async function runToolsLoop({source,url,goal}){
     const toolLog=[];
-    const system='你是研习伴 agent，负责把媒体材料整理成可复用的共读笔记与可移植 skill。你只能调用下面列出的工具，按顺序逐步执行，每个工具的结果作为下一步依据：先 download_media 下载并取音频，再 transcribe 转写，再 import_to_notebook 落共读笔记，最后 make_skill 生成 '+(kind==='knowledge'?'知识':'实验')+' skill。需要中间摘要时可用 summarize。所有信息必须来自工具真实返回，不要编造文件路径、转写文本或标题。完成全部工具后，用一句中文简要说明产出了什么（笔记本与 skill）。';
+    const system='你是研习伴 agent，负责把媒体材料整理成可复用的共读笔记与可移植 skill。你只能调用下面列出的工具，按顺序逐步执行，每个工具的结果作为下一步依据：先 download_media 下载并取音频，再 transcribe 转写，再 import_to_notebook 落共读笔记，最后 make_skill 生成 skill（它会自行判断该材料应生成实验操作 skill 还是知识总结 skill）。需要中间摘要时可用 summarize。所有信息必须来自工具真实返回，不要编造文件路径、转写文本或标题。完成全部工具后，用一句中文简要说明产出了什么（笔记本与 skill）。';
     const target=url||source;
-    const user=goal?goal:`处理 ${source||'媒体'} ${target}：下载→转写→落共读笔记→生成 ${kind==='knowledge'?'知识':'实验'} skill。`;
+    const user=goal?goal:`处理 ${source||'媒体'} ${target}：下载→转写→落共读笔记→生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
     const messages=[{role:'system',content:system},{role:'user',content:user}];
     let finalText='';let importedResult=null;let transcribeResult=null;let skillResult=null;
     for(let i=0;i<8;i++){
@@ -657,9 +672,8 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const source=String(x.source??'');
         const url=String(x.url??'').trim();
         const goal=String(x.goal??'').trim();
-        const kind=['experiment','knowledge'].includes(x.kind)?x.kind:'knowledge';
         if(!url&&!source)throw fail('请提供 url 或 source');
-        const out=await runToolsLoop({source,url,goal,kind});
+        const out=await runToolsLoop({source,url,goal});
         const nb=out.notebookId?db.notebooks.find(b=>b.id===out.notebookId):null;
         return json(res,{status:'done',finalText:out.finalText,toolLog:out.toolLog,notebookId:out.notebookId||null,notebookTitle:nb?.title||null,transcriptLen:out.transcriptLen,skill:out.skill||null});
       }
@@ -671,11 +685,10 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(url&&!/^https?:\/\/.+/i.test(url))throw fail('请提供合法的 http(s) URL');
         if(source&&!['douyin','xhs-video','wechat'].includes(source))throw fail('source 需为 douyin / xhs-video / wechat');
         const goal=String(x.goal??'').trim().slice(0,80);
-        const kind=['experiment','knowledge'].includes(x.kind)?x.kind:'knowledge';
         const cookieFile=String(x.cookieFile??'').trim();
         const runId=uuid();
-        const label={douyin:'媒体→转写→共读笔记→skill（agent 工具）','xhs-video':'媒体→转写→共读笔记→skill（agent 工具）',wechat:'媒体→转写→共读笔记→skill（agent 工具）'}[source]||'媒体→转写→共读笔记→skill（agent 工具）';
-        const base={id:runId,kind:'tools',skillKind:kind,goal:goal||url.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:kind==='knowledge'?label.replace('skill','知识 skill'):label,source,url,status:'running',createdAt:now(),updatedAt:now()};
+        const label={douyin:'媒体→转写→共读笔记→skill（agent 自动判断类型）','xhs-video':'媒体→转写→共读笔记→skill（agent 自动判断类型）',wechat:'媒体→转写→共读笔记→skill（agent 自动判断类型）'}[source]||'媒体→转写→共读笔记→skill（agent 自动判断类型）';
+        const base={id:runId,kind:'tools',goal:goal||url.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:label,source,url,status:'running',createdAt:now(),updatedAt:now()};
         db.agentRuns.push(base);save();
         const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
         const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
@@ -683,7 +696,6 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(source)args.push('--source',source);
         if(url)args.push('--url',url);
         if(goal)args.push('--goal',goal);
-        if(kind!=='knowledge')args.push('--kind',kind);
         if(cookieFile)args.push('--cookie-file',cookieFile);
         try{
           const child=pipelineLauncher(py,args,{cwd:ROOT,detached:true,stdio:'ignore'});

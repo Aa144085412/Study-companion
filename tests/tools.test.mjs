@@ -8,25 +8,30 @@ function jsonResp(content){
   return new Response(JSON.stringify({choices}),{status:200,headers:{'content-type':'application/json'}});
 }
 // Stateful fake LLM: first `tools`-bearing call = loop turn 1 (import_to_notebook),
-// second = loop turn 2 (make_skill, using notebookId from the last tool result),
-// third = final text. Non-tool calls: skill-gen vs note-gen are distinguished by system prompt.
+// second = loop turn 2 (make_skill, using notebookId from the last tool result — no kind arg,
+// the server auto-classifies), third = final text. Non-tool calls: make_skill triggers a
+// classify call (user prompt asks for exactly experiment|knowledge) then a skill-gen call
+// (system "知识整理助手"); note-gen is "你是研习伴".
 function fakeAgentModel(){
   let loopTurn=0;
   return async(url,opts)=>{
     const payload=JSON.parse(opts.body);
-    const sys=(payload.messages?.find(m=>m.role==='system')?.content)||'';
+    const msgs=payload.messages||[];
+    const sys=(msgs.find(m=>m.role==='system')?.content)||'';
+    const user=(msgs.find(m=>m.role==='user')?.content)||'';
     if(payload.tools){
       loopTurn++;
       if(loopTurn===1){
         return jsonResp({content:'',tool_calls:[{id:'c1',type:'function',function:{name:'import_to_notebook',arguments:JSON.stringify({title:'测试视频标题',text:'转写正文：感受态、热激、涂板。'})}}]});
       }
       if(loopTurn===2){
-        const lastTool=[...(payload.messages||[])].reverse().find(m=>m.role==='tool');
+        const lastTool=[...msgs].reverse().find(m=>m.role==='tool');
         const nbId=lastTool?JSON.parse(lastTool.content).notebookId:'nope';
-        return jsonResp({content:'',tool_calls:[{id:'c2',type:'function',function:{name:'make_skill',arguments:JSON.stringify({notebookId:nbId,kind:'knowledge'})}}]});
+        return jsonResp({content:'',tool_calls:[{id:'c2',type:'function',function:{name:'make_skill',arguments:JSON.stringify({notebookId:nbId})}}]});
       }
-      return jsonResp('已完成：落了共读笔记并生成知识 skill。');
+      return jsonResp('已完成：落了共读笔记并生成 skill。');
     }
+    if(/只输出 experiment 或 knowledge/.test(user)) return jsonResp('knowledge');
     if(/^你是实验笔记整理助手|你是知识整理助手/.test(sys)) return jsonResp(SKILL_MD);
     if(sys.startsWith('你是研习伴')) return jsonResp(NOTE_MD);
     return jsonResp('done');
@@ -67,7 +72,7 @@ test('GET /api/tools lists the agent tools with parameters',async t=>{
 test('POST /api/agent/tools builds a kind=tools run and spawns the driver',async t=>{
   const launcher=fakeLauncher();
   const {call}=await fixture(t,fakeAgentModel(),launcher);
-  const r=await call('/api/agent/tools',{source:'douyin',url:'https://v.douyin.com/abc/',kind:'knowledge'});
+  const r=await call('/api/agent/tools',{source:'douyin',url:'https://v.douyin.com/abc/'});
   assert.equal(r.status,202);
   assert.equal(typeof r.body.runId,'string');
   assert.equal(r.body.status,'running');
@@ -87,7 +92,7 @@ test('POST /api/agent/tools builds a kind=tools run and spawns the driver',async
   assert.ok(a.includes('--run-id')&&a.includes(r.body.runId));
   assert.ok(a.includes('--source')&&a.includes('douyin'));
   assert.ok(a.includes('--url')&&a.includes('https://v.douyin.com/abc/'));
-  // knowledge is the default → --kind should NOT be present
+  // no kind arg is forwarded to the driver (server auto-classifies the material)
   assert.ok(!a.includes('--kind'));
 });
 
@@ -104,7 +109,7 @@ test('POST /api/agent/tools rejects invalid url/source (400)',async t=>{
 test('POST /api/tools/loop runs import_to_notebook then make_skill, lands a notebook and a skill file',async t=>{
   const launcher=fakeLauncher();
   const {call,skillsDir}=await fixture(t,fakeAgentModel(),launcher);
-  const r=await call('/api/tools/loop',{source:'douyin',url:'https://v.douyin.com/abc/',kind:'knowledge'});
+  const r=await call('/api/tools/loop',{source:'douyin',url:'https://v.douyin.com/abc/'});
   assert.equal(r.status,200);
   assert.equal(r.body.status,'done');
   // toolLog shows both tools ok

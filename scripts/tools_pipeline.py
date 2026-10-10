@@ -8,7 +8,7 @@ download_media → transcribe → import_to_notebook → make_skill），拿回�
 用法：
   tools_pipeline.py --api http://127.0.0.1:8765 --run-id ID
                     [--source douyin] [--url "https://..."] [--goal 关键词]
-                    [--kind knowledge] [--cookie-file F] [--out report.json]
+                    [--cookie-file F] [--out report.json]
 
 说明：
 - 任何一步失败都 emit error 并以非零退出，报告如实写 failed（不做兜底）。
@@ -50,7 +50,6 @@ def main():
     ap.add_argument('--source', default='')
     ap.add_argument('--url', default='')
     ap.add_argument('--goal', default='')
-    ap.add_argument('--kind', default='knowledge')
     ap.add_argument('--cookie-file', default='')
     ap.add_argument('--out', default='')
     args = ap.parse_args()
@@ -63,16 +62,15 @@ def main():
         loop_payload['url'] = args.url
     if args.goal:
         loop_payload['goal'] = args.goal
-    loop_payload['kind'] = args.kind
 
     report = {
-        'source': args.source, 'url': args.url, 'goal': args.goal, 'kind': args.kind,
+        'source': args.source, 'url': args.url, 'goal': args.goal,
         'mode': 'tools', 'startedAt': started, 'status': 'running',
     }
 
     out_path = None
     try:
-        emit(event='loop-start', source=args.source, url=args.url, kind=args.kind)
+        emit(event='loop-start', source=args.source, url=args.url)
         result = api(args.api, '/api/tools/loop', loop_payload, timeout=1800)
         emit(event='loop-done', status=result.get('status'))
         report['finalText'] = result.get('finalText', '')
