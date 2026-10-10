@@ -33,6 +33,14 @@
 
 ## 已完成（done）
 
+- **T18 · 共读 LLM 视觉接入来源原图** — done · owner: claude code · 2026-10-10
+  - 起因：用户反馈「笔记来源不能更好地提取图片…不利于大模型对获取内容的准确理解」，并确认本地接入 Claude Code 的 Qwen（18081，`local-qwen38-gsq`）具备图片识别能力。原 `/api/chat` 只发纯文本（OCR 转录），LLM 看不到原图里的图表/流程图/培养皿等视觉信息。
+  - 方案：`/api/chat` 把本轮选中来源的**原图**以 OpenAI 视觉格式（`content:[{type:'text'},{type:'image_url':{url:'data:<mime>;base64,…'}}]`）随材料一起发给本地 VLM。图片来源=来源 `content` 头部嵌入的 `图片目录：<绝对路径>`（XHS 导入来源才有）；按「关键词排序后的 top 来源」顺序取图，跨来源去重、总量上限 `MAX_CHAT_IMAGES=4`。纯文本来源（.txt/.srt 等无 `图片目录`）贡献 0 图 → 自动回退纯文本（行为不变）。
+  - 落地：仅 `server.mjs`——新增 `sourceImageDir()`（解析 `图片目录：` 行，路径不存在/非目录返回 null）、`collectChatImages()`（读目录、筛 `jpe?g|png|webp`、排序、按 mime 生成 base64 元数据、上限截断）、`/api/chat` 组装 `material`（有图=文本+图数组、无图=纯字符串），prompt 追加「附 N 张来源原图…与原图冲突以原图为准」；reply 新增 `images` 计数（store 兼容，旧数据无此字段不受影响）。**零前端改动、零 store schema 升级、零新依赖**。仅 `/api/chat` 生效（`/api/generate`、`/api/skill-ask` 不送图，`images:0`）。
+  - 验证：`node --check` 过；`npm test` 18/18（修一处正则 `m` 标志误写成属性 `.m` 导致 `Cannot read … exec` 的确定性缺陷）；**活体端到端**——重启单实例 8765，对「大肠杆菌转化」笔记本问「流程图离心步骤/参数」→ 响应 `images:4`，LLM 读图给出两步离心 3000g/4°C/10min、CaCl₂ 体积、-80°C，并**主动发现 OCR 文本写 `3000 r/min` 而原图标 `3000 g` 的单位不一致**、提示以原图为准（正是 OCR 单靠文本无法发现的差异）；浏览器 UI 同问渲染正常、控制台零报错。
+  - 边界（如实）：图序↔来源序映射是近似的（第 1 张属 S1 所在来源，prompt 已声明）；仅取 top 来源前 4 张，长来源后续图不送；某来源图片目录缺失/被删则静默跳过；依赖本地 VLM 真的理解图像（已活体核验，非假设）；`max_tokens=4000` 不变，图片计入输入 token（18081 上下文 220000 足够）。
+  - 提交：本地 commit（仅 `server.mjs`），**未 push**（push 需用户授权）。
+
 - **T17 · 笔记 Markdown 阅读视图（渲染）** — done · owner: claude code · 2026-10-10
   - 起因：共读笔记是 `<textarea>` 原始 markdown，格式符号（`#`/`**`/`>`/`-`）全裸露、不可读。
   - 方案：笔记面板加「阅读 / 编辑」切换，默认**阅读**——手写零依赖 `renderMarkdown()` 把 markdown 渲染成排版文本（标题 h1–h6、`**` 加粗、`*` 斜体、`` ` `` 行内代码、无序/有序列表、`>` 引用块、`---` 分隔线）；**编辑**回到原 textarea 原样编辑，选中一段共读逻辑不变。
