@@ -84,5 +84,5 @@
 - 后续（同一 T17，2026-10-10）：应用户要求把 `[S#]` 改成右上角上标引用 + 笔记整体采用 Typora 主题风格（见上方案）；活体核验 78 个上标引用、无残留 `[S#]`、h1 下边框/居中/引用块斜体、阅读态选中回显正常、控制台零报错。
 - 后续2（同一 T17，2026-10-10）：
   - 修首屏竞态：`loadSkills()` 与 `refresh()` 并行，`loadSkills` 先完成并选中首个 skill 时 `state` 尚未赋值，`renderSkillMessages()` 读 `state.messages` 抛 "Cannot read properties of undefined (reading 'messages')"。`renderMessages`/`renderSkillMessages` 改 `(state?.messages||[])` 空值保护（纯前端，不碰后端/store）。多次刷新活体确认不再抛错。
-  - 布局收紧：右栏（共读）固定窄栏（基础网格 `minmax(330px,400px)`、≤1100px `minmax(300px,380px)`）；笔记阅读/编辑内容均限宽 720px 居中，缓解左栏铺满、阅读行宽更舒适。
+  - 布局收紧：右栏（共读）固定窄栏（基础网格 `minmax(330px,400px)`、≤1100px `minmax(300px,380px)`）；笔记阅读/编辑**填满左栏靠左**（初版曾限宽 720px 居中，用户反馈"太窄"→已去掉限宽居中，改为占满左栏）。
 - 提交：本地 commit（三前端文件），**未 push**（push 需用户授权）。
