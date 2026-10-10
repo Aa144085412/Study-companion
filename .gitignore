@@ -7,3 +7,7 @@ models/
 backups/
 __pycache__/
 *.pyc
+
+# 敏感：登录态 cookie，绝不提交
+cookies.txt
+cookies*.txt
