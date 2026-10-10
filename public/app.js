@@ -55,7 +55,7 @@ function renderNote(){
 }
 function renderMarkdown(md){
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const inline=t=>{let s=esc(t);s=s.replace(/`([^`]+)`/g,'<code>$1</code>');s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');return s;};
+  const inline=t=>{let s=esc(t);s=s.replace(/`([^`]+)`/g,'<code>$1</code>');s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');s=s.replace(/\[(S\d+)\]/g,'<sup class="cite">$1</sup>');return s;};
   const out=[],para=[];const flush=()=>{if(para.length)out.push('<p>'+inline(para.join(' '))+'</p>');para.length=0;};
   let listType=null;const endList=()=>{if(listType){out.push('<'+listType+'></'+listType+'>');listType=null;}};
   for(const line of md.replace(/\r\n/g,'\n').split('\n')){
