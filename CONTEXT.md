@@ -89,4 +89,8 @@
   - **修标题缩进 bug**：`renderMarkdown()` 的 `endList()` 误写为 `out.push('<'+listType+'></'+listType+'>')`（推一整对空 `<ul></ul>`），而列表开标签 `<ul>` 另在列表项分支单独 push，导致列表永不闭合、浏览器 HTML 解析器把后续所有 `h2`（二～九）重新嵌套进未闭合的 `<ul>` 内并继承其 `padding-left:22px` → 同级标题错位缩进。改为 `out.push('</'+listType+'>')`（只推闭标签）。活体核验：9 个 `h2` 全部 `pl=0/ml=0`、`parent=DIV.note-render`，`nestedUl=0`。
   - **资料来源超链接**：笔记「资料来源」行形如 `- S# 标题（<24位hex小红书笔记id>）`。`renderMarkdown()` 新增 `xhsItem()` 识别该模式 → 列表项渲染为 `<a href="https://www.xiaohongshu.com/explore/<id>" target="_blank" rel="noopener">S# · 标题</a>`（标签走 `esc()`，id 为纯 hex，无注入）。三个 XHS 笔记本各 8 条全部命中；正文普通列表项不误伤。
   - 验证：`node --check` 过；浏览器活体——资料来源 8 条均为蓝色下划线超链接（href 正确）、正文有序/无序列表零嵌套、9 标题零缩进、控制台零报错；`npm test` 18/18。
+- 后续4（同一 T17，2026-10-10）：用户要求「整体改成 #3a83f7 蓝色系风格」+「引用位置偏移严重」。
+  - **蓝色主题**：`style.css` 中 50+ 绿/青绿 hex 全部映射为 #3a83f7 蓝色系（`--green` 变量保留名但值改 `#3a83f7`，`--border`/`--muted` 同步转蓝灰）；**保留** `#fff`、红色 `.danger`（`#a54838`/`#fae2dc`/`#e3b3aa`）、暖色只读态 `is-historical`（`#f3efe6`/`#6b6657`）。新增 `.note-render a{color:#3a83f7;...}`（资料来源等链接由浏览器默认蓝 #0000ee 改为主题蓝）。
+  - **引用上标定位**：`.note-render sup.cite` 由 `vertical-align:super;line-height:0`（上标浮得过高、行盒塌缩错位）改为 `vertical-align:0.5em;line-height:1`（+字号 9→10px、左边距 2px），上标紧贴正文、不再悬浮偏移。
+  - 验证：脚本精确替换 67 个 hex，核验无残留绿系 hex、`#3a83f7` 就位、红/暖/白保留；活体——logo/保存按钮/激活 tab/导航高亮/引用块/资料来源链接均为 `rgb(58,131,247)`、引用上标 `va=5px/lh=10px`、控制台零报错。
 - 提交：本地 commit（三前端文件），**未 push**（push 需用户授权）。

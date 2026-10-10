@@ -43,6 +43,9 @@
   - **修标题缩进 bug**：`endList()` 误推一整对空 `<ul></ul>`（列表开标签另在列表项分支单独 push）→ 列表永不闭合、浏览器把后续所有 `h2` 重新嵌套进未闭合 `<ul>` 并继承 `padding-left:22px`；改只推 `</ul>` 闭标签。
   - **资料来源超链接**：`renderMarkdown()` 新增 `xhsItem()` 识别 `- S# 标题（24位hex小红书id）` → 渲染为 `xiaohongshu.com/explore/<id>` 超链接（新标签打开），三本 XHS 笔记本各 8 条全部命中。
   - 验证补充：`node --check` 过；活体 9 标题零缩进 + 8 条资料来源超链接 href 正确 + 列表零嵌套 + 控制台零报错；`npm test` 18/18。
+  - **整体改 #3a83f7 蓝色系**：`style.css` 50+ 绿/青绿 hex 全映射为蓝色系（`--green`→#3a83f7、`--border`/`--muted` 转蓝灰）；保留白、红色 `.danger`、暖色只读态 `is-historical`；新增 `.note-render a` 主题蓝链接规则。
+  - **引用上标定位修复**：`.note-render sup.cite` 由 `vertical-align:super;line-height:0`（上标浮得过高错位）改为 `vertical-align:0.5em;line-height:1`（+10px/左边距 2px），上标紧贴正文。
+  - 验证补充2：脚本核验无残留绿系 hex、#3a83f7 就位、红/暖/白保留；活体 logo/保存按钮/激活 tab/导航/引用块/资料来源链接均 `rgb(58,131,247)`、引用上标 `va=5px/lh=10px`、控制台零报错。
   - 边界：渲染为轻量子集（不支持表格/嵌套列表/图片）；`[S#]` 只匹配 `S`+数字 转上标，不误伤真实 `[链接](url)`；资料来源链接只匹配"列表项以 `S#` 开头 + 结尾 24 位 hex id"这一特定格式；保存读隐藏编辑框的值，阅读态也能保存。
   - 提交：本地 commit（仅三前端文件），**未 push**（push 需用户授权）。
 
