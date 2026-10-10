@@ -33,6 +33,15 @@
 
 ## 已完成（done）
 
+- **T28 · 实验操作 / 知识总结 skill 模板对齐专业 SKILL.md 规范（参考 GitHub 高 star / 官方源）** — done · owner: claude code · 2026-10-10
+  - 起因：用户「写实验操作 skill 和知识总结 skill 是否专业，是否参考了 github 上的成熟 high index 项目？」。先如实说明：原模板基于本地样例 + 训练知识（当时 WebSearch 不可用）；随后实际拉取权威源核实并对齐。
+  - 参考源：`anthropics/skills`（官方 spec → agentskills.io/specification；`skills/skill-creator/SKILL.md` 官方写作指南）+ `obra/superpowers`（~297k star，"agentic skills framework"；`writing-skills/SKILL.md`："Writing skills IS TDD applied to process documentation"）。
+  - 诊断（原模板 ~70% 对齐）：①`description` 被当摘要写，而它是**主触发机制**（做什么 + 何时用，要"pushy"）；②缺 `## 概览`（Overview 核心原则）；③缺 `## 何时不要用`（when NOT to use）；④知识模板把「什么时候用」放进**正文**（违反"何时用只写进 description，不进正文"）。
+  - 落地（仅 `server.mjs` 的 `SKILL_PROMPTS.experiment`/`.knowledge`）：description 指令改触发式（做什么 + 何时调用 + 具体触发场景/关键词，≤120 字，宁可主动）；两者新增 `## 概览`（1-2 句核心）+ `## 何时不要用`（避免误用，无则"暂未发现"）；知识模板**删正文 `## 什么时候用`**，改在 description 指令注明「何时用只写进 description」；两模板补 `<500 行`（progressive disclosure）；保留 `kind:` / 步骤同构 / 待核对不臆造 / 祈使句。
+  - 验证：`node --check server.mjs public/app.js` 过；`npm test` **34/34** 无回归（模板是 prompt 字符串，现有 mock 测试与其解耦，仍绿）。
+  - 诚实边界：模板输出形状需真实模型跑一次生成才能端到端确认（需 18081 本地服务 + 会写共享 store.json，未在本次活体跑，避免污染）；已落盘 skill 文件不变，下次 `force` 重新生成才应用新模板。
+  - 提交：本地 commit（`server.mjs`、`CONTEXT.md`、`TASKS.md`），**未 push**（push 需用户授权）。既有删除 `skills/multi-ai-agent-concurrency-conflict-prevention.md` 未纳入。
+
 - **T27 · skill 分级：pre-queue → skill-queue（自写 skill 默认 pre，可调度到 skill-queue）** — done · owner: claude code · 2026-10-10
   - 起因：用户「自己写的 skill 只在 pre-queue，我使用时可以选择调度去 skill-queue 来使用」。语义=自写/生成 skill 默认进 pre-queue（待激活），用户可「调度」到 skill-queue（已激活、可被任何 agent 调用）。
   - 方案（存储留 `store.json`，`SKILL.md` 文件保持可移植干净）：`db.skillsQueue`（`name→'pre'|'active'`，缺省 `pre`）；`GET /api/skills/list` 加 `status`（以磁盘文件名 stem 为 key，与 reveal 一致）；新增 `POST /api/skills/queue {name,status}`（`[a-z0-9-]` + 文件存在 + status∈{pre,active}，否则 400/404）；前端 Skill 库面板分「skill-queue（已激活）/ pre-queue（待激活）」两组，每卡状态徽标 + 「调度到 skill-queue（激活）」/「退回 pre-queue」+「在资源管理器中显示」，切换后重载。
