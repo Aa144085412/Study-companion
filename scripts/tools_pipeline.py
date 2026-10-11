@@ -52,6 +52,8 @@ def main():
     ap.add_argument('--goal', default='')
     ap.add_argument('--query', default='')
     ap.add_argument('--max', type=int, default=0)
+    ap.add_argument('--limit', type=int, default=0)
+    ap.add_argument('--crawl', action='store_true')
     ap.add_argument('--cookie-file', default='')
     ap.add_argument('--out', default='')
     args = ap.parse_args()
@@ -68,10 +70,14 @@ def main():
         loop_payload['query'] = args.query
         if args.max:
             loop_payload['max'] = args.max
+        if args.limit:
+            loop_payload['limit'] = args.limit
+        if args.crawl:
+            loop_payload['crawl'] = True
 
     report = {
         'source': args.source, 'url': args.url, 'goal': args.goal,
-        'query': args.query, 'max': args.max,
+        'query': args.query, 'max': args.max, 'limit': args.limit, 'crawl': args.crawl,
         'mode': 'tools', 'startedAt': started, 'status': 'running',
     }
 

@@ -1,6 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { randomUUID, createHash } from 'node:crypto';
 import { transcribeLocal, asrStatus } from './transcription.mjs';
 import { ttsStatus, synthesize } from './tts.mjs';
@@ -14,6 +15,8 @@ const uuid = () => randomUUID();
 const now = () => new Date().toISOString();
 const fail = (message, status = 400) => Object.assign(new Error(message), { status });
 const text = (v, max = 200000) => String(v ?? '').slice(0, max);
+// 本机端口在 listen 后回填；供 fetch_xhs_notes 等工具里 spawn 子进程回调本机 API 用。
+let toolEnv = { localBase: 'http://127.0.0.1:8765' };
 export function localURL(value) {
   const u = new URL(value);
   if (u.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(u.hostname) || u.username || u.password || u.search || u.hash) throw fail('本地模式仅接受 http://127.0.0.1、localhost 或 [::1] 地址');
@@ -296,6 +299,70 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       }
     },
     {
+      name:'fetch_xhs_notes',
+      description:'按关键词从小红书整理图文（图片 OCR 成文字），并把每篇导入为一个独立来源、同时落一份共读笔记。默认复用 ~/Desktop/MediaCrawler/data/xhs 里已抓到的该关键词图文（需先用该关键词爬取过）；crawl=true 才真正启动 MediaCrawler 抓取（需你已开 Edge CDP 9222 且已登录小红书，免扫码）。当用户给了小红书图文的主题/关键词、想收集小红书图文并沉淀为共读笔记时调用。参数：query（必填，小红书搜索关键词，如「细胞电转染」）；crawl（可选，true 才启动浏览器抓取，默认 false）；limit（可选，导入篇数上限 0=全部，默认 0）。返回 crawlerRoot、crawlRan、crawlOk、notebookId、notebookTitle、sourceCount、revisionId。',
+      parameters:{type:'object',properties:{query:{type:'string'},crawl:{type:'boolean'},limit:{type:'integer'}},required:['query']},
+      async run(args){
+        const query=String(args.query||'').trim();
+        if(!query)throw fail('请提供 query 关键词');
+        if(query.length>120)throw fail('关键词过长（≤120 字）');
+        const crawl=args.crawl===true;
+        const limitN=Number.isFinite(+args.limit)?Math.trunc(+args.limit):0;
+        const limit=limitN>0?Math.max(1,Math.min(100,limitN)):0;
+        const crawlerRoot=path.join(os.homedir(),'Desktop','MediaCrawler');
+        let crawlRan=false,crawlOk=false;
+        if(crawl){
+          const mcPy=path.join(crawlerRoot,'.venv-mc','Scripts','python.exe');
+          if(!fs.existsSync(mcPy))throw fail('未找到 MediaCrawler 运行器（.venv-mc）；crawl=true 还需已开 Edge CDP 9222 并登录小红书',500);
+          const cproc=spawn(mcPy,['main.py','--type','search','--keywords',query],{cwd:crawlerRoot,stdio:['ignore','pipe','pipe'],env:{...process.env,PLAYWRIGHT_BROWSERS_PATH:path.join(crawlerRoot,'.pw-browsers')}});
+          let cout='';
+          cproc.stdout.on('data',d=>{cout+=d.toString();});
+          cproc.stderr.on('data',d=>{cout+=d.toString();});
+          const cfin=new Promise((resolve,reject)=>{
+            const timer=setTimeout(()=>{cproc.kill();reject(fail('小红书抓取（MediaCrawler）超时（900 秒）',504));},900000);
+            cproc.on('close',code=>{clearTimeout(timer);resolve(code);});
+            cproc.on('error',e=>{clearTimeout(timer);reject(e);});
+          });
+          const ccode=await cfin;
+          crawlRan=true;
+          crawlOk=ccode===0;
+          if(!crawlOk)throw fail('小红书抓取未成功（需 Edge CDP 9222 已登录小红书）：'+cout.slice(-500),504);
+        }
+        const ocrPy=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+        if(!fs.existsSync(ocrPy))throw fail('未找到 OCR 运行器（.venv-ocr）',500);
+        const importScript=path.join(ROOT,'scripts','import_xhs.py');
+        const iproc=spawn(ocrPy,[importScript,'--app-root',ROOT,'--crawler-root',crawlerRoot,'--api',toolEnv.localBase,'--keywords',query,'--limit',String(limit)],{cwd:ROOT,stdio:['ignore','pipe','pipe'],env:{...process.env}});
+        let iout='';
+        iproc.stdout.on('data',d=>{iout+=d.toString();});
+        iproc.stderr.on('data',d=>{iout+=d.toString();});
+        const ifin=new Promise((resolve,reject)=>{
+          const timer=setTimeout(()=>{iproc.kill();reject(fail('小红书图文 OCR/导入超时（1800 秒）',504));},1800000);
+          iproc.on('close',code=>{clearTimeout(timer);resolve(code);});
+          iproc.on('error',e=>{clearTimeout(timer);reject(e);});
+        });
+        const icode=await ifin;
+        let complete=null;
+        for(const line of iout.split(/\r?\n/)){
+          const t=line.trim();
+          if(!t.startsWith('{'))continue;
+          try{const ev=JSON.parse(t);if(ev.event==='complete')complete=ev;}catch{}
+        }
+        const imported=complete?.imported||0,failed=complete?.failed||0,skipped=complete?.skipped||0;
+        // 幂等：重复运行时 import_xhs 报告 imported=0 / skipped=N / failed=0 属成功（数据已在笔记本），不因 imported=0 判失败。
+        if(!complete||icode!==0||failed>0||(imported+skipped)===0){
+          throw fail('小红书图文未导入成功（需该关键词已有爬取数据，或 crawl=true 且 Edge CDP 9222 已登录小红书）：'+iout.slice(-500),504);
+        }
+        const nbTitle='小红书实验学习 · '+query;
+        const nb=db.notebooks.find(b=>b.title===nbTitle);
+        if(!nb)throw fail('未找到笔记本「'+nbTitle+'」（import_xhs 未建笔记本，请检查 OCR/导入日志）',500);
+        const gen=await generateNote(nb.id);
+        const rev={id:uuid(),notebookId:nb.id,content:gen.content,createdAt:now()};
+        db.revisions.push(rev);
+        save();
+        return {crawlerRoot,crawlRan,crawlOk,notebookId:nb.id,notebookTitle:nb.title,sourceCount:imported+skipped,imported,skipped,revisionId:rev.id};
+      }
+    },
+    {
       name:'transcribe',
       description:'把本地音频文件转写成中文文本（本地 faster-whisper）。当已有 download_media 返回的 audio 路径、需要拿到口播文字时调用。参数：audio（必填，音频文件绝对路径）。返回 text（全文）、segments（分段）、duration。',
       parameters:{type:'object',properties:{audio:{type:'string'}},required:['audio']},
@@ -373,12 +440,16 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       throw e;
     }
   }
-  async function runToolsLoop({source,url,goal,query,max}){
+  async function runToolsLoop({source,url,goal,query,max,limit}){
     const toolLog=[];
-    const system='你是研习伴 agent，负责把材料整理成可复用的共读笔记与可移植 skill。你只能调用下面列出的工具，按任务选择合适的流程，每个工具的结果作为下一步依据：给定视频/媒体 URL（抖音/小红书）时，先 download_media 下载并取音频 → transcribe 转写 → import_to_notebook 落共读笔记 → make_skill 生成 skill；给定微信公众号主题/关键词时，fetch_wechat_articles 按关键词批量抓取公众号图文并落共读笔记 → make_skill 生成 skill。make_skill 会自行判断该材料应生成「实验操作」还是「知识总结」skill。需要中间摘要时可用 summarize。所有信息必须来自工具真实返回，不要编造文件路径、转写文本、标题或抓取结果。完成全部工具后，用一句中文简要说明产出了什么（笔记本与 skill）。';
+    const system='你是研习伴 agent，负责把材料整理成可复用的共读笔记与可移植 skill。你只能调用下面列出的工具，按任务选择合适的流程，每个工具的结果作为下一步依据：给定视频/媒体 URL（抖音/小红书）时，先 download_media 下载并取音频 → transcribe 转写 → import_to_notebook 落共读笔记 → make_skill 生成 skill；给定微信公众号主题/关键词时，fetch_wechat_articles 按关键词批量抓取公众号图文并落共读笔记 → make_skill 生成 skill；给定小红书图文主题/关键词时（用户明确要小红书/小红书图文/笔记且非视频 URL），fetch_xhs_notes 按关键词整理小红书图文（图片 OCR）并落共读笔记 → make_skill 生成 skill（小红书图文依赖本地 MediaCrawler 抓取数据，缺数据或需登录时如实上报）。make_skill 会自行判断该材料应生成「实验操作」还是「知识总结」skill。需要中间摘要时可用 summarize。所有信息必须来自工具真实返回，不要编造文件路径、转写文本、标题或抓取结果。完成全部工具后，用一句中文简要说明产出了什么（笔记本与 skill）。';
     let user;
-    if(query){
+    if(query&&source==='xhs-image'){
+      user=`从小红书按关键词「${query}」整理图文${limit?('（最多 '+limit+' 篇）'):''}，落共读笔记，再生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
+    }else if(query&&source==='wechat'){
       user=`从微信公众号按关键词「${query}」批量抓取图文（最多 ${max} 篇），落共读笔记，再生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
+    }else if(query){
+      user=`按关键词「${query}」收集图文（自行判断是微信公众号还是小红书，分别用 fetch_wechat_articles 或 fetch_xhs_notes），落共读笔记，再生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
     }else if(goal){
       user=goal;
     }else{
@@ -386,7 +457,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       user=`处理 ${source||'媒体'} ${target}：下载→转写→落共读笔记→生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
     }
     const messages=[{role:'system',content:system},{role:'user',content:user}];
-    let finalText='';let importedResult=null;let transcribeResult=null;let skillResult=null;let fetchedNotebookId=null;
+    let finalText='';let importedResult=null;let transcribeResult=null;let skillResult=null;let fetchedNotebookId=null;let fetchedXhsNotebookId=null;
     for(let i=0;i<8;i++){
       const payload={model:db.settings.model,temperature:0.2,messages,tools:TOOL_FUNCS,tool_choice:'auto'};
       if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
@@ -404,6 +475,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           else if(tname==='transcribe')transcribeResult=result;
           else if(tname==='make_skill')skillResult=result;
           else if(tname==='fetch_wechat_articles')fetchedNotebookId=result.notebookId||null;
+          else if(tname==='fetch_xhs_notes')fetchedXhsNotebookId=result.notebookId||null;
           messages.push({role:'tool',tool_call_id:tc.id,content:JSON.stringify(result)});
         }
         continue;
@@ -412,7 +484,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       break;
     }
     if(!finalText&&!toolLog.length) throw fail('模型未调用任何工具且未给出结论',502);
-    return {finalText,toolLog,notebookId:fetchedNotebookId||importedResult?.notebookId||null,transcriptLen:transcribeResult?.text?.length||0,skill:skillResult||null};
+    return {finalText,toolLog,notebookId:fetchedNotebookId||fetchedXhsNotebookId||importedResult?.notebookId||null,transcriptLen:transcribeResult?.text?.length||0,skill:skillResult||null};
   }
   return http.createServer(async(req,res)=> {
     try {
@@ -730,8 +802,9 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const goal=String(x.goal??'').trim();
         const query=String(x.query??'').trim();
         const max=Number.isFinite(+x.max)?Math.trunc(+x.max):10;
+        const limit=Number.isFinite(+x.limit)?Math.trunc(+x.limit):0;
         if(!url&&!source&&!query)throw fail('请提供 url、source 或 query');
-        const out=await runToolsLoop({source,url,goal,query,max});
+        const out=await runToolsLoop({source,url,goal,query,max,limit});
         const nb=out.notebookId?db.notebooks.find(b=>b.id===out.notebookId):null;
         return json(res,{status:'done',finalText:out.finalText,toolLog:out.toolLog,notebookId:out.notebookId||null,notebookTitle:nb?.title||null,transcriptLen:out.transcriptLen,skill:out.skill||null});
       }
@@ -786,6 +859,32 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           throw fail('启动 fetch-wechat 驱动失败：'+e.message,500);
         }
         return json(res,{runId,status:'running',source:'wechat',query,max,note:'异步执行：agent 抓取微信公众号图文→落共读笔记→生成 skill；轮询 GET /api/agent/runs（可按 ?id 过滤）查看进度与报告'},202);
+      }
+      if(req.method==='POST' && p==='/api/agent/fetch-xhs'){
+        const x=await body(req);
+        const query=String(x.query??'').trim();
+        if(!query)throw fail('请提供 query 关键词');
+        if(query.length>120)throw fail('关键词过长（≤120 字）');
+        const crawl=x.crawl===true;
+        const limitN=Number.isFinite(+x.limit)?Math.trunc(+x.limit):0;
+        const limit=limitN>0?Math.max(1,Math.min(100,limitN)):0;
+        const runId=uuid();
+        const base={id:runId,kind:'tools',goal:query.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:'小红书按关键词整理图文→共读笔记→skill（agent 自动判断类型）',source:'xhs-image',url:'',query,crawl,limit,status:'running',createdAt:now(),updatedAt:now()};
+        db.agentRuns.push(base);save();
+        const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
+        const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+        const args=[path.join(ROOT,'scripts','tools_pipeline.py'),'--api',localBase,'--run-id',runId,'--source','xhs-image','--query',query];
+        if(limit>0)args.push('--limit',String(limit));
+        if(crawl)args.push('--crawl');
+        try{
+          const child=pipelineLauncher(py,args,{cwd:ROOT,detached:true,stdio:'ignore'});
+          child.on('error',()=>{const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error='启动 fetch-xhs 驱动失败（检查 python/脚本）';r.updatedAt=now();save();}});
+          child.unref();
+        }catch(e){
+          const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error=e.message;r.updatedAt=now();save();}
+          throw fail('启动 fetch-xhs 驱动失败：'+e.message,500);
+        }
+        return json(res,{runId,status:'running',source:'xhs-image',query,crawl,limit,note:'异步执行：agent 整理小红书图文→落共读笔记→生成 skill；轮询 GET /api/agent/runs（可按 ?id 过滤）查看进度与报告'},202);
       }
       {
         const pm=/^\/api\/agent\/pipeline\/([a-f0-9-]+)\/result$/.exec(p);
@@ -844,5 +943,5 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
 if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const port=Number(process.env.PORT||8765);const app=createApp();
   app.on('error',e=>{console.error(e.code==='EADDRINUSE'?`端口 ${port} 已占用，请修改 PORT。`:e);process.exitCode=1;});
-  app.listen(port,'127.0.0.1',()=>console.log(`研习伴已启动：http://127.0.0.1:${port}`));
+  app.listen(port,'127.0.0.1',()=>{toolEnv.localBase='http://127.0.0.1:'+port;console.log(`研习伴已启动：http://127.0.0.1:${port}`);});
 }
