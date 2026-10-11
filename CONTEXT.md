@@ -11,7 +11,7 @@
 - **Code baseline**：本轮基于 main/f5c71fd（独立 OCR worker）；新增 scripts/import_xhs.py、测试与操作文档。接手重新读 Git HEAD。
 - **Current blocker**：采集导入链路无阻塞；应用内一键 OCR 尚未接入，共读长文预算限制仍需 T13 处理。关键词检索结果未逐篇验证实验适用性。
 - **Next safe action**：agent 方向已按"先做一条端到端切片"原则落地 T20（资料→skill 后半段）+ T21（前半段 goal→…→skill 管线）+ T22（前端「实验 Agent」tab 一键触发 + 报告 + 跳实验指导），前后两段 + UI 入口已串成"一行关键词→…→可移植 skill→问答指导"的完整闭环；**T24 再把信息源从"小红书关键词"扩到"任意 URL"**（微信图文/抖音·小红书视频，视频取音轨转写 + 画面关键帧）。下一切片候选（按价值/依赖排）：①小红书视频**真实 URL 活体验收**（需小红书登录 cookies.txt；抖音已于 2026-10-10 活体验收，`download_media.py` 走移动接口直连绕过 X-Bogus）；②crawl 活体验收（需用户 9222 已登录小红书的 Edge/CDP，会撞风控/占用户环境，另行安排）；③open=T13 长文上下文（也限制 T19 笔记与 T20/T21/T22/T24 skill 的材料预算）/ T12 应用内 OCR 可并行。复用运行中的服务（8765 单实例），避免双开共享 store。T16 已 push；T17/T18/T20/T21/T22/T23/T24 已本地 commit，push 需用户另行授权（10+ 本地 commit 未 push）。**T33 后**：tools 层现覆盖 微信公众号图文（T32 `fetch_wechat_articles`）+ 小红书图文（T33 `fetch_xhs_notes`）两类批量图文抓取，小红书图文缺口已补齐；下一切片候选不变（小红书视频真实 URL 活体验收需登录 cookies / crawl 活体验收需 9222 已登录 Edge / open T13 长文上下文）。**T34 后**：成熟度路线 P0 第①项「数据恢复能力」（软删除回收站 + 全量备份导出/恢复）已落地，产品「误删不可逆」安全底线缺口已补齐；T16/T17/T18/T20–T34 均已本地 commit 未 push（push 需用户授权）。
-**P0 完整验收（T14 核心，2026-10-11）**：已产出**第一版验收报告 `docs/验收报告.md`**（映射 A01–A15 + M0–M5：A01/A02/A03/A04/A05/A07/A12/A13 已验证（A13 备份恢复由 T34 补齐）、A09/A10 历史活体本轮未重测、A11 设计保证、A14 部分(TTS edge-tts 云端)、**A06 回放 10 片段 + A08 真实材料 20 问人工复核未做**、A15 宿主回归因暂无科研工作台宿主先跳过）。P0 剩余 = A08 真实材料 20 问 + A06 回放 + A15 宿主，后续单列；OCR 数字/单位逐篇核对原图也未纳入本轮。P1（T13 长文上下文 / T12 应用内 OCR）仍 open。
+**P0 完整验收（T14 核心，2026-10-11）**：已产出**第一版验收报告 `docs/验收报告.md`**（映射 A01–A15 + M0–M5：A01/A02/A03/A04/A05/A07/**A08**/A12/A13 已验证（A13 备份恢复由 T34 补齐；**A08 本轮实测**＝对真实小红书本「酵母转化」8 篇 OCR 来源建一次性验收本→设计 20 问覆盖指代/连续追问/材料缺失/来源冲突/常规参数（原音频定位对本批文本图文 N/A，如实标注）→跑 `/api/chat`→人工逐条复核，**相关且被所引材料支持 17/20、关键参数零编造**，4 问(Q4/Q8/Q9/Q19)受 T13 证据预算(~1800 字符)召回受限而答「材料未说明」并拒绝编造））、A09/A10 历史活体本轮未重测、A11 设计保证、A14 部分(TTS edge-tts 云端)、**A06 回放 10 片段未做**、A15 宿主回归因暂无科研工作台宿主先跳过）。P0 剩余 = **A06 回放 + A15 宿主**（A08 已实测；唯一残项＝T13 提升证据预算后重测冲 ≥18/20，现 17/20 差 1）；OCR 数字/单位逐篇核对原图也未纳入本轮。P1（T13 长文上下文 / T12 应用内 OCR）仍 open。**A08 验收后经 T34 软删+purge 清除测试本，store 回基线（7 本/0 trash），无磁盘残留。**
 - **Files involved**：server.mjs、public/*、transcription.mjs、asr_worker.py、tts.mjs、tts_worker.py、scripts/experiment_pipeline.py、scripts/url_pipeline.py、scripts/download_media.py、scripts/fetch_wechat.py、scripts/import_xhs.py、scripts/tools_pipeline.py、skills/*、tests/*；T29/T30 tools 层另涉 `scripts/tools_pipeline.py`；T31 另涉 `tools/wechat-article-downloader/`（GitHub 第三方，gitignored，含本地装 tsx 的 node_modules）、`data/wechat-electroporation/`（抓取产物，gitignored）、`skills/cell-transfection.md`（新交付物）；T32 另涉 `data/wechat-fetch/`（fetch_wechat_articles 抓取产物，gitignored 数据）、tests/tools.test.mjs（fetch_wechat 测试）；T33 另涉 `scripts/import_xhs.py`（小红书图文 OCR+导入，复用不重写）、`~/Desktop/MediaCrawler`（爬虫数据/`.venv-mc`）、`tools_pipeline.py` 的 `--source xhs-image` 分支；T34 另涉 server.mjs 的 schema 3 迁移块/两 DELETE 软删除/`GET /api/trash`·`/api/trash/:id/restore`·`/api/trash/:id/purge`·`/api/backup/restore`、public/index.html·app.js·style.css 的回收站+备份 dialog、tests/delete.test.mjs（改写）、tests/trash.test.mjs（新增）。
 
 ## 已实现及证据等级
@@ -22,7 +22,7 @@
 | M1 资料与来源 | 250 MB 流式上传、哈希去重、转写队列、取消/重试、校对版本、时间戳及媒体 Range | 本轮相关自动测试通过；历史约 72 秒合成语音/视频验证，不能外推为一小时性能保证 |
 | M2 笔记共读 | 笔记版本、草稿、选区问答、短历史、引用标识校验 | 自动测试及历史联调；笔记块证据映射、全文检索未完成 |
 | M3 语音 | 设备选择、录音/文件提问、取消、权限提示、中文朗读和 Markdown 清洗 | 历史浏览器与模型验证；本轮未重新使用麦克风或云端服务 |
-| M4 学习与交付 | 疑问状态、Markdown 导出、回收站（软删/恢复/彻底删除）、整库 JSON 备份导出+覆盖式恢复 | 缺复述练习、完整 20 问及工作台集成（备份恢复/回收站 UI 已于 T34 补齐） |
+| M4 学习与交付 | 疑问状态、Markdown 导出、回收站（软删/恢复/彻底删除）、整库 JSON 备份导出+覆盖式恢复 | 完整 20 问已实测（A08，17/20 完全支持+零编造）；缺复述练习及工作台集成（备份恢复/回收站 UI 已于 T34 补齐） |
 | 扩展实验 skill | skills/*.md、列表、生成、问答、同名保护、朗读 | 7 个相关单测及历史联调；不是已完成自动路由或 checklist |
 | OCR | 已提交独立 worker + scripts/import_xhs.py 命令行 OCR/导入 | 24 篇真实图文已识别导入；尚无应用内图片/PDF 上传 OCR 路由 |
 
@@ -276,3 +276,16 @@
 - 诚实边界：①恢复=删除时刻快照回灌，期间若同名 notebook 被新建→409 拒绝不覆盖；②软删保留磁盘媒体→回收站占空间直到 purge（purge 才释放），属可撤销的代价；③备份恢复是覆盖式不合并，跨版本恢复依赖 schema 迁移块补 `db.trash`/`db.schema=3`；④`agentRuns` 行为不变（本就孤儿化，属审计日志非笔记本内容，purge 也不清）。
 - 清理：活体测试副产物用 purge 清干净，store 回基线（7 笔记本、0 trash、schema 3）；单实例 8765 未双开、不手改 store.json。
 - 提交：待用户确认后本地 commit（`server.mjs`、`public/index.html`、`public/app.js`、`public/style.css`、`tests/delete.test.mjs`、`tests/trash.test.mjs`、`CONTEXT.md`、`TASKS.md`），**未 push**（push 需用户授权）。工作树既有未提交 `.gitignore`/`skills/cell-transfection.md`（新）/既有删除 `skills/multi-ai-agent-concurrency-conflict-prevention.md` 均**非本任务产物，不纳入**本次提交（除非用户另行要求）。
+
+## 2026-10-11 A08 真实材料 20 问验收（T14 P0 核心项，自行实测完成）
+
+- 起因：A08 是 P0 里唯一「人工复核、机器测试无法替代」项，此前一直未做（报告标「未做」）。本轮用户要求「自己完成测试」，故对真实材料实跑 20 问并人工复核。
+- 方法：对真实小红书本「小红书实验学习 · 酵母转化」（notebook `2603259c`，8 篇 OCR 来源：双杂交 BD/AD / 真·转化 LiAc-PEG / 单杂交 Y1H / 涂板点板 / 转化原理 / 双杂交经验 / 感受态制备）建**一次性验收笔记本**（`bc0a2198`，8 篇原文 verbatim 导入）→ 设计 **20 问**覆盖五类（指代/连续追问/材料缺失/来源冲突/常规参数；**原音频定位对本批文本图文材料 N/A**，无音频，如实标注不硬凑）→ 逐问跑 `POST /api/chat`（记录 text/citations/images/truncated）→ **人工逐条复核**「相关？被所引 `[S#]` 材料支持？关键参数是否编造？」。
+- 指代问用 `/api/chat` 选区：发现 `/api/chat` 的 selection 校验要求选区必须是**笔记本已保存笔记（最新 revision）**的子串（`server.mjs:627`），且 `/api/generate` 只产 draft 不建 revision → 先 `POST /api/generate` 再 `POST /api/notes` 存为笔记，再取笔记原句做 selection 才通过。
+- **结果（人工复核）**：
+  - **相关且被所引材料支持 = 17/20**：Q1/Q2(指代)、Q3/Q5/Q6(追问)、Q7/Q10(冲突)、Q11/Q12/Q13(缺失)、Q14–Q18(常规)。
+  - **关键参数编造 = 0**：所有缺失/冲突题一律「材料未说明/待核对」，无一处虚构浓度/体积/温度/时间。
+  - **召回受限 4 问（无编造）**：Q4(LiAc 作用)、Q8(42℃热激)、Q9(离心转速)、Q19(菌株 Y187/Y2H)——材料其实含答案，但 `/api/chat` 证据预算（`server.mjs:631` ~1800 字符、每来源截 1200）只召回到单杂交来源(S5)，答「材料未说明」并拒绝编造。根因＝**T13 长文上下文/证据预算**（与 A04/A05 同源）。Q8/Q9 属「前提型」，模型正确推翻了「不同来源不一致」的假前提。
+- **判定**：**零编造达标**；「≥18/20 完全相关且支持」为 **17/20**（差 1，根因 T13）。A08 未 100% 达线，如实不标「全部通过」。
+- 清理：测试本 `bc0a2198`（含 8 来源 + 42 条问答消息 + 1 笔记）经 T34 软删→`POST /api/trash/:id/purge` 彻底删除，media-0 无磁盘残留；store 回基线（**7 笔记本 / 0 trash / schema 3**）。临时脚本与 JSON 已清（测试数据清零）。
+- 诚实边界：①本批无音频，「原音频定位」维度 N/A，留待真实录音材料补测；②17/20 的 1 缺口是召回预算问题而非 LLM 编造，T13 提升证据预算后重测有望冲 ≥18/20；③全程单实例 8765、不双开、不手改 store.json（经 API 改）。
