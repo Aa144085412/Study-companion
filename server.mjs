@@ -248,6 +248,54 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       }
     },
     {
+      name:'fetch_wechat_articles',
+      description:'按关键词从微信公众号批量抓取图文（真实 Chrome → sogou 微信搜索 → 下载成带本地图片的 Markdown），并把每篇导入为一个独立来源、同时落一份共读笔记。当用户给了微信公众号文章的主题/关键词、想收集一批公众号图文并沉淀为共读笔记时调用。参数：query（必填，搜索关键词，如「细胞电转染 实验步骤」）；max（可选，最多抓取篇数 1~20，默认 10）。返回 outDir（抓取目录）、count、notebookId、notebookTitle、sourceCount、revisionId、articles（[{title,file}]）。',
+      parameters:{type:'object',properties:{query:{type:'string'},max:{type:'integer'}},required:['query']},
+      async run(args){
+        const query=String(args.query||'').trim();
+        if(!query)throw fail('请提供 query 关键词');
+        if(query.length>120)throw fail('关键词过长（≤120 字）');
+        const maxN=Math.max(1,Math.min(20,Number.isFinite(+args.max)?Math.trunc(+args.max):10));
+        const toolDir=path.join(ROOT,'tools','wechat-article-downloader');
+        const tsxCli=path.join(toolDir,'node_modules','tsx','dist','cli.mjs');
+        const mainTs=path.join(toolDir,'scripts','main.ts');
+        if(!fs.existsSync(mainTs))throw fail('未找到 wechat-article-downloader（tools/wechat-article-downloader）');
+        if(!fs.existsSync(tsxCli))throw fail('未找到 tsx 运行器，请先在 tools/wechat-article-downloader 安装依赖（npm install tsx --no-save）');
+        const outDir=path.join(dataDir,'wechat-fetch','fetch-'+Date.now().toString(36));
+        fs.mkdirSync(outDir,{recursive:true});
+        const nodeArgs=[tsxCli,'scripts/main.ts','--search',query,'--max',String(maxN),'-o',outDir];
+        const proc=spawn(process.execPath,nodeArgs,{cwd:toolDir,stdio:['ignore','pipe','pipe'],env:{...process.env}});
+        let out='';
+        proc.stdout.on('data',d=>{out+=d.toString();});
+        proc.stderr.on('data',d=>{out+=d.toString();});
+        const finished=new Promise((resolve,reject)=>{
+          const timer=setTimeout(()=>{proc.kill();reject(fail('公众号抓取超时（600 秒）',504));},600000);
+          proc.on('close',code=>{clearTimeout(timer);resolve(code);});
+          proc.on('error',e=>{clearTimeout(timer);reject(e);});
+        });
+        await finished;
+        const files=fs.readdirSync(outDir).filter(f=>f.toLowerCase().endsWith('.md')).sort();
+        if(!files.length)throw fail('未抓取到任何图文：'+out.slice(-500));
+        let nb=db.notebooks.find(b=>b.title===('微信公众号 · '+query.slice(0,20)));
+        if(!nb){nb={id:uuid(),title:'微信公众号 · '+query.slice(0,20),createdAt:now()};db.notebooks.push(nb);}
+        let imported=0;let revisionId=null;
+        for(const f of files){
+          const content=fs.readFileSync(path.join(outDir,f),'utf8').trim();
+          if(!content)continue;
+          const digest=createHash('sha256').update(content).digest('hex');
+          if(!db.sources.find(s=>s.notebookId===nb.id&&s.kind==='text'&&s.hash===digest)){
+            const title=f.replace(/\.md$/i,'');
+            db.sources.push({id:uuid(),notebookId:nb.id,title:title+'.md',kind:'text',content,hash:digest,createdAt:now()});
+            imported++;
+          }
+        }
+        const gen=await generateNote(nb.id);
+        const rev={id:uuid(),notebookId:nb.id,content:gen.content,createdAt:now()};db.revisions.push(rev);revisionId=rev.id;
+        save();
+        return {outDir,count:files.length,notebookId:nb.id,notebookTitle:nb.title,sourceCount:imported,revisionId,articles:files.map(f=>({title:f.replace(/\.md$/i,''),file:path.join(outDir,f)}))};
+      }
+    },
+    {
       name:'transcribe',
       description:'把本地音频文件转写成中文文本（本地 faster-whisper）。当已有 download_media 返回的 audio 路径、需要拿到口播文字时调用。参数：audio（必填，音频文件绝对路径）。返回 text（全文）、segments（分段）、duration。',
       parameters:{type:'object',properties:{audio:{type:'string'}},required:['audio']},
@@ -325,13 +373,20 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       throw e;
     }
   }
-  async function runToolsLoop({source,url,goal}){
+  async function runToolsLoop({source,url,goal,query,max}){
     const toolLog=[];
-    const system='你是研习伴 agent，负责把媒体材料整理成可复用的共读笔记与可移植 skill。你只能调用下面列出的工具，按顺序逐步执行，每个工具的结果作为下一步依据：先 download_media 下载并取音频，再 transcribe 转写，再 import_to_notebook 落共读笔记，最后 make_skill 生成 skill（它会自行判断该材料应生成实验操作 skill 还是知识总结 skill）。需要中间摘要时可用 summarize。所有信息必须来自工具真实返回，不要编造文件路径、转写文本或标题。完成全部工具后，用一句中文简要说明产出了什么（笔记本与 skill）。';
-    const target=url||source;
-    const user=goal?goal:`处理 ${source||'媒体'} ${target}：下载→转写→落共读笔记→生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
+    const system='你是研习伴 agent，负责把材料整理成可复用的共读笔记与可移植 skill。你只能调用下面列出的工具，按任务选择合适的流程，每个工具的结果作为下一步依据：给定视频/媒体 URL（抖音/小红书）时，先 download_media 下载并取音频 → transcribe 转写 → import_to_notebook 落共读笔记 → make_skill 生成 skill；给定微信公众号主题/关键词时，fetch_wechat_articles 按关键词批量抓取公众号图文并落共读笔记 → make_skill 生成 skill。make_skill 会自行判断该材料应生成「实验操作」还是「知识总结」skill。需要中间摘要时可用 summarize。所有信息必须来自工具真实返回，不要编造文件路径、转写文本、标题或抓取结果。完成全部工具后，用一句中文简要说明产出了什么（笔记本与 skill）。';
+    let user;
+    if(query){
+      user=`从微信公众号按关键词「${query}」批量抓取图文（最多 ${max} 篇），落共读笔记，再生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
+    }else if(goal){
+      user=goal;
+    }else{
+      const target=url||source;
+      user=`处理 ${source||'媒体'} ${target}：下载→转写→落共读笔记→生成 skill（由 make_skill 自动判断是实验操作还是知识总结）。`;
+    }
     const messages=[{role:'system',content:system},{role:'user',content:user}];
-    let finalText='';let importedResult=null;let transcribeResult=null;let skillResult=null;
+    let finalText='';let importedResult=null;let transcribeResult=null;let skillResult=null;let fetchedNotebookId=null;
     for(let i=0;i<8;i++){
       const payload={model:db.settings.model,temperature:0.2,messages,tools:TOOL_FUNCS,tool_choice:'auto'};
       if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
@@ -348,6 +403,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           if(tname==='import_to_notebook')importedResult=result;
           else if(tname==='transcribe')transcribeResult=result;
           else if(tname==='make_skill')skillResult=result;
+          else if(tname==='fetch_wechat_articles')fetchedNotebookId=result.notebookId||null;
           messages.push({role:'tool',tool_call_id:tc.id,content:JSON.stringify(result)});
         }
         continue;
@@ -356,7 +412,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       break;
     }
     if(!finalText&&!toolLog.length) throw fail('模型未调用任何工具且未给出结论',502);
-    return {finalText,toolLog,notebookId:importedResult?.notebookId||null,transcriptLen:transcribeResult?.text?.length||0,skill:skillResult||null};
+    return {finalText,toolLog,notebookId:fetchedNotebookId||importedResult?.notebookId||null,transcriptLen:transcribeResult?.text?.length||0,skill:skillResult||null};
   }
   return http.createServer(async(req,res)=> {
     try {
@@ -672,8 +728,10 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const source=String(x.source??'');
         const url=String(x.url??'').trim();
         const goal=String(x.goal??'').trim();
-        if(!url&&!source)throw fail('请提供 url 或 source');
-        const out=await runToolsLoop({source,url,goal});
+        const query=String(x.query??'').trim();
+        const max=Number.isFinite(+x.max)?Math.trunc(+x.max):10;
+        if(!url&&!source&&!query)throw fail('请提供 url、source 或 query');
+        const out=await runToolsLoop({source,url,goal,query,max});
         const nb=out.notebookId?db.notebooks.find(b=>b.id===out.notebookId):null;
         return json(res,{status:'done',finalText:out.finalText,toolLog:out.toolLog,notebookId:out.notebookId||null,notebookTitle:nb?.title||null,transcriptLen:out.transcriptLen,skill:out.skill||null});
       }
@@ -706,6 +764,28 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           throw fail('启动 tools 驱动失败：'+e.message,500);
         }
         return json(res,{runId,status:'running',source,note:'异步执行：agent 通过工具循环下载→转写→落共读笔记→生成 skill；轮询 GET /api/agent/runs（可按 ?id 过滤）查看进度与报告'},202);
+      }
+      if(req.method==='POST' && p==='/api/agent/fetch-wechat'){
+        const x=await body(req);
+        const query=String(x.query??'').trim();
+        if(!query)throw fail('请提供 query 关键词');
+        if(query.length>120)throw fail('关键词过长（≤120 字）');
+        const max=Math.max(1,Math.min(20,Number.isFinite(+x.max)?Math.trunc(+x.max):10));
+        const runId=uuid();
+        const base={id:runId,kind:'tools',goal:query.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:'微信公众号按关键词抓取图文→共读笔记→skill（agent 自动判断类型）',source:'wechat',url:'',query,status:'running',createdAt:now(),updatedAt:now()};
+        db.agentRuns.push(base);save();
+        const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
+        const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+        const args=[path.join(ROOT,'scripts','tools_pipeline.py'),'--api',localBase,'--run-id',runId,'--source','wechat','--query',query,'--max',String(max)];
+        try{
+          const child=pipelineLauncher(py,args,{cwd:ROOT,detached:true,stdio:'ignore'});
+          child.on('error',()=>{const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error='启动 fetch-wechat 驱动失败（检查 python/脚本）';r.updatedAt=now();save();}});
+          child.unref();
+        }catch(e){
+          const r=db.agentRuns.find(r=>r.id===runId);if(r){r.status='failed';r.error=e.message;r.updatedAt=now();save();}
+          throw fail('启动 fetch-wechat 驱动失败：'+e.message,500);
+        }
+        return json(res,{runId,status:'running',source:'wechat',query,max,note:'异步执行：agent 抓取微信公众号图文→落共读笔记→生成 skill；轮询 GET /api/agent/runs（可按 ?id 过滤）查看进度与报告'},202);
       }
       {
         const pm=/^\/api\/agent\/pipeline\/([a-f0-9-]+)\/result$/.exec(p);

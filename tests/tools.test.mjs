@@ -63,7 +63,7 @@ test('GET /api/tools lists the agent tools with parameters',async t=>{
   const r=await call('/api/tools',undefined,'GET');
   assert.equal(r.status,200);
   const names=r.body.map(x=>x.name);
-  for(const n of ['download_media','transcribe','import_to_notebook','make_skill','summarize']) assert.ok(names.includes(n),`missing ${n}`);
+  for(const n of ['download_media','transcribe','import_to_notebook','make_skill','summarize','fetch_wechat_articles']) assert.ok(names.includes(n),`missing ${n}`);
   const im=r.body.find(x=>x.name==='import_to_notebook');
   assert.ok(im.parameters.properties.title);
   assert.ok(im.parameters.required.includes('title'));
@@ -137,4 +137,40 @@ test('POST /api/tools/loop runs import_to_notebook then make_skill, lands a note
 test('POST /api/tools/loop requires url or source (400)',async t=>{
   const {call}=await fixture(t,fakeAgentModel(),fakeLauncher());
   assert.equal((await call('/api/tools/loop',{})).status,400);
+});
+
+test('POST /api/agent/fetch-wechat builds a kind=tools run and spawns the driver',async t=>{
+  const launcher=fakeLauncher();
+  const {call}=await fixture(t,fakeAgentModel(),launcher);
+  const r=await call('/api/agent/fetch-wechat',{query:'细胞电转染 实验步骤',max:5});
+  assert.equal(r.status,202);
+  assert.equal(typeof r.body.runId,'string');
+  assert.equal(r.body.status,'running');
+  assert.equal(r.body.source,'wechat');
+  // run recorded as kind=tools, source=wechat
+  const run=await call('/api/agent/runs?id='+r.body.runId,undefined,'GET');
+  assert.equal(run.status,200);
+  assert.equal(run.body.length,1);
+  assert.equal(run.body[0].kind,'tools');
+  assert.equal(run.body[0].status,'running');
+  assert.equal(run.body[0].source,'wechat');
+  // driver spawned with the right script + args
+  assert.equal(launcher.calls.length,1);
+  const c=launcher.calls[0];
+  assert.ok(c.py.endsWith('python.exe'));
+  const a=c.args;
+  assert.ok(a.some(x=>x.endsWith('tools_pipeline.py')));
+  assert.ok(a.includes('--run-id')&&a.includes(r.body.runId));
+  assert.ok(a.includes('--source')&&a.includes('wechat'));
+  // query stays a single argv element even with internal space
+  assert.ok(a.includes('--query')&&a.includes('细胞电转染 实验步骤'));
+  assert.ok(a.includes('--max')&&a.includes('5'));
+});
+
+test('POST /api/agent/fetch-wechat rejects missing/blank query (400, no spawn)',async t=>{
+  const launcher=fakeLauncher();
+  const {call}=await fixture(t,fakeAgentModel(),launcher);
+  assert.equal((await call('/api/agent/fetch-wechat',{})).status,400);
+  assert.equal((await call('/api/agent/fetch-wechat',{query:'   '})).status,400);
+  assert.equal(launcher.calls.length,0);
 });

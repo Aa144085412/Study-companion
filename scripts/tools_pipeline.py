@@ -50,6 +50,8 @@ def main():
     ap.add_argument('--source', default='')
     ap.add_argument('--url', default='')
     ap.add_argument('--goal', default='')
+    ap.add_argument('--query', default='')
+    ap.add_argument('--max', type=int, default=0)
     ap.add_argument('--cookie-file', default='')
     ap.add_argument('--out', default='')
     args = ap.parse_args()
@@ -62,9 +64,14 @@ def main():
         loop_payload['url'] = args.url
     if args.goal:
         loop_payload['goal'] = args.goal
+    if args.query:
+        loop_payload['query'] = args.query
+        if args.max:
+            loop_payload['max'] = args.max
 
     report = {
         'source': args.source, 'url': args.url, 'goal': args.goal,
+        'query': args.query, 'max': args.max,
         'mode': 'tools', 'startedAt': started, 'status': 'running',
     }
 
