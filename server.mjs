@@ -46,7 +46,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     settings: { llmUrl: 'http://127.0.0.1:1234/v1', model: '', asrUrl: 'http://127.0.0.1:8000/v1', asrModel: 'whisper-1' }
   };
   const save = () => { fs.writeFileSync(dbPath+'.tmp', JSON.stringify(db, null, 2)); fs.renameSync(dbPath+'.tmp', dbPath); };
-  db.jobs ??= []; db.agentRuns ??= []; db.skillsQueue ??= {}; db.schema=2;
+  db.jobs ??= []; db.agentRuns ??= []; db.skillsQueue ??= {}; db.trash ??= []; db.schema=3;
   db.settings.asrEngine ??= 'builtin';
   db.settings.ttsVoice ??= 'zh-CN-XiaoxiaoNeural';
   if(!/^zh-/.test(db.settings.ttsVoice)) db.settings.ttsVoice='zh-CN-XiaoxiaoNeural';
@@ -923,15 +923,56 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const x=await body(req),q=db.questions.find(q=>q.id===p.split('/').pop());if(!q)throw fail('问题不存在',404);if(!['未解决','学习中','已理解'].includes(x.status))throw fail('状态无效');q.status=x.status;save();return json(res,q);
       }
       if(req.method==='DELETE' && p.startsWith('/api/notebooks/')){
-        const id=p.split('/').pop(); book(id);
-        for(const s of db.sources) if(s.notebookId===id && s.kind==='media'){const file=path.join(dataDir,'media',s.file);if(fs.existsSync(file)&&!db.sources.some(o=>o.id!==s.id&&o.file===s.file))fs.unlinkSync(file);}
-        db.notebooks=db.notebooks.filter(n=>n.id!==id);db.sources=db.sources.filter(s=>s.notebookId!==id);db.revisions=db.revisions.filter(r=>r.notebookId!==id);db.messages=db.messages.filter(m=>m.notebookId!==id);db.questions=db.questions.filter(q=>q.notebookId!==id);db.jobs=db.jobs.filter(j=>j.notebookId!==id);save();return json(res,{ok:true});
+        const id=p.split('/').pop();const nb=book(id);
+        db.trash.push({id,kind:'notebook',title:nb.title,deletedAt:now(),data:structuredClone({notebook:nb,sources:db.sources.filter(s=>s.notebookId===id),revisions:db.revisions.filter(r=>r.notebookId===id),messages:db.messages.filter(m=>m.notebookId===id),questions:db.questions.filter(q=>q.notebookId===id),jobs:db.jobs.filter(j=>j.notebookId===id)})});
+        db.notebooks=db.notebooks.filter(n=>n.id!==id);db.sources=db.sources.filter(s=>s.notebookId!==id);db.revisions=db.revisions.filter(r=>r.notebookId!==id);db.messages=db.messages.filter(m=>m.notebookId!==id);db.questions=db.questions.filter(q=>q.notebookId!==id);db.jobs=db.jobs.filter(j=>j.notebookId!==id);save();return json(res,{ok:true,trash:true});
       }
       if(req.method==='DELETE' && p.startsWith('/api/sources/')){
         const id=p.split('/').pop(),src=db.sources.find(s=>s.id===id);if(!src) throw fail('来源不存在',404);
         const del=new Set([id]);let grew=true;while(grew){grew=false;for(const s of db.sources){if(del.has(s.id))continue;if((s.previousId&&del.has(s.previousId))||(s.replacedBy&&del.has(s.replacedBy))){del.add(s.id);grew=true;}}}
-        for(const s of db.sources)if(del.has(s.id)&&s.kind==='media'){const file=path.join(dataDir,'media',s.file);if(fs.existsSync(file)&&!db.sources.some(o=>!del.has(o.id)&&o.file===s.file))fs.unlinkSync(file);}
-        db.sources=db.sources.filter(s=>!del.has(s.id));db.jobs=db.jobs.filter(j=>!del.has(j.sourceId));save();return json(res,{ok:true});
+        db.trash.push({id,kind:'source',title:src.title,notebookId:src.notebookId,deletedAt:now(),data:structuredClone({chain:db.sources.filter(s=>del.has(s.id)),jobs:db.jobs.filter(j=>del.has(j.sourceId))})});
+        db.sources=db.sources.filter(s=>!del.has(s.id));db.jobs=db.jobs.filter(j=>!del.has(j.sourceId));save();return json(res,{ok:true,trash:true});
+      }
+      if(p.startsWith('/api/trash') && req.method==='GET'){
+        return json(res, db.trash);
+      }
+      if(p.startsWith('/api/trash/') && req.method==='POST'){
+        const [id, action] = p.split('/').slice(3); const entry = db.trash.find(t => t.id === id);
+        if (!entry) throw fail('回收站条目不存在', 404);
+        if (action === 'restore') {
+          if (entry.kind === 'notebook') {
+            if (db.notebooks.some(n => n.id === entry.id)) throw fail('无法恢复：该笔记本已存在', 409);
+            db.notebooks.push(entry.data.notebook);
+            db.sources.push(...entry.data.sources);
+            db.revisions.push(...entry.data.revisions);
+            db.messages.push(...entry.data.messages);
+            db.questions.push(...entry.data.questions);
+            db.jobs.push(...entry.data.jobs);
+          } else {
+            if (!db.notebooks.some(n => n.id === entry.notebookId)) throw fail('无法恢复：所属笔记本已不存在', 409);
+            if (db.sources.some(s => s.id === entry.id)) throw fail('无法恢复：该来源已存在', 409);
+            db.sources.push(...entry.data.chain);
+            db.jobs.push(...entry.data.jobs);
+          }
+          db.trash = db.trash.filter(t => t.id !== id);
+          save(); return json(res, {ok: true});
+        }
+        if (action === 'purge') {
+          const mediaSources = entry.kind === 'notebook' ? entry.data.sources : entry.data.chain;
+          for (const s of mediaSources) if (s.kind === 'media') {
+            const file = path.join(dataDir, 'media', s.file);
+            if (fs.existsSync(file) && !db.sources.some(o => o.file === s.file)) fs.unlinkSync(file);
+          }
+          db.trash = db.trash.filter(t => t.id !== id);
+          save(); return json(res, {ok: true});
+        }
+        throw fail('操作不支持', 405);
+      }
+      if(req.method==='POST' && p==='/api/backup/restore'){
+        const x=await body(req);
+        if(!Array.isArray(x.notebooks)||!Array.isArray(x.sources)) throw fail('备份文件格式无效',400);
+        db=x;db.trash??=[];db.schema=3;db.jobs??=[];db.agentRuns??=[];db.skillsQueue??={};
+        save();return json(res,{ok:true});
       }
       if(p.startsWith('/api/')) throw fail('接口不存在',404);
       if(req.method!=='GET')throw fail('方法不支持',405);

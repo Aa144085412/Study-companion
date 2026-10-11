@@ -29,7 +29,7 @@ function render(loadNote){
   for(const s of sources){const card=node('div','source-card');card.append(node('h3','',s.title),node('p','',s.kind==='media'?'原始媒体 · 可回放':s.segments?.length?`${s.segments.length} 个带时间戳的片段`:'文本资料 · 无时间定位'));if(s.kind==='text')fetch('/api/sources/'+s.id+'/images').then(r=>r.ok?r.json():[]).then(list=>{if(list.length)card.prepend(node('p','source-card-imgs','📷 '+list.length+' 张原图 · 点击查看'));}).catch(()=>{});card.append(button(s.kind==='media'?'播放':'查看原文',()=>showSource(s)));
     if(s.kind==='media')card.append(button('转成文字',async()=>{await api('/api/jobs',{sourceId:s.id});await refresh();toast('已加入本地转写队列');}));
     else {card.append(button('校对文稿',()=>editSource(s)));if(s.previousId)card.append(button('上一版本',()=>showSource(state.sources.find(x=>x.id===s.previousId))));}
-    if(s.segments?.length){const sel=node('select');sel.append(new Option('关联原录音 / 视频',''));sources.filter(m=>m.kind==='media').forEach(m=>sel.append(new Option(m.title,m.id)));sel.value=s.mediaId||'';sel.onchange=()=>run(async()=>{if(!sel.value)return;await api('/api/link-media',{sourceId:s.id,mediaId:sel.value});await refresh();toast('已关联，可点击字幕时间回放');});card.append(sel);}card.append(button('删除',async()=>{if(!await confirmAction('删除资料「'+s.title+'」及其相关版本？此操作无法撤销。'))return;await api('/api/sources/'+s.id,'','DELETE');await refresh();toast('已删除资料');},'danger'));$('sourceList').append(card);
+    if(s.segments?.length){const sel=node('select');sel.append(new Option('关联原录音 / 视频',''));sources.filter(m=>m.kind==='media').forEach(m=>sel.append(new Option(m.title,m.id)));sel.value=s.mediaId||'';sel.onchange=()=>run(async()=>{if(!sel.value)return;await api('/api/link-media',{sourceId:s.id,mediaId:sel.value});await refresh();toast('已关联，可点击字幕时间回放');});card.append(sel);}card.append(button('删除',async()=>{if(!await confirmAction('删除资料「'+s.title+'」及其相关版本？删除后将移入回收站，可在那里恢复或彻底删除。'))return;await api('/api/sources/'+s.id,'','DELETE');await refresh();toast('已移入回收站');},'danger'));$('sourceList').append(card);
   }
   $('questionList').replaceChildren();if(!questions.length)$('questionList').append(node('div','empty','把问题写在右侧，点击「记下疑问」。不急着一次弄懂。'));
   for(const q of questions){const c=node('div','question-card');c.append(node('p','',q.question));const sel=node('select');['未解决','学习中','已理解'].forEach(s=>sel.append(new Option(s,s)));sel.value=q.status;sel.onchange=()=>run(async()=>{await api('/api/questions/'+q.id,{status:sel.value},'PATCH');await refresh();});c.append(sel);$('questionList').append(c);}
@@ -106,7 +106,7 @@ $('closeMedia').onclick=()=>{$('player').pause();$('mediaArea').classList.add('h
 async function loadRevision(r){if(dirty&&!await confirmAction('放弃当前未保存修改？'))return;$('noteEditor').value=r.content;$('noteEditor').readOnly=true;$('noteEditor').classList.add('is-historical');historyView=true;dirty=false;selection='';selectionChanged();$('revisionLabel').textContent='只读 · 历史版本';$('continueEdit').classList.remove('hidden');$('sourceDialog').close();renderNote();}
 $('historyButton').onclick=()=>{const revisions=state.revisions.filter(r=>r.notebookId===current).reverse();$('sourceDialogTitle').textContent='笔记历史版本';$('sourceContent').replaceChildren();for(const r of revisions){const c=node('div','segment');c.append(button(new Date(r.createdAt).toLocaleString()+' · 只读预览',async()=>{await loadRevision(r);}));c.append(node('p','',r.content.slice(0,150)));$('sourceContent').append(c);}if(!revisions.length)$('sourceContent').textContent='尚无保存版本';$('sourceDialog').showModal();};
 $('continueEdit').onclick=()=>{if(!historyView)return;historyView=false;$('noteEditor').readOnly=false;$('noteEditor').classList.remove('is-historical');$('continueEdit').classList.add('hidden');dirty=true;$('revisionLabel').textContent='有未保存的修改';};
-$('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.notebooks.find(x=>x.id===current);if(!await confirmAction('删除笔记本「'+b.title+'」？其全部资料、笔记版本、问答、任务与媒体文件都会删除，无法撤销。'))return;await api('/api/notebooks/'+current,'','DELETE');current=null;localStorage.setItem('study.current','');dirty=false;selection='';await refresh(true);toast('已删除笔记本');});
+$('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.notebooks.find(x=>x.id===current);if(!await confirmAction('删除笔记本「'+b.title+'」？其全部资料、笔记版本、问答与任务将移入回收站（媒体文件保留），可在那里恢复或彻底删除。'))return;await api('/api/notebooks/'+current,'','DELETE');current=null;localStorage.setItem('study.current','');dirty=false;selection='';await refresh(true);toast('已移入回收站');});
 $('exportButton').onclick=()=>run(()=>{needBook();const title=state.notebooks.find(b=>b.id===current).title;const sources=state.sources.filter(s=>s.notebookId===current);const content=`# ${title}\n\n${$('noteEditor').value}\n\n## 资料清单\n${sources.map(s=>`- ${s.title}（ID: ${s.id}）`).join('\n')}\n\n## 疑问\n${state.questions.filter(q=>q.notebookId===current).map(q=>`- [${q.status}] ${q.question}`).join('\n')}\n`;const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'}));const a=node('a');a.href=url;a.download=title.replace(/[<>:"/\\|?*]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 let ttsAudio=null,ttsSeq=0,ttsCtrl=null;
 function stopSpeak(){ttsSeq++;if(ttsCtrl){try{ttsCtrl.abort();}catch{}ttsCtrl=null;}if(ttsAudio){try{ttsAudio.pause();}catch{}if(String(ttsAudio.src).startsWith('blob:'))URL.revokeObjectURL(ttsAudio.src);ttsAudio=null;}try{speechSynthesis.cancel();}catch{}}
@@ -309,4 +309,30 @@ async function loadSkillsLibrary(){
 }
 $('skillsOpen').onclick=()=>{loadSkillsLibrary();$('skillsDialog').showModal();};
 $('closeSkills').onclick=()=>$('skillsDialog').close();
+async function loadTrash(){
+  const list=$('trashList');
+  list.replaceChildren(node('p','hint','加载中…'));
+  let items=[];
+  try{items=await api('/api/trash',undefined,'GET');}catch{items=[];}
+  list.replaceChildren();
+  if(!items.length){list.append(node('p','hint','回收站是空的。删除笔记本或资料后会出现在这里。'));return;}
+  for(const t of [...items].reverse()){
+    const card=node('div','trash-card');
+    const kindLabel=t.kind==='notebook'?'笔记本':'资料';
+    card.append(node('b','',t.title||'(未命名)'));
+    card.append(node('span','trash-card-meta','['+kindLabel+'] 删除于 '+new Date(t.deletedAt).toLocaleString()));
+    const actions=node('div','trash-card-actions');
+    actions.append(button('恢复',async()=>{await api('/api/trash/'+t.id+'/restore',{});await refresh();loadTrash();toast('已恢复');}));
+    actions.append(button('彻底删除',async()=>{if(!await confirmAction('彻底删除「'+(t.title||'该条目')+'」？媒体文件将被永久清除，无法撤销。'))return;await api('/api/trash/'+t.id+'/purge',{});loadTrash();toast('已彻底删除');},'danger'));
+    card.append(actions);
+    list.append(card);
+  }
+}
+$('trashOpen').onclick=()=>{loadTrash();$('trashDialog').showModal();};
+$('closeTrash').onclick=()=>$('trashDialog').close();
+$('backupButton').onclick=()=>{$('backupStatus').textContent='';$('backupDialog').showModal();};
+$('closeBackup').onclick=()=>$('backupDialog').close();
+$('backupExport').onclick=()=>run(async()=>{const db=await api('/api/state',undefined,'GET');const stamp=new Date().toISOString().replace(/[:]/g,'-').slice(0,16);const url=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download='yanxiuban-backup-'+stamp+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('backupStatus').textContent='已导出 '+a.download;});
+$('backupRestorePick').onclick=()=>$('backupFile').click();
+$('backupFile').onchange=()=>run(async()=>{const f=$('backupFile').files[0];$('backupFile').value='';if(!f)return;if(!await confirmAction('将用所选备份覆盖当前全部数据？此操作无法撤销。'))return;let payload;try{payload=JSON.parse(await f.text());}catch{throw Error('备份文件不是有效的 JSON');}await api('/api/backup/restore',payload);$('backupDialog').close();await refresh(true);toast('已恢复备份');});
 checkHealth();

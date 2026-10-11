@@ -4,14 +4,40 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## 成熟度路线（离产品成熟还差什么，2026-10-11）
+
+当前为 **v0.2.0 开发版**：核心闭环（音视频→转写→笔记→共读→可移植 skill）已通；tools 层覆盖 小红书/微信公众号图文 + 抖音/小红书视频；软删除回收站 + 整库 JSON 备份导出/恢复（T34）；51/51 测试 + 多轮活体验证。下列缺口按「离成熟还差什么」排优先级（每项：任务引用 / 为什么挡成熟度 / 成本·依赖）：
+
+### P0 — 不补就不能算可交付
+- ~~**数据恢复能力**~~（T14 一部分）：**已完成（T34，2026-10-11）**——删除改软删除进回收站（笔记本/来源可恢复/彻底删除，schema 3 `db.trash`）+ 整库 JSON 备份导出/覆盖式恢复。
+- **完整验收**（T14 核心）：真实材料 20 问验收、工作台集成**未做**；OCR 数字/单位只靠文本、未逐篇核对原图 → 无验收=无可信度背书。成本低-中（人工验收 + 用例沉淀）。
+
+### P1 — 决定核心体验的能力天花板
+- **长文上下文**（T13）：共读只喂 ~1800 字符、笔记前 800 字符、简单关键词排序 → 当前**最大能力上限**，直接决定笔记/skill/共读质量。成本高（分段整理 + 稳定来源映射 + 预算重设计）。
+- **应用内 OCR**（T12）：OCR 只走命令行，UI 不能传图片/PDF → 信息源入口不完整。成本中（worker 已有，缺上传路由 + 任务队列 + 校对定位）。
+
+### P2 — 健壮性 / 边界
+- **转写断点续传**（T5，可选）：中断后从头转写，长文件体验差。成本中。
+- **ASR 引擎对比**（T2，blocked）：faster-whisper vs FunASR 未定，等用户拍板是否装 FunASR。
+
+### P3 — 功能扩展（非成熟度必需）
+- **实验 skill 铺开**（T8b）：多 skill 自动路由、checklist 步骤跟跑、app 内可视化编辑。
+- **真实脱敏实验样例**（T3）：替换当前自造 DH5α 转化规程。
+
+### 横切 — 工程 / 交付成熟度
+- **强外部依赖**：`crawl:true` 需已登录 Edge CDP 9222；小红书视频需 cookies；TTS 走 edge-tts **云端**（非本地/非私有）。短期可接受（用户自有环境），但挡住「任何人拿起来就能用」。
+- **无 CI / 无 push 流程**：51 测试靠手动 `npm test`，提交需逐次授权。
+
+**排序结论**：P0 数据恢复已关（T34），P0 剩**完整验收**（T14 核心，人工验收 + 用例沉淀）——「能不能交付」的分水岭；再啃 **P1 长文上下文**（决定上限）；其余按需。
+
 ## 待认领（open）
 
 - **T12 · OCR 应用内集成** — open · owner: 待确认
   - OCR worker 与测试素材已由另一 agent 提交于 f5c71fd；T15 已完成小红书图文的命令行 OCR → 文本资料导入。应用内图片/PDF 上传、OCR 任务队列与校对定位仍待实现；不重复改写 worker。
 - **T13 · 长文上下文与来源映射** — open · owner: —
   - 当前共读来源仅 1800 字符、笔记前 800 字符，简单关键词排序。应按模型能力设计预算、全篇分段整理和稳定笔记块来源关联，补长资料覆盖测试。
-- **T14 · 交付验收与数据恢复** — open · owner: —
-  - 真实材料 20 问验收、备份恢复、工作台集成尚未完成；删除当前是实际删除，恢复能力与计划书要求仍有差距。
+- **T14 · 交付验收与数据恢复** — open · owner: —（数据恢复部分已由 **T34** 完成）
+  - 真实材料 20 问验收、工作台集成尚未完成；删除恢复能力已由 T34 补齐（软删除回收站 + 整库 JSON 备份导出/恢复），P0 仅剩完整验收。
 
 
 - **T8b · 实验 skill 铺开（垂直切片之后的下一步，待用户拍板）** — `open` · owner: —
@@ -32,6 +58,18 @@
   - 在真实使用里手工选取 10 个片段，确认回放时间戳定位准确。
 
 ## 已完成（done）
+
+- **T34 · P0 数据恢复能力：软删除回收站 + 全量备份导出/恢复** — done · owner: claude code · 2026-10-11
+  - 起因：成熟度路线 P0 第①项。现状删除是**实际删除且不可逆**——`DELETE /api/notebooks/:id` 与 `DELETE /api/sources/:id` 都直接 `fs.unlinkSync` 媒体 + 从 store 过滤对象，前端文案「无法撤销」，无回收站、无备份导出（误删即永久丢数据）。经 AskUserQuestion 拍板：范围=**回收站 + 备份导出**（两者都做，对齐路线图「软删除/回收站 + 备份恢复」）；粒度=**笔记本 + 来源**（两个删除入口都可撤销）。
+  - **schema 3**（`server.mjs:49` 迁移块）：加 `db.trash ??= []`、`db.schema=3`（旧库启动自动补空回收站，无数据丢失）。
+  - **软删除改造**：两 DELETE 端点改为 push 深拷快照（`structuredClone`）进 `db.trash`、从 live 数组过滤、**去掉媒体 `fs.unlinkSync`**（保留磁盘媒体供恢复）；返回 `{ok:true,trash:true}`。笔记本条目 `{id,kind:'notebook',title,deletedAt,data:{notebook,sources,revisions,messages,questions,jobs}}`；来源条目 `{id,kind:'source',title,notebookId,deletedAt,data:{chain（校对闭包：previousId/replacedBy 相连的全部来源）,jobs}}`。
+  - **回收站 API**：`GET /api/trash`（列表）；`POST /api/trash/:id/restore`（无则 404；冲突校验：notebook id 已存在 / source 所属 notebook 已不在 → 409；无冲突则各数组 concat 回 live、trash 移除该 entry）；`POST /api/trash/:id/purge`（彻底删除：遍历 data 里 `kind==='media'` 来源 `fs.unlinkSync`、trash 移除）。路由 `p.split('/').slice(3)` 取 `[id,action]`。
+  - **备份导出/恢复**：导出复用 `GET /api/state`（整库 `db`）前端 Blob 下载 `yanxiuban-backup-<stamp>.json`；恢复新增 `POST /api/backup/restore`（校验 `notebooks`/`sources` 为数组否则 400，**整体替换** `db` 后补迁移 `db.trash??=[]`/`db.schema=3`/`jobs`/`agentRuns`/`skillsQueue`）。恢复=覆盖式（前端二次确认）。
+  - **前端**（`public/*`）：侧栏 `#trashOpen`「🗑 回收站 · 可恢复删除」+ `.side-bottom` `#backupButton`「⇩ 备份 / 恢复」；`#trashDialog`（卡片：标题/[kind]/删除时间 + 恢复/彻底删除按钮）+ `#backupDialog`（导出 Blob 下载 / file input 选 JSON 恢复）；现有删除确认文案改「将移入回收站，可在那里恢复或彻底删除」。
+  - 验证：`node --check server.mjs public/app.js` 过；`npm test` **51/51**（`tests/delete.test.mjs` 改写为软删除语义断言 + `tests/trash.test.mjs` 新增 7 项：来源 restore 回灌+清空 / purge 删媒体+清空 / 笔记本 restore 全量回来 / 备份 restore 回灌快照 / restore·purge 未知 id→404 / 所属 notebook 已不在的来源 restore→409 / 备份 restore 非法 payload→400）。活体单实例 8765：软删来源→进回收站+媒体仍在→restore 回来；软删笔记本→trash kind:notebook→restore 回来；备份 dump→改 store→restore→state 与 dump 一致。浏览器活体：侧栏两按钮渲染、回收站/备份 dialog 正确。
+  - 诚实边界：①恢复=删除时刻快照回灌，期间同名 notebook 被新建→409 拒绝不覆盖；②软删保留磁盘媒体→回收站占空间直到 purge；③备份恢复是覆盖式不合并，跨版本恢复依赖 schema 迁移块；④`agentRuns` 行为不变（本就孤儿化，purge 也不清）。
+  - 清理：活体测试副产物用 purge 清干净，store 回基线（7 笔记本、0 trash、schema 3）；单实例 8765 未双开、不手改 store.json。
+  - 提交：待用户确认后本地 commit（`server.mjs`、`public/index.html`、`public/app.js`、`public/style.css`、`tests/delete.test.mjs`、`tests/trash.test.mjs`、`CONTEXT.md`、`TASKS.md`），**未 push**（push 需用户授权）。工作树既有未提交 `.gitignore`/`skills/cell-transfection.md`（新）/既有删除 `skills/multi-ai-agent-concurrency-conflict-prevention.md` 均**非本任务产物，不纳入**本次提交（除非用户另行要求）。
 
 - **T33 · 小红书图文抓取 tools 化（`fetch_xhs_notes` 工具 + `POST /api/agent/fetch-xhs` 端点）** — done · owner: claude code · 2026-10-11
   - 起因：承接 T32（微信公众号图文 tools 化）。上一轮审计结论：现有 6 个 tools 里**小红书图文完全没有 tools 层工具**（`download_media` 的 source 枚举只有 `douyin|xhs-video`，是视频；唯一能抓小红书图文的是**非 tools** 的 `POST /api/agent/pipeline`，强依赖用户 Edge CDP 9222 + 已登录小红书）。用户「做成 tools」——把小红书图文抓取+OCR+落笔记封装成 tools 层工具 `fetch_xhs_notes`，结构对齐 `fetch_wechat_articles`。经 AskUserQuestion 确认抓取策略=**默认复用 + 可选 crawl**（`crawl` 默认 false，复用 `~/Desktop/MediaCrawler/data/xhs` 已爬取数据；`crawl:true` 才启动 MediaCrawler，需已开 Edge CDP 9222 且已登录小红书，免扫码）。
