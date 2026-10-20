@@ -92,11 +92,26 @@ test('failed batch retains cache across restart and background retry reports com
  for(let i=0;i<100;i++){progress=(await f.call('/api/generate/status?notebookId='+f.nb.id)).body;if(progress.status!=='running')break;await new Promise(r=>setTimeout(r,5));}
  assert.equal(progress.status,'done');assert.equal(progress.completed,progress.total);
  assert.equal(f.batchesSeen.length,progress.total,'first successful batch must not be called again');
- const state=(await f.call('/api/state')).body;assert.equal(state.messages.length,1);assert.equal(state.messages[0].coverage.batches,progress.total);
+ const state=(await f.call('/api/state')).body;assert.equal(state.messages.length,0);assert.equal(state.revisions.length,1);assert.equal(state.revisions[0].coverage.batches,progress.total);
 });
 
 test('truncated model output splits batch without losing text',async t=>{
  const f=await fixture(t);f.truncate();const r=await f.call('/api/generate',{notebookId:f.nb.id});assert.equal(r.status,200);
  assert.equal(f.batchesSeen.flat().map(s=>s.text).join(''),'序列比对验证目标序列。'.repeat(1200));
  assert.ok(!r.body.text.includes('partial'));
+});
+
+test('generated notes become central revisions and preserve previous notes',async t=>{
+ const f=await fixture(t);await f.call('/api/notes',{notebookId:f.nb.id,content:'我的原笔记'});
+ const r=await f.call('/api/generate',{notebookId:f.nb.id});assert.equal(r.status,200);
+ const state=(await f.call('/api/state')).body;assert.equal(state.revisions.length,2);assert.equal(state.revisions[0].content,'我的原笔记');
+ assert.equal(state.revisions[1].id,r.body.noteRevisionId);assert.equal(state.revisions[1].content,r.body.text);assert.ok(state.revisions[1].citations.length);assert.equal(state.messages.length,0);
+});
+test('existing chat draft adoption is idempotent and preserves history',async t=>{
+ const f=await fixture(t);const state=(await f.call('/api/state')).body;
+ state.messages.push({id:'old-draft',notebookId:f.nb.id,type:'draft',text:'已生成笔记',citations:[{label:'S1',sourceId:'s'}]});
+ await f.call('/api/backup/restore',state);
+ const a=await f.call('/api/notes/adopt-draft',{notebookId:f.nb.id,messageId:'old-draft'});assert.equal(a.status,201);
+ const b=await f.call('/api/notes/adopt-draft',{notebookId:f.nb.id,messageId:'old-draft'});assert.equal(b.body.id,a.body.id);
+ const saved=(await f.call('/api/state')).body;assert.equal(saved.revisions.length,1);assert.equal(saved.messages[0].adoptedRevisionId,a.body.id);assert.equal(saved.revisions[0].content,'已生成笔记');
 });

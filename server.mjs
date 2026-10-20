@@ -654,6 +654,14 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const ext=(name.match(/\.([a-z0-9]+)$/i)||['',''])[1].toLowerCase();
         res.writeHead(200,{'Content-Type':'image/'+(ext==='jpg'?'jpeg':ext)});return fs.createReadStream(file).pipe(res);
       }
+      if(req.method==='POST' && p==='/api/notes/adopt-draft') {
+        const x=await body(req);book(x.notebookId);
+        const draft=db.messages.find(m=>m.id===x.messageId&&m.notebookId===x.notebookId&&m.type==='draft');
+        if(!draft)throw fail('笔记草稿不存在',404);
+        const existing=db.revisions.find(r=>r.id===draft.adoptedRevisionId);if(existing)return json(res,existing);
+        const revision={id:uuid(),notebookId:x.notebookId,content:draft.text,citations:draft.citations||[],coverage:draft.coverage,createdAt:now()};
+        db.revisions.push(revision);draft.adoptedRevisionId=revision.id;save();return json(res,revision,201);
+      }
       if(req.method==='POST' && p==='/api/notes') {
         const x=await body(req);book(x.notebookId);
         if(String(x.content??'').length>200000) throw fail('笔记超过 200,000 字符，请拆分笔记本');
@@ -731,7 +739,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(generationLocks.has(x.notebookId))return x.background?json(res,generationStatus.get(x.notebookId),202):json(res,{error:'这本笔记正在整理，请等待当前任务完成'},409);
         const work=async()=>{const draft=await generateNote(x.notebookId);
           const reply={...draft,role:'assistant',type:'draft',text:draft.content,createdAt:now(),truncated:false};
-          db.messages.push(reply);save();return reply;};
+          const revision={id:uuid(),notebookId:x.notebookId,content:draft.content,citations:draft.citations,coverage:draft.coverage,createdAt:now()};db.revisions.push(revision);reply.noteRevisionId=revision.id;save();return reply;};
         if(x.background){void work().catch(e=>{generationStatus.set(x.notebookId,{...generationStatus.get(x.notebookId),status:'failed',error:e.message});});return json(res,generationStatus.get(x.notebookId),202);}
         return json(res,await work());
       }

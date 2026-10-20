@@ -4,6 +4,10 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T38 · 生成笔记保存到中央笔记区
+- status: done · owner: Codex · files: server.mjs, public/app.js, public/style.css, tests/learning.test.mjs, TASKS.md, CONTEXT.md
+- 验证：65/65；真实18批成稿已迁入中央区，原笔记历史保留，浏览器验收通过。
+
 ## T37 · 长课程整理超时恢复
 - status: done · owner: Codex · files: server.mjs, public/app.js, tests/learning.test.mjs, TASKS.md, CONTEXT.md
 - 验证：63/63测试，后台进度/跨重启缓存/截断拆批通过。真实课程已成功2/18批并继续后台运行，整课结果尚未验收。
