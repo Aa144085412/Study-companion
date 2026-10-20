@@ -2,6 +2,18 @@
 
 > Codex 与 Claude Code 接手时先读本文件、TASKS.md、COLLAB.md，并检查 Git。最后对齐：2026-10-11。
 
+## 2026-10-20 T36 最新实现与交接（Codex）
+- 用户最新要求：课件/PPT正文 + 语音ASR + 字幕联合改进笔记；没有字幕时用本地视觉接口。保留JiJiDown本地导入。
+- 全篇分批蒸馏/Skill生成已替代前缀截断；普通问答按中文重叠词检索+字幕邻段+结尾时间偏好，引用仍携带 sourceId/segmentId/offset。全篇覆盖不等于事实核验通过。
+- 逐题伴学已接UI/API；开放式概念/参数/排错题，一次一题，评估与答题历史存 notebook.learningSession，复用回收站/备份，不是外部DeepTutor项目接入。
+- scripts/visual_review.py：按ASR片段中点抽帧，分离上部画面正文与下部字幕OCR候选，文本变化去重保留参数变化，缺失字幕/低文字画面可用本地VLM（每次最多8帧，新实现均匀分配整课）。区域分类为启发式，不保证为PPT/字幕语义分割；模型描述为推断。
+- 真实课程视频已导入，mediaId=4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9；原转写保留并关联视频。联合证据 sourceId=eaa57487-827d-4be1-b637-c50a9d312fc3；379抽样帧/365有画面正文/341有字幕候选/16有视觉补充/29无字幕及视觉补充；257是文字变化次数，不是PPT页数。视频路径见 data/visual-review 配置（用户原文件未改）。
+- 报告与 raw-multimodal-document.json 在 data/visual-review/<mediaId>-c5fe385c-2981-4bfd-baee-fb57beda8ad9/。重跑复用缓存，联合资料分卷导入，保留原ASR。
+- 修复真实发现：导学问题被当作事实首题→转写优先/提示词限制；短字幕元数据挤占上下文→合并连续片段；序列比对被ASR错写→尾部时间召回+OCR佐证；视觉回调404→支持visual类型并补测试；强制生成失败先删旧skill→生成成功前保留旧文件。
+- Skill目录包：src/skill_builder 独立提示词与编译器，兼容原 .md 库，SKILL.md 指向完整生成稿/来源JSON/保存笔记。未把自动草稿当验证后的SOP。
+- 验证：Node 61/61，Python8+4，quick_validate通过；真实LLM首题已生成，未代用户作答、未记虚假掌握度。原来的.gitignore/旧skill删除/cell-transfection.md改动未纳入。
+- 后续：用户用真实PPT课再验收版面/公式识别；改进画面区域识别、跨批次全局去重、模型评分标定与多选题型。当前为离线导入视频处理，不是浏览器在线直播采集。
+
 ## 2026-10-20 T35 最新增量（Codex）
 - 用户将 BV19W4y1X79X 课程学习作为开发验收，提供 DeepTutor 全链路目标规范；明确保留唧唧Down下载后本地视频导入。
 - 已补 B站 UI/API/下载器枚举；视频 URL 管线改持久化上传/任务队列，消除 >32 MB 音轨静默跳过，输出经 Pydantic 校验的 raw-document.json（秒）；保留本地导入与 250 MB 上限。

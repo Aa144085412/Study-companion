@@ -50,3 +50,46 @@ class LearningSession(Contract):
     notebook_id: str
     current_question: QuizItem | None = None
     mastery: list[KnowledgeMastery] = Field(default_factory=list)
+
+
+class TutorQuestion(Contract):
+    type: Literal['concept', 'parameter', 'troubleshooting']
+    content: str = Field(min_length=1, max_length=2000)
+    topic: str = Field(min_length=1, max_length=200)
+    source_label: str = Field(pattern=r'^S[1-9][0-9]*$')
+
+class TutorResponse(Contract):
+    evaluation: Literal['initial', 'mastered', 'partial', 'failed']
+    feedback_message: str = Field(max_length=4000)
+    question: TutorQuestion
+
+class TutorRequest(Contract):
+    notebookId: str
+    action: Literal['next', 'answer']
+    version: int = Field(ge=0)
+    questionId: str | None = None
+    replaceUnanswered: bool = False
+    answer: str | None = Field(default=None, max_length=4000)
+
+
+class FrameEvidence(Contract):
+    segment_id: str
+    timestamp: float = Field(ge=0)
+    asr_text: str
+    frame_path: str
+    subtitle_text: str = ''
+    ocr_version: int = 2
+    slide_text: str = ''
+    slide_id: str = ''
+    slide_start_time: float = Field(default=0, ge=0)
+    slide_changed: bool = False
+    slide_confidence: float = Field(default=0, ge=0, le=1)
+    ocr_confidence: float = Field(default=0, ge=0, le=1)
+    visual_description: str = ''
+    status: Literal['subtitle_candidate', 'no_subtitle', 'visual_inference', 'unresolved']
+
+class SkillPackage(Contract):
+    name: str = Field(pattern=r'^[a-z0-9][a-z0-9-]{0,63}$')
+    entry_path: str
+    source_count: int = Field(ge=0)
+    status: Literal['draft'] = 'draft'

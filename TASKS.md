@@ -4,6 +4,10 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T36 · 全篇蒸馏与逐题伴学
+- status: done · owner: Codex · files: server.mjs, src/distiller/*, src/deeptutor/*, src/skill_builder/*, src/schemas/*, scripts/visual_review.py, public/*, tests/learning.test.mjs, CONTEXT.md, TASKS.md, docs/DeepTutor迭代计划.md。
+- 验收：Node 61/61；Python契约8/8+视觉4/4；Skill官方格式校验通过。真实首题、尾部召回、379帧联合OCR、16帧本地视觉输出、SRT媒体定位均已验证。含课件正文扩展与Skill目录包；原始转写和笔记保留。
+
 ## T35 · B 站课程摄取与长音轨契约适配
 - status: done · owner: Codex · 2026-10-20
 - Files: src/schemas/*, src/extractors/*, scripts/url_pipeline.py, scripts/download_media.py, server.mjs, public/index.html, tests/test_course_ingestion.py, tests/agent-pipeline.test.mjs, tests/v02.test.mjs, requirements-course.txt, docs/DeepTutor迭代计划.md, CONTEXT.md, TASKS.md。

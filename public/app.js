@@ -29,11 +29,16 @@ function render(loadNote){
   for(const s of sources){const card=node('div','source-card');card.append(node('h3','',s.title),node('p','',s.kind==='media'?'原始媒体 · 可回放':s.segments?.length?`${s.segments.length} 个带时间戳的片段`:'文本资料 · 无时间定位'));if(s.kind==='text')fetch('/api/sources/'+s.id+'/images').then(r=>r.ok?r.json():[]).then(list=>{if(list.length)card.prepend(node('p','source-card-imgs','📷 '+list.length+' 张原图 · 点击查看'));}).catch(()=>{});card.append(button(s.kind==='media'?'播放':'查看原文',()=>showSource(s)));
     if(s.kind==='media')card.append(button('转成文字',async()=>{await api('/api/jobs',{sourceId:s.id});await refresh();toast('已加入本地转写队列');}));
     else {card.append(button('校对文稿',()=>editSource(s)));if(s.previousId)card.append(button('上一版本',()=>showSource(state.sources.find(x=>x.id===s.previousId))));}
+    if(s.kind==='media'&&['video/mp4','audio/webm'].includes(s.mime)){
+      card.append(button('课件与字幕联合核对',async()=>{await api('/api/visual-review',{sourceId:s.id,visionEnabled:true});await refresh();toast('已开始课件正文与字幕 OCR 核对；无字幕时尝试本地视觉模型（每次最多 8 帧），原转写保留。');}));
+      const review=[...(state.agentRuns||[])].reverse().find(r=>r.kind==='visual'&&r.sourceId===s.id);
+      if(review)card.append(node('p','hint',review.status==='running'?'字幕核对进行中…':review.result?.summary||review.error||review.status));
+    }
     if(s.segments?.length){const sel=node('select');sel.append(new Option('关联原录音 / 视频',''));sources.filter(m=>m.kind==='media').forEach(m=>sel.append(new Option(m.title,m.id)));sel.value=s.mediaId||'';sel.onchange=()=>run(async()=>{if(!sel.value)return;await api('/api/link-media',{sourceId:s.id,mediaId:sel.value});await refresh();toast('已关联，可点击字幕时间回放');});card.append(sel);}card.append(button('删除',async()=>{if(!await confirmAction('删除资料「'+s.title+'」及其相关版本？删除后将移入回收站，可在那里恢复或彻底删除。'))return;await api('/api/sources/'+s.id,'','DELETE');await refresh();toast('已移入回收站');},'danger'));$('sourceList').append(card);
   }
   $('questionList').replaceChildren();if(!questions.length)$('questionList').append(node('div','empty','把问题写在右侧，点击「记下疑问」。不急着一次弄懂。'));
   for(const q of questions){const c=node('div','question-card');c.append(node('p','',q.question));const sel=node('select');['未解决','学习中','已理解'].forEach(s=>sel.append(new Option(s,s)));sel.value=q.status;sel.onchange=()=>run(async()=>{await api('/api/questions/'+q.id,{status:sel.value},'PATCH');await refresh();});c.append(sel);$('questionList').append(c);}
-  renderMessages(); renderJobs();
+  renderMessages(); renderJobs(); renderTutor();
   renderNote();
 }
 function renderMessages(){const messages=(state?.messages||[]).filter(m=>m.notebookId===current);if(!messages.length){$('messages').replaceChildren(node('div','chat-welcome','✧\n\n从一个「为什么」开始\n\n选中笔记中的一句话，问问它的原理、目的，或前后联系。'));return;}$('messages').replaceChildren();for(const m of messages){const c=node('article','message '+m.role);c.append(node('div','message-label',m.role==='user'?'你':m.type==='draft'?'研习伴 · 笔记草稿':'研习伴'),node('div','message-text',m.text));if(m.role==='assistant'){const actions=node('div','message-actions');actions.append(button('朗读',()=>speak(m.text)),button('停止',stopSpeak),button('追加到笔记',async()=>{if(!await confirmAction('将这段回答追加到编辑区？检查后点击保存版本。'))return;$('noteEditor').value+='\n\n'+m.text+'\n\n'+(m.citations||[]).map(e=>`来源 [${e.label}]：${e.title}${e.start!==undefined?' '+time(e.start):''}`).join('\n');dirty=true;$('revisionLabel').textContent='有未保存的修改';renderNote();}));c.append(actions);for(const ref of m.citations||[])c.append(button(`[${ref.label}] ${ref.title}${ref.start!==undefined?' · '+time(ref.start):''}`,()=>showReference(ref),'citation'));if(m.truncated)c.append(node('p','hint','本次材料超过上下文预算，仅使用部分内容；请拆分笔记本后再核对。'));}$('messages').append(c);}$('messages').scrollTop=$('messages').scrollHeight;}
@@ -178,7 +183,7 @@ window.onbeforeunload=e=>{if(dirty){e.preventDefault();e.returnValue='';}};
 run(()=>refresh(true));
 
 function renderJobs(){const jobs=(state.jobs||[]).filter(j=>j.notebookId===current).slice().reverse();$('jobList').replaceChildren();for(const j of jobs){const c=node('div','job-card');const title=state.sources.find(s=>s.id===j.sourceId)?.title||'媒体';const states={queued:'排队中',running:'识别中',completed:'完成',failed:'失败',cancelled:'已取消',interrupted:'已中断'};c.append(node('b','',title),node('p','',states[j.state]+' · '+(j.phase||'')+(j.state==='running'?' '+j.progress+'%':'')));if(j.error)c.append(node('p','hint',j.error));if(['queued','running'].includes(j.state))c.append(button('取消任务',async()=>{await api('/api/jobs/'+j.id+'/cancel',{});await refresh();}));if(['failed','cancelled','interrupted'].includes(j.state))c.append(button('重试',async()=>{await api('/api/jobs/'+j.id+'/retry',{});await refresh();}));if(j.resultSourceId)c.append(button('查看转写',()=>showSource(state.sources.find(s=>s.id===j.resultSourceId))));$('jobList').append(c);}}
-let pollBusy=false;setInterval(async()=>{if(pollBusy||!state?.jobs?.some(j=>['queued','running'].includes(j.state)))return;pollBusy=true;try{const next=await api('/api/state');const changed=JSON.stringify(next.jobs.map(j=>[j.id,j.state]))!==JSON.stringify(state.jobs.map(j=>[j.id,j.state]));state=next;if(changed)render(false);else renderJobs();}catch{}finally{pollBusy=false;}},2000);
+let pollBusy=false;setInterval(async()=>{if(pollBusy||!state?.jobs?.some(j=>['queued','running'].includes(j.state)))return;pollBusy=true;try{const next=await api('/api/state');const visualChanged=JSON.stringify((next.agentRuns||[]).filter(r=>r.kind==='visual'))!==JSON.stringify((state.agentRuns||[]).filter(r=>r.kind==='visual'));const changed=visualChanged||JSON.stringify(next.jobs.map(j=>[j.id,j.state]))!==JSON.stringify(state.jobs.map(j=>[j.id,j.state]));state=next;if(changed)render(false);else renderJobs();}catch{}finally{pollBusy=false;}},2000);
 let correctionSource;
 function editSource(source){correctionSource=source;$('correctionTitle').textContent='校对 · '+source.title;$('correctionFields').replaceChildren();if(source.segments?.length){for(const seg of source.segments){const label=node('label','',time(seg.start)+' — '+time(seg.end));const input=node('textarea');input.dataset.segmentId=seg.id;input.value=seg.text;label.append(input);$('correctionFields').append(label);}}else{const input=node('textarea');input.value=source.content;input.id='correctionText';$('correctionFields').append(input);}$('correctionDialog').showModal();}
 $('closeCorrection').onclick=()=>$('correctionDialog').close();$('saveCorrection').onclick=()=>run(async()=>{const inputs=[...$('correctionFields').querySelectorAll('textarea')];const value=correctionSource.segments?.length?{segments:inputs.map(i=>({id:i.dataset.segmentId,text:i.value}))}:{content:inputs[0].value};await api('/api/sources/'+correctionSource.id+'/corrections',value);$('correctionDialog').close();await refresh();toast('校对版本已保存，原始识别结果保留');});
@@ -287,6 +292,7 @@ async function loadSkillsLibrary(){
     const statusLabel=active?'已激活 · skill-queue':'pre-queue · 待激活';
     card.append(node('b','',s.title||s.name));
     card.append(node('span','skill-card-meta','['+kindLabel+'] '+s.name+'.md'+(s.steps?' · '+s.steps+' 个编号步骤':'')+' · '+statusLabel));
+    if(s.packagePath)card.append(node('p','hint','可移植目录包：'+s.packagePath));
     if(s.description)card.append(node('p','skill-card-desc',s.description));
     const actions=node('div','skill-card-actions');
     actions.append(button(active?'退回 pre-queue':'调度到 skill-queue（激活）',async()=>{
@@ -336,3 +342,26 @@ $('backupExport').onclick=()=>run(async()=>{const db=await api('/api/state',unde
 $('backupRestorePick').onclick=()=>$('backupFile').click();
 $('backupFile').onchange=()=>run(async()=>{const f=$('backupFile').files[0];$('backupFile').value='';if(!f)return;if(!await confirmAction('将用所选备份覆盖当前全部数据？此操作无法撤销。'))return;let payload;try{payload=JSON.parse(await f.text());}catch{throw Error('备份文件不是有效的 JSON');}await api('/api/backup/restore',payload);$('backupDialog').close();await refresh(true);toast('已恢复备份');});
 checkHealth();
+
+var tutorBusy=false;
+function renderTutor(){
+ const session=state.notebooks.find(b=>b.id===current)?.learningSession;
+ const turn=session?.turns?.at(-1),box=$('tutorContent');box.replaceChildren();
+ if(turn){box.append(node('h3','',turn.question.content));if(turn.feedback)box.append(node('p','',turn.feedback));
+  const ref=turn.refs.find(r=>r.label===turn.question.source_label);if(ref)box.append(button('查看本题依据'+(ref.start!==undefined?' · '+time(ref.start):''),()=>showReference(ref),'citation'));
+ }else box.append(node('p','hint','点击开始，依据当前课程生成第一道题。'));
+ $('tutorNext').disabled=tutorBusy||!!(turn&&!turn.evaluation);$('tutorSubmit').disabled=tutorBusy||!turn;
+ $('tutorMastery').replaceChildren(...(session?.mastery||[]).map(m=>node('p','',m.topic+'：'+({mastered:'本题已掌握',partial:'需要巩固',failed:'需要复习'}[m.status]||'未测'))));
+}
+async function tutorAction(action){
+ if(tutorBusy)return;
+ const notebookId=needBook(),s=state.notebooks.find(b=>b.id===notebookId)?.learningSession;
+ const input=$('tutorAnswer').value;
+ tutorBusy=true;renderTutor();$('tutorStatus').textContent='正在思考…';
+ try{await api('/api/tutor',{notebookId,action,version:s?.version||0,questionId:s?.turns?.at(-1)?.id,answer:input});
+  await refresh();if(current===notebookId&&action==='next')$('tutorAnswer').value='';$('tutorStatus').textContent='学习进度已保存';
+ }catch(e){$('tutorStatus').textContent=e.message;throw e;}finally{tutorBusy=false;renderTutor();}
+}
+$('tutorNext').onclick=()=>run(()=>tutorAction('next'));
+$('tutorSubmit').onclick=()=>run(()=>tutorAction('answer'));
+$('tutorRefresh').onclick=()=>run(()=>refresh());

@@ -34,6 +34,10 @@ test('POST /api/agent/skill generates a portable skill, extracts gaps, and recor
   assert.ok(r.body.result.skill.steps>=2);
   assert.ok(fs.existsSync(r.body.result.skill.path));
   assert.equal(r.body.result.skill.path,path.join(skillsDir,'acetic-lithium-transform.md'));
+  assert.ok(fs.existsSync(r.body.result.skill.packagePath));
+  const packageRoot=path.dirname(r.body.result.skill.packagePath);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(packageRoot,'references','sources.json'),'utf8'))[0].sourceId,'src1');
+  assert.match(fs.readFileSync(r.body.result.skill.packagePath,'utf8'),/references\/course.md/);
   // gap extraction (deterministic): the mock skill has one 待核对
   assert.equal(r.body.result.gapCount,1);
   assert.match(r.body.result.gaps[0].text,/待核对/);
@@ -144,4 +148,12 @@ test('skill tiering: new skill defaults to pre; POST /api/skills/queue toggles a
   assert.equal(down.body.status,'pre');
   assert.equal((await call('/api/skills/queue',{name:'acetic-lithium-transform',status:'nope'})).status,400);
   assert.equal((await call('/api/skills/queue',{name:'does-not-exist',status:'active'})).status,404);
+});
+
+test('failed forced generation preserves the previous skill',async t=>{
+ let failNow=false;
+ const {call,skillsDir}=await fixture(t,async()=>new Response(JSON.stringify({choices:[{message:{content:failNow?'':GEN_SKILL}}]})));
+ await call('/api/agent/skill',{notebookId:'nb1'});failNow=true;
+ const r=await call('/api/agent/skill',{notebookId:'nb1',mode:'force'});assert.equal(r.status,502);
+ assert.equal(fs.readFileSync(path.join(skillsDir,'acetic-lithium-transform.md'),'utf8'),GEN_SKILL.trim());
 });
