@@ -1,3 +1,4 @@
+import {QUIZ_PROMPT,parseQuiz} from './src/deeptutor/quiz.mjs';
 import http from 'node:http';
 import {labelEvidence,batches,retrieve,validateCitations} from './src/distiller/evidence.mjs';
 import {parseTurn} from './src/deeptutor/engine.mjs';
@@ -685,6 +686,40 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           child.on('error',e=>{run.status='failed';run.error=e.message;save();});child.unref();
         }catch(e){run.status='failed';run.error=e.message;save();throw fail('字幕核对启动失败',500);}
         return json(res,run,202);
+      }
+      if(req.method==='POST' && p==='/api/quiz'){
+        const x=await body(req),nb=book(x.notebookId),session=nb.quizSession||{version:0,questions:[]};
+        if(x.version!==session.version)throw fail('练习进度已更新，请刷新后重试',409);
+        if(!['generate','answer'].includes(x.action))throw fail('无效练习动作');
+        if(tutorLocks.has(nb.id))throw fail('正在生成题组，请稍候',409);
+        if(x.action==='answer'){
+          const q=session.questions.find(q=>q.id===x.questionId);if(!q)throw fail('题目不存在',404);
+          if(q.answer)throw fail('本题已作答，请继续下一题或复习解析',409);
+          if(!['A','B','C','D'].includes(x.answer))throw fail('请选择一个选项');
+          q.answer=x.answer;q.correct=x.answer===q.correct_answer;q.answeredAt=now();session.version++;nb.quizSession=session;save();return json(res,session);
+        }
+        if(!db.settings.model.trim())throw fail('请先设置本地模型');
+        const all=labelEvidence(evidence(nb.id));if(!all.length)throw fail('请先导入课程资料');
+        const weak=session.questions.filter(q=>q.answer&&!q.correct).map(q=>q.topic);
+        const visual=all.filter(r=>/联合证据/.test(r.title)).map(r=>({...r,text:r.text.split('\n').filter(line=>/^(画面字幕|课件\/画面正文) OCR 候选：/.test(line)).map(line=>line.replace(/^[^：]+：/,'')).filter(line=>line.trim().length>=8).join('\n')})).filter(r=>r.text.length>=20);
+        const timed=all.filter(r=>r.start!==undefined),pool=visual.length>=5?visual:timed.length?timed:all;
+        const offset=Math.floor(session.questions.length/5),refs=[];
+        for(let i=0;i<10&&i<pool.length;i++)refs.push(pool[(Math.floor(i*pool.length/Math.min(10,pool.length))+offset)%pool.length]);
+        if(weak.length)for(const r of retrieve(pool,weak.slice(-3).join(' '),2000))if(!refs.some(e=>e.label===r.label))refs.push(r);
+        tutorLocks.add(nb.id);
+        try{
+          const result=await model('/chat/completions',{model:db.settings.model,max_tokens:4000,temperature:0.2,chat_template_kwargs:{enable_thinking:false},messages:[{role:'system',content:QUIZ_PROMPT},{role:'user',content:JSON.stringify({sources:refs,previous_questions:session.questions.slice(-20).map(q=>q.content),weak_topics:weak.slice(-5)})}]},db.settings.llmUrl,240000);
+          if(result.choices?.[0]?.finish_reason==='length')throw fail('题组生成被截断，请重试',502);
+          let questions;try{questions=parseQuiz(result.choices?.[0]?.message?.content||'',refs);}catch(e){
+            const raw=result.choices?.[0]?.message?.content||'';
+            fs.writeFileSync(path.join(dataDir,'quiz-validation-last.json'),JSON.stringify({refs,raw,error:e.message}));
+            const repaired=await model('/chat/completions',{model:db.settings.model,max_tokens:4000,temperature:0,chat_template_kwargs:{enable_thinking:false},messages:[{role:'system',content:QUIZ_PROMPT},{role:'user',content:JSON.stringify({sources:refs,invalid_output:raw,instruction:'修正格式和来源。source_quote 只复制对应text单独一行中的8至20个连续字符，不能改写、纠正错字或拼接不同句子。每题必须包含 explanation 字段，不得用text代替。仍输出完整5题。'})}]},db.settings.llmUrl,240000);
+            try{if(repaired.choices?.[0]?.finish_reason==='length')throw Error('修正题组被截断');questions=parseQuiz(repaired.choices?.[0]?.message?.content||'',refs);}catch(err){throw fail(err.message,502);}
+          }
+          if(!db.notebooks.includes(nb)||JSON.stringify(all)!==JSON.stringify(labelEvidence(evidence(nb.id))))throw fail('资料已改变，请重试',409);
+          const previous=new Set(session.questions.map(q=>q.content));if(questions.some(q=>previous.has(q.content)))throw fail('模型生成了重复题，请重试',502);
+          session.questions.push(...questions.map((q,index)=>{const shift=(index+session.questions.length)%4;const options=q.options.map((_,i)=>q.options[(i+shift)%4]);const correct=options.findIndex(o=>o.id===q.correct_answer);const explanation=q.explanation.replace(/(?<![A-Za-z])([ABCD])(?![A-Za-z])/g,letter=>'ABCD'[options.findIndex(o=>o.id===letter)]);return {...q,explanation,options:options.map((o,i)=>({id:'ABCD'[i],text:o.text})),correct_answer:'ABCD'[correct],id:uuid(),createdAt:now()};}));session.version++;nb.quizSession=session;save();return json(res,session);
+        }finally{tutorLocks.delete(nb.id);}
       }
       if(req.method==='GET' && p==='/api/tutor'){
         const nb=book(u.searchParams.get('notebookId'));

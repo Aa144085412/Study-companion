@@ -346,25 +346,31 @@ $('backupRestorePick').onclick=()=>$('backupFile').click();
 $('backupFile').onchange=()=>run(async()=>{const f=$('backupFile').files[0];$('backupFile').value='';if(!f)return;if(!await confirmAction('将用所选备份覆盖当前全部数据？此操作无法撤销。'))return;let payload;try{payload=JSON.parse(await f.text());}catch{throw Error('备份文件不是有效的 JSON');}await api('/api/backup/restore',payload);$('backupDialog').close();await refresh(true);toast('已恢复备份');});
 checkHealth();
 
-var tutorBusy=false;
+var tutorBusy=false,quizIndex=0,quizBook=null,quizReview=false;
 function renderTutor(){
- const session=state.notebooks.find(b=>b.id===current)?.learningSession;
- const turn=session?.turns?.at(-1),box=$('tutorContent');box.replaceChildren();
- if(turn){box.append(node('h3','',turn.question.content));if(turn.feedback)box.append(node('p','',turn.feedback));
-  const ref=turn.refs.find(r=>r.label===turn.question.source_label);if(ref)box.append(button('查看本题依据'+(ref.start!==undefined?' · '+time(ref.start):''),()=>showReference(ref),'citation'));
- }else box.append(node('p','hint','点击开始，依据当前课程生成第一道题。'));
- $('tutorNext').disabled=tutorBusy||!!(turn&&!turn.evaluation);$('tutorSubmit').disabled=tutorBusy||!turn;
- $('tutorMastery').replaceChildren(...(session?.mastery||[]).map(m=>node('p','',m.topic+'：'+({mastered:'本题已掌握',partial:'需要巩固',failed:'需要复习'}[m.status]||'未测'))));
+ if(quizBook!==current){quizBook=current;const pending=state.notebooks.find(b=>b.id===current)?.quizSession?.questions?.findIndex(q=>!q.answer);quizIndex=pending>=0?pending:0;quizReview=false;}
+ const session=state.notebooks.find(b=>b.id===current)?.quizSession,all=session?.questions||[],items=quizReview?all.filter(q=>q.answer&&!q.correct):all;
+ quizIndex=Math.max(0,Math.min(quizIndex,items.length-1));
+ const answered=all.filter(q=>q.answer),correct=answered.filter(q=>q.correct),q=items[quizIndex],box=$('tutorContent');box.replaceChildren();
+ $('quizProgress').textContent=`共 ${all.length} 题 · 已答 ${answered.length} · 答对 ${correct.length} · 待复习 ${answered.length-correct.length}`+(quizReview?' · 错题回顾':'');
+ $('quizNumbers').replaceChildren(...items.map((item,i)=>button(String(all.indexOf(item)+1)+(item.answer?(item.correct?' ✓':' ×'):''),()=>{quizIndex=i;renderTutor();},'secondary'+(i===quizIndex?' quiz-active':''))));
+ $('tutorNext').disabled=tutorBusy;$('tutorNext').textContent=tutorBusy?'正在生成题组…':all.length?'再生成 5 道选择题':'生成 5 道选择题';
+ $('quizReview').textContent=quizReview?'返回全部题目':'错题回顾';
+ if(!q){box.append(node('p','hint',quizReview?'目前没有错题。':'点击生成题组，每组 5 道单选题，可以通过题号切换。'));return;}
+ box.append(node('h3','',`第 ${all.indexOf(q)+1} 题 · ${q.topic}`),node('p','',q.content));
+ const options=node('div','quiz-options');for(const option of q.options){const b=button(option.id+'. '+option.text,()=>quizAnswer(q.id,option.id),'secondary quiz-option');b.disabled=!!q.answer||tutorBusy;if(q.answer&&option.id===q.correct_answer)b.classList.add('quiz-correct');if(q.answer===option.id&&!q.correct)b.classList.add('quiz-wrong');options.append(b);}box.append(options);
+ if(q.answer){box.append(node('p','',q.correct?'✓ 回答正确':'✗ 你的选择：'+q.answer+'；正确答案：'+q.correct_answer),node('p','',q.explanation));box.append(button('查看材料依据'+(q.ref.start!==undefined?' · '+time(q.ref.start):''),()=>showReference(q.ref),'citation'));box.append(node('blockquote','',q.source_quote));}
+ if(quizIndex<items.length-1)box.append(button('下一题 →',()=>{quizIndex++;renderTutor();},'secondary'));
+ $('tutorMastery').textContent='';
 }
-async function tutorAction(action){
- if(tutorBusy)return;
- const notebookId=needBook(),s=state.notebooks.find(b=>b.id===notebookId)?.learningSession;
- const input=$('tutorAnswer').value;
- tutorBusy=true;renderTutor();$('tutorStatus').textContent='正在思考…';
- try{await api('/api/tutor',{notebookId,action,version:s?.version||0,questionId:s?.turns?.at(-1)?.id,answer:input});
-  await refresh();if(current===notebookId&&action==='next')$('tutorAnswer').value='';$('tutorStatus').textContent='学习进度已保存';
- }catch(e){$('tutorStatus').textContent=e.message;throw e;}finally{tutorBusy=false;renderTutor();}
+async function quizAnswer(questionId,answer){
+ if(tutorBusy)return;const notebookId=needBook(),session=state.notebooks.find(b=>b.id===notebookId)?.quizSession;
+ tutorBusy=true;renderTutor();try{await api('/api/quiz',{notebookId,action:'answer',version:session.version,questionId,answer});await refresh();$('tutorStatus').textContent='作答已保存';}finally{tutorBusy=false;renderTutor();}
 }
-$('tutorNext').onclick=()=>run(()=>tutorAction('next'));
-$('tutorSubmit').onclick=()=>run(()=>tutorAction('answer'));
+$('tutorNext').onclick=()=>run(async()=>{
+ if(tutorBusy)return;const notebookId=needBook(),session=state.notebooks.find(b=>b.id===notebookId)?.quizSession,oldCount=session?.questions.length||0;
+ tutorBusy=true;renderTutor();$('tutorStatus').textContent='本地模型正在生成 5 道题，请稍候…';
+ try{await api('/api/quiz',{notebookId,action:'generate',version:session?.version||0});if(current===notebookId){quizReview=false;quizIndex=oldCount;}await refresh();$('tutorStatus').textContent='题组已保存，选择选项即可作答';}catch(e){$('tutorStatus').textContent=e.message;throw e;}finally{tutorBusy=false;renderTutor();}
+});
+$('quizReview').onclick=()=>{quizReview=!quizReview;quizIndex=0;renderTutor();};
 $('tutorRefresh').onclick=()=>run(()=>refresh());

@@ -4,6 +4,10 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T39 · 选择题组与即时反馈
+- status: done · owner: Codex · files: server.mjs, src/deeptutor/quiz.mjs, public/*, tests/quiz.test.mjs, CONTEXT.md, TASKS.md
+- 验证：67/67；真实5题入库，原句引用匹配、用户未代答。
+
 ## T38 · 生成笔记保存到中央笔记区
 - status: done · owner: Codex · files: server.mjs, public/app.js, public/style.css, tests/learning.test.mjs, TASKS.md, CONTEXT.md
 - 验证：65/65；真实18批成稿已迁入中央区，原笔记历史保留，浏览器验收通过。
