@@ -1,9 +1,9 @@
 """多源 URL → 导入资料 → 整理笔记 → 生成 skill 驱动（微信图文 / 抖音·小红书视频）。
 
-纯标准库。按 --source 调：
+使用 requirements-course.txt 中的协议依赖。按 --source 调：
   - wechat     → scripts/fetch_wechat.py   （系统 python，stdlib）
-  - douyin / xhs-video → scripts/download_media.py（tools/.venv-dl python，yt-dlp+ffmpeg）
-得到产物后，复用服务端 /api/sources、/api/transcribe、/api/generate、/api/agent/skill
+  - douyin / xhs-video / bilibili → scripts/download_media.py（tools/.venv-dl python，yt-dlp+ffmpeg）
+得到产物后，复用服务端 /api/upload、/api/jobs、/api/sources、/api/generate、/api/agent/skill
 完成 导入 → 整理笔记 → 生成 skill。进度 JSON-lines 打到 stdout，报告落盘并可选回写 agentRun。
 
 用法：
@@ -19,7 +19,6 @@
 - 不做反爬绕过：小红书视频若需登录，用 --cookie-file 提供 cookies.txt，失败如实上报。
 """
 import argparse
-import base64
 import json
 import os
 import re
@@ -27,11 +26,13 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.extractors.course import transcribe, from_source
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-SOURCE_LABEL = {'douyin': '抖音实验学习', 'xhs-video': '小红书视频实验学习', 'wechat': '微信实验学习'}
-MEDIA_SOURCES = {'douyin', 'xhs-video'}
+SOURCE_LABEL = {'douyin': '抖音实验学习', 'xhs-video': '小红书视频实验学习', 'wechat': '微信实验学习', 'bilibili': 'B站课程学习'}
+MEDIA_SOURCES = {'douyin', 'xhs-video', 'bilibili'}
 
 
 def emit(**value):
@@ -108,22 +109,12 @@ def run_skill(api_base, notebook_id, force, kind='experiment'):
             'gapCount': r.get('gapCount', 0), 'gaps': r.get('gaps', [])}
 
 
-def transcribe_api(api_base, wav_path):
-    b = Path(wav_path).read_bytes()
-    if not b:
-        return None
-    if len(b) > 32 * 1024 * 1024:
-        return None
-    return api(api_base, '/api/transcribe',
-               {'base64': base64.b64encode(b).decode('ascii'), 'mime': 'audio/wav'},
-               timeout=600).get('text', '').strip() or None
-
 
 def main():
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--source', required=True, choices=['douyin', 'xhs-video', 'wechat'])
+    ap.add_argument('--source', required=True, choices=['douyin', 'xhs-video', 'wechat', 'bilibili'])
     ap.add_argument('--url', required=True)
     ap.add_argument('--goal', default='', help='笔记本关键词（默认由标题/域名推导）')
     ap.add_argument('--kind', default='experiment', choices=['experiment', 'knowledge'], help='skill 产出类型：实验操作 / 知识总结')
@@ -175,7 +166,16 @@ def main():
             title0 = title0 or (res.get('title') or urlparse(args.url).netloc)
             emit(event='download-done', title=res.get('title'), frames=len(res.get('frames', [])))
             frames_dir = Path(res['dir']) / 'frames' if res.get('frames') else None
-            transcript = transcribe_api(args.api, res.get('audio')) if res.get('audio') else None
+            if not res.get('audio'):
+                raise RuntimeError('下载未产出音轨，不能生成课程笔记')
+            nb = find_or_create_notebook(args.api, SOURCE_LABEL[args.source] + ' · ' + str(title0)[:40])
+            report['notebook'] = nb
+            transcript_source = transcribe(args.api, nb['id'], res['audio'], api)
+            document = from_source(transcript_source, title0, args.url)
+            document_path = Path(res['dir']) / 'raw-document.json'
+            document_path.write_text(document.model_dump_json(indent=2), encoding='utf-8')
+            report['rawDocument'] = str(document_path)
+            transcript = transcript_source['content']
             report['steps']['transcribe'] = {'chars': len(transcript or ''), 'ok': bool(transcript)}
             emit(event='transcribe-done', chars=len(transcript or ''))
             dur = res.get('duration')

@@ -4,6 +4,11 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T35 · B 站课程摄取与长音轨契约适配
+- status: done · owner: Codex · 2026-10-20
+- Files: src/schemas/*, src/extractors/*, scripts/url_pipeline.py, scripts/download_media.py, server.mjs, public/index.html, tests/test_course_ingestion.py, tests/agent-pipeline.test.mjs, tests/v02.test.mjs, requirements-course.txt, docs/DeepTutor迭代计划.md, CONTEXT.md, TASKS.md。
+- 验收：Python 8/8、Node 53/53；独立临时数据中 33 MB MP4 上传与模拟转写关联通过。真实课程 379 片段适配通过（末尾 1545.34 秒）；在线页面本地导入提示已确认。未跑新 B站全视频下载→蒸馏→skill 全链路；DeepTutor 引擎尚未实现。
+
 ## 成熟度路线（离产品成熟还差什么，2026-10-11）
 
 当前为 **v0.2.0 开发版**：核心闭环（音视频→转写→笔记→共读→可移植 skill）已通；tools 层覆盖 小红书/微信公众号图文 + 抖音/小红书视频；软删除回收站 + 整库 JSON 备份导出/恢复（T34）；51/51 测试 + 多轮活体验证。下列缺口按「离成熟还差什么」排优先级（每项：任务引用 / 为什么挡成熟度 / 成本·依赖）：

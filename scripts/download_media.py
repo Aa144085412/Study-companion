@@ -124,8 +124,8 @@ def _download_douyin(detail, work, sid, cj):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--url', required=True, help='视频页链接（抖音 / 小红书视频）')
-    ap.add_argument('--source', choices=['douyin', 'xhs-video'], default='douyin')
+    ap.add_argument('--url', required=True, help='视频页链接（抖音 / 小红书视频 / B站）')
+    ap.add_argument('--source', choices=['douyin', 'xhs-video', 'bilibili'], default='douyin')
     ap.add_argument('--app-root', type=Path, default=Path(__file__).resolve().parents[1])
     ap.add_argument('--out', type=Path, default=None, help='默认 <app-root>/data/media-inbox')
     ap.add_argument('--cookie-file', type=Path, default=None, help='cookies.txt（抖音/小红书需登录时用）')
@@ -135,7 +135,7 @@ def main():
     app_root = args.app_root
     venv_py = app_root / 'tools' / '.venv-dl' / 'Scripts' / 'python.exe'
     # 抖音/小红书需"新鲜 cookie"（不一定登录）。未显式给 --cookie-file 时，默认用 <app-root>/cookies.txt（若存在）。
-    if not args.cookie_file and (app_root / 'cookies.txt').exists():
+    if args.source != 'bilibili' and not args.cookie_file and (app_root / 'cookies.txt').exists():
         args.cookie_file = app_root / 'cookies.txt'
     if args.cookie_file:
         emit(event='cookies', file=str(args.cookie_file))

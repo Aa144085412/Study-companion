@@ -2,6 +2,13 @@
 
 > Codex 与 Claude Code 接手时先读本文件、TASKS.md、COLLAB.md，并检查 Git。最后对齐：2026-10-11。
 
+## 2026-10-20 T35 最新增量（Codex）
+- 用户将 BV19W4y1X79X 课程学习作为开发验收，提供 DeepTutor 全链路目标规范；明确保留唧唧Down下载后本地视频导入。
+- 已补 B站 UI/API/下载器枚举；视频 URL 管线改持久化上传/任务队列，消除 >32 MB 音轨静默跳过，输出经 Pydantic 校验的 raw-document.json（秒）；保留本地导入与 250 MB 上限。
+- Python 8/8，Node 53/53，语法通过；真实已有转写 379 片段转换通过。当前服务已在空闲检查后单实例重启，页面已验证。未重新下载整段视频或重跑模型蒸馏；新 MP4 回归使用模拟转写，非新增 ASR 品质验证。
+- 下一步：docs/DeepTutor迭代计划.md。全篇证据召回、视觉时间对齐和真实 DeepTutor 测评仍待实现；本轮仅定义其协议，不能宣称全链路重构完成。
+- 原有 .gitignore 修改、删除旧 skill、新增 cell-transfection.md 保留，不纳入本次提交；未 push。
+
 ## Recovery Capsule
 
 - **Status**：v0.2.0 开发版；核心流程已实现，未完成完整产品验收。

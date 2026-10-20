@@ -188,3 +188,12 @@ test('POST /api/agent/media result callback flips a media run to done (shared pi
   assert.equal(one.body[0].notebookId,'nb1');
   assert.equal(one.body[0].result.steps.skill.skill.name,'yeast-liac-peg');
 });
+
+test('Bilibili course URL reaches the existing media driver',async t=>{
+  const {call,calls}=await fixture(t);
+  const r=await call('/api/agent/media',{source:'bilibili',url:'https://www.bilibili.com/video/BV19W4y1X79X'});
+  assert.equal(r.status,202);
+  assert.equal(calls[0].args[calls[0].args.indexOf('--source')+1],'bilibili');
+  const tools=await call('/api/tools',undefined,'GET');
+  assert.ok(JSON.stringify(tools.body).includes('bilibili'));
+});

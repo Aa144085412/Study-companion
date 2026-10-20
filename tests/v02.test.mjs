@@ -32,3 +32,14 @@ test('worker errors become retryable failures without transcript; short voice sh
  assert.equal((await call('/api/state')).sources.length,1);failing=false;
  const result=await call('/api/transcribe',{base64:'dGVzdA==',mime:'audio/wav'});assert.equal(result.text,'这一步有什么作用');
 });
+
+test('local MP4 over 32 MB uploads and transcribes with playback linkage',async t=>{
+ const {url,call}=await fixture(t,async()=>({text:'本地视频',segments:[{start:1000,end:2000,text:'本地视频'}]}));
+ const b=await call('/api/notebooks',{title:'本地课程'});
+ const r=await fetch(url+'/api/upload?notebookId='+b.id+'&title=JiJiDown-course.mp4',{method:'POST',body:Buffer.alloc(33*1024*1024,1)});
+ assert.equal(r.status,201);const media=await r.json();assert.equal(media.mime,'video/mp4');
+ const j=await call('/api/jobs',{sourceId:media.id});
+ const done=await until(async()=>{const state=await call('/api/state');return state.jobs.find(x=>x.id===j.id&&x.state==='completed');});
+ const state=await call('/api/state'); const source=state.sources.find(x=>x.id===done.resultSourceId);
+ assert.equal(source.mediaId,media.id);assert.equal(source.segments[0].start,1000);
+});

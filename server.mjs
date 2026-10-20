@@ -217,14 +217,14 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
   const TOOLS=[
     {
       name:'download_media',
-      description:'从平台下载视频/图文并导出音频，供后续转写。当用户给了一个抖音视频/小红书视频 URL、需要拿到音频或标题时调用。参数：url（必填，完整 https 链接）；source（douyin|xhs-video，默认 douyin）；frames（抽帧数，默认 0 不抽帧）；cookieFile（可选 cookies 文件路径）。返回 video/audio 文件路径、title、duration、uploader、dir。',
-      parameters:{type:'object',properties:{url:{type:'string'},source:{type:'string',enum:['douyin','xhs-video']},frames:{type:'integer'},cookieFile:{type:'string'}},required:['url']},
+      description:'从平台下载视频/图文并导出音频，供后续转写。当用户给了一个抖音视频/小红书视频/B站 URL、需要拿到音频或标题时调用。参数：url（必填，完整 https 链接）；source（douyin|xhs-video|bilibili，默认 douyin）；frames（抽帧数，默认 0 不抽帧）；cookieFile（可选 cookies 文件路径）。返回 video/audio 文件路径、title、duration、uploader、dir。',
+      parameters:{type:'object',properties:{url:{type:'string'},source:{type:'string',enum:['douyin','xhs-video','bilibili']},frames:{type:'integer'},cookieFile:{type:'string'}},required:['url']},
       async run(args){
         const url=String(args.url||'').trim();
         if(!/^https?:\/\/.+/i.test(url))throw fail('请提供合法的 http(s) URL');
-        const source=['douyin','xhs-video'].includes(args.source)?args.source:'douyin';
+        const source=['douyin','xhs-video','bilibili'].includes(args.source)?args.source:'douyin';
         const frames=Math.max(0,Number.isFinite(+args.frames)?+args.frames:0);
-        const cookieFile=String(args.cookieFile||'').trim()||(fs.existsSync(path.join(ROOT,'cookies.txt'))?path.join(ROOT,'cookies.txt'):'');
+        const cookieFile=String(args.cookieFile||'').trim()||(source!=='bilibili'&&fs.existsSync(path.join(ROOT,'cookies.txt'))?path.join(ROOT,'cookies.txt'):'');
         const script=path.join(ROOT,'scripts','download_media.py');
         const py=path.join(ROOT,'tools','.venv-dl','Scripts','python.exe');
         const pyArgs=[script,'--url',url,'--source',source,'--frames',String(frames),'--app-root',ROOT];
@@ -767,13 +767,13 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const x=await body(req);
         const source=String(x.source??'');
         const url=String(x.url??'').trim();
-        if(!['douyin','xhs-video','wechat'].includes(source))throw fail('source 需为 douyin / xhs-video / wechat');
+        if(!['douyin','xhs-video','wechat','bilibili'].includes(source))throw fail('source 需为 douyin / xhs-video / wechat / bilibili');
         if(!/^https?:\/\/.+/i.test(url))throw fail('请提供合法的 http(s) URL');
         const goal=String(x.goal??'').trim().slice(0,40);
         const cookieFile=String(x.cookieFile??'').trim();
         const skillKind=['experiment','knowledge'].includes(x.skillKind)?x.skillKind:'experiment';
         const runId=uuid();
-        const label={douyin:'抖音视频→笔记→skill','xhs-video':'小红书视频→笔记→skill',wechat:'微信图文→笔记→skill'}[source];
+        const label={bilibili:'B站课程→笔记→skill',douyin:'抖音视频→笔记→skill','xhs-video':'小红书视频→笔记→skill',wechat:'微信图文→笔记→skill'}[source];
         const base={id:runId,kind:'pipeline',skillKind,goal:goal||url.slice(0,80),notebookId:null,notebookTitle:null,goalLabel:skillKind==='knowledge'?label.replace('skill','知识 skill'):label,mode:'url',source,url,status:'running',createdAt:now(),updatedAt:now()};
         db.agentRuns.push(base);save();
         const localBase=`http://127.0.0.1:${req.socket.localPort||8765}`;
@@ -814,7 +814,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const url=String(x.url??'').trim();
         if(!url&&!source)throw fail('请提供 url 或 source');
         if(url&&!/^https?:\/\/.+/i.test(url))throw fail('请提供合法的 http(s) URL');
-        if(source&&!['douyin','xhs-video','wechat'].includes(source))throw fail('source 需为 douyin / xhs-video / wechat');
+        if(source&&!['douyin','xhs-video','wechat','bilibili'].includes(source))throw fail('source 需为 douyin / xhs-video / wechat / bilibili');
         const goal=String(x.goal??'').trim().slice(0,80);
         const cookieFile=String(x.cookieFile??'').trim();
         const runId=uuid();
