@@ -87,10 +87,10 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     for await (const chunk of req) { length += chunk.length; if(length > 46*1024*1024) throw fail('单次上传限制 32 MB；长音视频请先在 Buzz 转写并导入 SRT',413); chunks.push(chunk); }
     try { return JSON.parse(Buffer.concat(chunks).toString() || '{}'); } catch { throw fail('请求不是有效 JSON'); }
   }
-  async function model(pathname, payload, base=db.settings.llmUrl) {
+  async function model(pathname, payload, base=db.settings.llmUrl, timeoutMs=120000) {
     let response;
-    try { response = await modelFetch(localURL(base)+pathname, { method:'POST', headers: payload instanceof FormData ? {} : {'Content-Type':'application/json'}, body: payload instanceof FormData ? payload : JSON.stringify(payload), signal: AbortSignal.timeout(120000), redirect:'error' }); }
-    catch { throw fail('无法连接本地模型服务，或请求超时。请检查设置与服务状态；未切换到云端。',502); }
+    try { response = await modelFetch(localURL(base)+pathname, { method:'POST', headers: payload instanceof FormData ? {} : {'Content-Type':'application/json'}, body: payload instanceof FormData ? payload : JSON.stringify(payload), signal: AbortSignal.timeout(timeoutMs), redirect:'error' }); }
+    catch(e) { if(e.name==='TimeoutError'||e.name==='AbortError'||e.cause?.code==='UND_ERR_HEADERS_TIMEOUT')throw fail(`本地模型在 ${timeoutMs/1000} 秒内未完成本批整理；已完成分批保留，可重试继续。`,504); throw fail('无法连接本地模型服务，请检查设置与服务状态；未切换到云端。',502); }
     if (!response.ok) throw fail(`本地模型服务返回 HTTP ${response.status}，请检查模型名称和接口。`,502);
     return response.json();
   }
@@ -211,21 +211,46 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     }
     return gaps;
   }
+  const generationStatus=new Map();
+  const generationLocks=new Set();
   async function generateNote(notebookId){
+    if(generationLocks.has(notebookId))throw fail('这本笔记正在整理，请等待当前任务完成',409);
+    generationLocks.add(notebookId);
+    const progress={status:'running',completed:0,total:0,startedAt:now()};generationStatus.set(notebookId,progress);
+    try{
     if(!db.settings.model.trim())throw fail('请先设置本地模型');
     const refs=labelEvidence(evidence(notebookId)),parts=batches(refs);
     if(!parts.length)throw fail('请先导入文字资料或完成转写');
+    progress.total=parts.length;
+    const cacheDir=path.join(dataDir,'note-cache');fs.mkdirSync(cacheDir,{recursive:true});
     const outputs=[];
     for(const part of parts){
-      const result=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,messages:[{role:'system',content:DISTILL_PROMPT},{role:'user',content:JSON.stringify({sources:part})}]});
-      if(result.choices?.[0]?.finish_reason==='length')throw fail('分段笔记生成被模型截断，请重试或调高模型输出上限',502);
-      const raw=(result.choices?.[0]?.message?.content||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();
-      if(!raw)throw fail('分段笔记为空，未保存不完整笔记',502);
-      outputs.push(validateCitations(raw,part));
+      const key=createHash('sha256').update(JSON.stringify({notebookId,part,prompt:DISTILL_PROMPT,model:db.settings.model,url:db.settings.llmUrl,version:3})).digest('hex');
+      const cacheFile=path.join(cacheDir,key+'.json');
+      if(fs.existsSync(cacheFile)){const cached=JSON.parse(fs.readFileSync(cacheFile,'utf8'));if(typeof cached.content==='string'&&cached.content.trim()){outputs.push(cached.content);progress.completed=outputs.length;continue;}}
+      async function summarize(chunk,depth=0){
+        const result=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,chat_template_kwargs:{enable_thinking:false},messages:[{role:'system',content:DISTILL_PROMPT+'\n本批只写精炼学习要点，控制在700个汉字以内；按知识点合并，避免按帧或逐句展开。没有信息的栏目省略，不重复列出所有OCR错误。不要输出思考过程。'},{role:'user',content:JSON.stringify({sources:chunk})}]},db.settings.llmUrl,240000);
+        if(result.choices?.[0]?.finish_reason==='length'){
+          if(depth>=4)throw fail('模型多次截断本批笔记；已完成批次保留，请检查模型输出设置后重试',502);
+          let halves;
+          if(chunk.length>1){const mid=Math.ceil(chunk.length/2);halves=[chunk.slice(0,mid),chunk.slice(mid)];}
+          else {const item=chunk[0],mid=Math.ceil(item.text.length/2);if(mid<40)throw fail('模型无法完成短片段，请检查模型设置',502);halves=[[{...item,text:item.text.slice(0,mid)}],[{...item,text:item.text.slice(mid)}]];}
+          return (await summarize(halves[0],depth+1))+'\n\n'+(await summarize(halves[1],depth+1));
+        }
+        const raw=(result.choices?.[0]?.message?.content||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+        if(!raw)throw fail('分段笔记为空，未保存不完整笔记',502);
+        return validateCitations(raw,chunk);
+      }
+      const content=await summarize(part);outputs.push(content);
+      fs.writeFileSync(cacheFile,JSON.stringify({content}));progress.completed=outputs.length;
     }
     const content=outputs.map((s,i)=>outputs.length>1?'## 课程资料 · 第 '+(i+1)+' 部分\n\n'+s:s).join('\n\n');
     const used=new Set([...content.matchAll(/\[(S\d+)\]/g)].map(m=>m[1]));
+    book(notebookId);
+    if(JSON.stringify(refs)!==JSON.stringify(labelEvidence(evidence(notebookId))))throw fail('整理期间资料发生变化，请重试；未保存过期资料草稿',409);
+    progress.status='done';
     return {id:uuid(),notebookId,content,citations:refs.filter(r=>used.has(r.label)),coverage:{processed:refs.length,total:refs.length,batches:parts.length}};
+    }catch(e){progress.status='failed';progress.error=e.message;throw e;}finally{generationLocks.delete(notebookId);}
   }
   const tutorLocks=new Set();
   const TOOL_CONTEXT={spawn,transcriber,save,now,uuid,dataDir,ROOT};
@@ -697,10 +722,18 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           updated.version++;nb.learningSession=updated;save();return json(res,updated);
         }finally{tutorLocks.delete(nb.id);}
       }
+      if(req.method==='GET' && p==='/api/generate/status'){
+        const id=new URL(req.url,'http://localhost').searchParams.get('notebookId');book(id);
+        return json(res,generationStatus.get(id)||{status:'idle',completed:0,total:0});
+      }
       if(req.method==='POST' && p==='/api/generate'){
-        const x=await body(req);book(x.notebookId);const draft=await generateNote(x.notebookId);
-        const reply={...draft,role:'assistant',type:'draft',text:draft.content,createdAt:now(),truncated:false};
-        db.messages.push(reply);save();return json(res,reply);
+        const x=await body(req);book(x.notebookId);
+        if(generationLocks.has(x.notebookId))return x.background?json(res,generationStatus.get(x.notebookId),202):json(res,{error:'这本笔记正在整理，请等待当前任务完成'},409);
+        const work=async()=>{const draft=await generateNote(x.notebookId);
+          const reply={...draft,role:'assistant',type:'draft',text:draft.content,createdAt:now(),truncated:false};
+          db.messages.push(reply);save();return reply;};
+        if(x.background){void work().catch(e=>{generationStatus.set(x.notebookId,{...generationStatus.get(x.notebookId),status:'failed',error:e.message});});return json(res,generationStatus.get(x.notebookId),202);}
+        return json(res,await work());
       }
       if(req.method==='POST' && p==='/api/chat') {
         const x=await body(req);book(x.notebookId);

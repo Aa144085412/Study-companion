@@ -19,12 +19,13 @@ test('tutor rejects fabricated reference and inappropriate evaluation',()=>{
  value.question.source_label='S1';assert.throws(()=>parseTurn(JSON.stringify(value),'answer',[{label:'S1'}]));
 });
 async function fixture(t){
- const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'study-learning-'));let invalid=false;const batchesSeen=[];
+ const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'study-learning-'));let invalid=false,failBatch=0,truncateOnce=false;const batchesSeen=[];
  const modelFetch=async(url,opts)=>{
+  if(truncateOnce){truncateOnce=false;return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:'partial'}}]}));}
   const p=JSON.parse(opts.body),input=JSON.parse(p.messages.find(m=>m.role==='user').content);
   let content;
   if(input.action){content=invalid?'not json':JSON.stringify({evaluation:input.action==='next'?'initial':'partial',feedback_message:'再想想验证的对象。',question:{type:'concept',content:'为什么需要序列比对？',topic:'序列比对',source_label:input.sources[0].label}});}
-  else {batchesSeen.push(input.sources);content='材料总结 '+input.sources.map(s=>`[${s.label}]`).join(' ');}
+  else {if(failBatch===batchesSeen.length+1){failBatch=0;throw new DOMException('timeout','TimeoutError');}batchesSeen.push(input.sources);content='材料总结 '+input.sources.map(s=>`[${s.label}]`).join(' ');}
   return new Response(JSON.stringify({choices:[{message:{content}}]}));
  };
  const launches=[];const pipelineLauncher=(py,args)=>{launches.push({py,args});return {on(){},unref(){}};};
@@ -34,7 +35,7 @@ async function fixture(t){
  await call('/api/settings',{llmUrl:'http://127.0.0.1:1234/v1',model:'test',asrUrl:'http://localhost:8000/v1',asrModel:'whisper'});
  await call('/api/sources',{notebookId:nb.id,title:'课程.txt',content:'序列比对验证目标序列。'.repeat(1200)});
  t.after(async()=>{await new Promise(r=>app.close(r));assert.equal(path.dirname(dataDir),os.tmpdir());fs.rmSync(dataDir,{recursive:true,force:true});});
- return {call,nb,batchesSeen,launches,setInvalid:()=>{invalid=true;},restart:async()=>{await new Promise(r=>app.close(r));app=createApp({dataDir,modelFetch});await new Promise(r=>app.listen(0,'127.0.0.1',r));}};
+ return {call,nb,batchesSeen,launches,truncate:()=>{truncateOnce=true;},failAt:n=>{failBatch=n;},setInvalid:()=>{invalid=true;},restart:async()=>{await new Promise(r=>app.close(r));app=createApp({dataDir,modelFetch});await new Promise(r=>app.listen(0,'127.0.0.1',r));}};
 }
 test('distillation covers all source text and only returns complete draft',async t=>{
  const f=await fixture(t);const r=await f.call('/api/generate',{notebookId:f.nb.id});
@@ -77,4 +78,25 @@ test('video review requires linked transcript and launches with original segment
  assert.equal(f.launches.length,1);const cfg=JSON.parse(fs.readFileSync(f.launches[0].args[2],'utf8'));
  assert.equal(cfg.segments[0].start,1000);assert.equal(cfg.mediaId,media.id);assert.equal(cfg.visionEnabled,true);
  assert.equal((await f.call('/api/agent/runs?id='+r.body.id)).body[0].status,'done');
+});
+
+
+test('failed batch retains cache across restart and background retry reports completion',async t=>{
+ const f=await fixture(t);f.failAt(2);
+ const first=await f.call('/api/generate',{notebookId:f.nb.id});
+ assert.equal(first.status,504);assert.match(first.body.error,/240 秒/);assert.equal(f.batchesSeen.length,1);
+ assert.equal((await f.call('/api/state')).body.messages.length,0);
+ await f.restart();
+ const retry=await f.call('/api/generate',{notebookId:f.nb.id,background:true});assert.equal(retry.status,202);
+ let progress;
+ for(let i=0;i<100;i++){progress=(await f.call('/api/generate/status?notebookId='+f.nb.id)).body;if(progress.status!=='running')break;await new Promise(r=>setTimeout(r,5));}
+ assert.equal(progress.status,'done');assert.equal(progress.completed,progress.total);
+ assert.equal(f.batchesSeen.length,progress.total,'first successful batch must not be called again');
+ const state=(await f.call('/api/state')).body;assert.equal(state.messages.length,1);assert.equal(state.messages[0].coverage.batches,progress.total);
+});
+
+test('truncated model output splits batch without losing text',async t=>{
+ const f=await fixture(t);f.truncate();const r=await f.call('/api/generate',{notebookId:f.nb.id});assert.equal(r.status,200);
+ assert.equal(f.batchesSeen.flat().map(s=>s.text).join(''),'序列比对验证目标序列。'.repeat(1200));
+ assert.ok(!r.body.text.includes('partial'));
 });
