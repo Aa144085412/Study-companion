@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {noiseScore,ingestEvidence,cleanEvidence} from '../src/evidence_cleaner/index.mjs';
-import {validateFacts,detectConflicts,deduplicate,mergeEquivalent} from '../src/note_synthesizer/index.mjs';
-import {assignLayer,auditFacts,enforceAttribution} from '../src/attribution_auditor/index.mjs';
+import {noiseScore,ingestEvidence,cleanEvidence,selectVisualCandidates} from '../src/evidence_cleaner/index.mjs';
+import {validateFacts,detectConflicts,deduplicate,mergeEquivalent,synthesize,reconcileClusters} from '../src/note_synthesizer/index.mjs';
+import {assignLayer,auditFacts,enforceAttribution,auditEvidence,completeAudits} from '../src/attribution_auditor/index.mjs';
 import {renderNote} from '../src/note_renderer/index.mjs';
 import {blindPayload,blindPass,generateVerifiedQuiz} from '../src/quiz_engine/index.mjs';
 import {quizEligible} from '../src/pipeline/common.mjs';
@@ -32,9 +32,9 @@ test('knowledge layers and quiz blacklist fail closed even when auditor says acc
  const good=assignLayer(fact({knowledge_type:'GENERAL_PRINCIPLE',parameters:[]}),audit);assert.equal(quizEligible(good),true);
 });
 test('model induction error rewrites against original evidence and is re-audited',async()=>{
- let calls=[];const initial=fact({statement:'超时一定说明服务损坏'});
+ let calls=[];const initial=fact({statement:'超时一定说明服务损坏',parameters:[]});
  const result=await auditFacts([initial],[ev()],[],{progress:()=>{},call:async(stage,prompt,input)=>{
- calls.push(stage);if(stage==='fact_rewrite')return {facts:[fact({statement:'该演示设置超时为10秒'})]};
+ calls.push(stage);if(stage==='fact_rewrite')return {facts:[fact({statement:'该演示设置超时为10秒',parameters:[]})]};
  return {audits:input.facts.map(f=>({fact_id:f.id,attribution:calls.length===1?'MODEL_INDUCTION_ERROR':'NONE',supported:calls.length!==1,generalizable:false,rationale:'原文仅说明设置',decision:calls.length===1?'REWRITE':'CONTEXT_ONLY'}))};
  }});
  assert.deepEqual(calls,['attribution_audit','fact_rewrite','attribution_audit']);assert.equal(result.rewrites[0].original_audit.attribution,'MODEL_INDUCTION_ERROR');assert.equal(result.facts[0].layer,'CONTEXT');assert.ok(!result.facts[0].statement.includes('损坏'));
@@ -69,4 +69,72 @@ test('source blame requires matching speech and subtitle evidence',()=>{
 test('independent counterexample review blocks a previously accepted core claim',async()=>{
  const result=await auditFacts([fact({knowledge_type:'GENERAL_PRINCIPLE'})],[ev()],[],{progress:()=>{},call:async(stage,p,input)=>stage==='scope_check'?{checks:input.claims.map(f=>({fact_id:f.fact_id,generalizable:false,counterexample:'网络延迟也会造成超时',rationale:'未排除其他原因'}))}:{audits:input.facts.map(f=>({fact_id:f.id,attribution:'NONE',supported:true,generalizable:true,rationale:'有原文支持',decision:'ACCEPT'}))}});
  assert.equal(result.facts[0].layer,'UNRESOLVED');assert.equal(quizEligible(result.facts[0]),false);assert.equal(result.scope_checks.length,1);
+});
+
+test('central subtitles require image confirmation and verbatim region text',async()=>{
+ const raw=[ev({id:'A',source_type:'ASR_TRANSCRIPT',text:'看这个位置存在不同字',raw_text:'看这个位置存在不同字'}),ev({id:'V',source_type:'UNKNOWN_VISUAL_OCR',text:'发现这个位置存在不同文字',raw_text:'发现这个位置存在不同文字',frame_path:'frame.jpg',flags:['UNKNOWN_VISUAL_ROLE']})];
+ assert.equal(selectVisualCandidates(raw,1)[0].id,'V');
+ const out=await cleanEvidence(raw,{title:'文字课',classifyLimit:1,call:async(stage)=>stage==='visual_classification'?{source_type:'SUBTITLE_OCR',text:raw[1].text,confidence:.99}:{domain:'通用',candidates:[]}});
+ assert.equal(out.evidence[1].source_type,'SUBTITLE_OCR');assert.deepEqual(out.evidence[1].aligned_evidence_ids,['A']);assert.equal(out.evidence[1].raw_text,raw[1].raw_text);
+ const bad=await cleanEvidence(raw,{title:'文字课',classifyLimit:1,call:async(stage)=>stage==='visual_classification'?{source_type:'SUBTITLE_OCR',text:'模型补写的原文不存在',confidence:.99}:{domain:'通用',candidates:[]}});assert.equal(bad.evidence[1].source_type,'UNKNOWN_VISUAL_OCR');
+});
+test('audit retrieves adjacent visual candidates without crossing media',()=>{
+ const base=ev(),near=ev({id:'V',start_time:5,source_type:'UNKNOWN_VISUAL_OCR',flags:['UNKNOWN_VISUAL_ROLE']}),other=ev({id:'O',media_id:'other'});
+ const refs=auditEvidence([fact()],[base,near,other]);assert.ok(refs.some(x=>x.id==='V'));assert.ok(!refs.some(x=>x.id==='O'));assert.ok(refs.find(x=>x.id==='V').flags.includes('UNKNOWN_VISUAL_ROLE'));
+});
+test('same units in different quantity roles are not conflicting and single-run prose cannot generalize',()=>{
+ const p={name:'电压',value:'12',unit:'V',quantity_role:'输入',stage:'转换前',object:'电源',source_scope:'本次'};
+ const a=fact({parameters:[p]}),b=fact({id:'F2',parameters:[{...p,value:'5',quantity_role:'输出',stage:'转换后'}]});assert.equal(detectConflicts([a,b]).length,0);
+ assert.equal(detectConflicts([a,{...b,parameters:[{...p,value:'5'}]}]).length,1);
+ const cards=validateFacts({facts:[fact({statement:'通常超时必须10秒',knowledge_type:'SINGLE_RUN_METRIC'})]},[ev()]).cards;
+ assert.equal(cards[0].statement,'本次演示记录：超时设置为10秒');assert.ok(cards[0].flags.includes('PARAMETER_ROLE_UNRESOLVED'));
+});
+test('coverage review recovers an omitted topic with valid evidence',async()=>{
+ const e=ev(),e2=ev({id:'E2',text:'输出需要单独验证',raw_text:'输出需要单独验证'});let checked=false;
+ const result=await synthesize([e,e2],{progress:()=>{},call:async(stage,p,input)=>{
+ if(stage==='fact_map')return {facts:[fact()]};
+ if(stage==='coverage_review'){checked=true;return {facts:[fact({statement:'输出需要单独验证',entity:'输出',parameters:[],evidence_quotes:[{evidence_id:'E2',quote:e2.text}]})]};}
+ return {clusters:[{title:'课程',fact_ids:input.facts.map(f=>f.id)}],conflicts:[],equivalences:[]};
+ }});assert.equal(checked,true);assert.equal(result.facts.length,2);assert.equal(result.coverage[0].recovered,1);
+});
+
+test('parameter-only approval cannot cancel a detected induction error',async()=>{
+ const parameters=[{name:'超时',value:'10',unit:'s',quantity_role:'等待阈值',stage:'请求',object:'客户端',source_scope:'本次'}];let rewritten=false;
+ const result=await auditFacts([fact({parameters})],[ev()],[],{progress:()=>{},call:async(stage,p,input)=>{
+ if(stage==='fact_rewrite'){rewritten=true;return {facts:[fact({parameters})]};}
+ return {audits:input.facts.map(f=>({fact_id:f.id,attribution:stage==='attribution_audit'&&!rewritten?'MODEL_INDUCTION_ERROR':'NONE',supported:stage==='parameter_audit'||rewritten,generalizable:false,rationale:'核对对象和原句',decision:stage==='attribution_audit'&&!rewritten?'REWRITE':'CONTEXT_ONLY'}))};
+ }});assert.ok(rewritten);assert.equal(result.rewrites.length,1);assert.equal(result.facts[0].layer,'CONTEXT');
+});
+
+test('reduce repairs omitted, duplicate and unknown ids without losing validated facts',()=>{
+ const cards=[fact(),fact({id:'F2',topic:'第二主题'}),fact({id:'F3'})];
+ const result=reconcileClusters(cards,[{title:'一',fact_ids:['F1','F1','invented']},null]);
+ assert.deepEqual(result.clusters.flatMap(c=>c.fact_ids).sort(),['F1','F2','F3']);
+ assert.equal(result.repairs.filter(r=>r.reason==='MISSING_ASSIGNMENT').length,2);
+ assert.equal(result.repairs.filter(r=>r.reason==='DUPLICATE_ASSIGNMENT').length,1);
+ assert.equal(reconcileClusters(cards,null).clusters.flatMap(c=>c.fact_ids).length,3);
+});
+test('different parameter semantics produce distinct fact identities',()=>{
+ const a=fact(),b=fact({parameters:[{name:'timeout',value:'20',unit:'s'}]});
+ const parsed=validateFacts({facts:[a,b]},[ev()]);
+ assert.equal(new Set(parsed.cards.map(f=>f.id)).size,2);
+ assert.equal(deduplicate(parsed.cards).length,2);
+});
+
+test('finite JSON numeric values normalize without losing cited facts or accepting booleans',()=>{
+ const input=fact({parameters:[{name:'timeout',value:10,unit:'s'}]});
+ const parsed=validateFacts({facts:[input]},[ev()]);
+ assert.equal(parsed.cards.length,1);assert.equal(parsed.cards[0].parameters[0].value,'10');
+ assert.equal(input.parameters[0].value,10);
+ for(const value of [true,null,{},Infinity])assert.equal(validateFacts({facts:[fact({parameters:[{name:'timeout',value,unit:'s'}]})]},[ev()]).cards.length,0);
+});
+
+test('missing or duplicate audits remain unresolved and cannot enter quiz bank',()=>{
+ const good={fact_id:'F1',attribution:'NONE',supported:true,generalizable:true,rationale:'supported',decision:'ACCEPT'};
+ const cards=[fact({parameters:[],knowledge_type:'GENERAL_PRINCIPLE'}),fact({id:'F2'})];
+ const output=completeAudits({audits:[good]},cards);
+ assert.equal(output[0].decision,'ACCEPT');assert.equal(output[1].decision,'PENDING_VERIFICATION');
+ assert.equal(quizEligible(assignLayer(cards[1],output[1])),false);
+ assert.equal(completeAudits({audits:[good,good]},cards)[0].supported,false);
+ assert.equal(completeAudits({},cards).length,2);
 });

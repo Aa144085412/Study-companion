@@ -74,8 +74,8 @@ test('failed batch retains cache across restart and background retry reports com
  let progress;
  for(let i=0;i<1000;i++){progress=(await f.call('/api/generate/status?notebookId='+f.nb.id)).body;if(progress.status!=='running')break;await new Promise(r=>setTimeout(r,5));}
  assert.equal(progress.status,'done');assert.equal(progress.completed,progress.total);
- assert.equal(f.batchesSeen.length,2,'first successful Map batch must not be called again');
- const state=(await f.call('/api/state')).body;assert.equal(state.messages.length,0);assert.equal(state.revisions.length,1);assert.equal(state.revisions[0].coverage.batches,2);
+ assert.equal(f.batchesSeen.filter(b=>b[0].id===f.batchesSeen[0][0].id).length,1,'first successful Map batch must not be called again');
+ const state=(await f.call('/api/state')).body;assert.equal(state.messages.length,0);assert.equal(state.revisions.length,1);assert.equal(state.revisions[0].coverage.batches,f.batchesSeen.length);
 });
 
 test('truncated model output retries without losing input text',async t=>{

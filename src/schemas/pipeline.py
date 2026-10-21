@@ -52,6 +52,10 @@ class EvidenceQuote(Contract):
     quote: str = Field(min_length=1)
 
 class FactParameter(Contract):
+    quantity_role: str = "UNSPECIFIED"
+    stage: str = "UNSPECIFIED"
+    object: str = "UNSPECIFIED"
+    source_scope: str = "UNSPECIFIED"
     name: str
     value: str
     unit: str

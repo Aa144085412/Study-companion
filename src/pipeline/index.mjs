@@ -1,6 +1,6 @@
 import fs from 'node:fs';import path from 'node:path';import {hash,parseJSON} from './common.mjs';
 import {ingestEvidence,cleanEvidence} from '../evidence_cleaner/index.mjs';import {synthesize} from '../note_synthesizer/index.mjs';import {auditFacts} from '../attribution_auditor/index.mjs';import {renderNote} from '../note_renderer/index.mjs';
-export const PIPELINE_VERSION='2.0.1';
+export const PIPELINE_VERSION='2.1.0';
 export function sourceFingerprint(sources){return hash(sources.filter(s=>s.kind==='text'&&!s.replacedBy).map(s=>({id:s.id,content:s.content,segments:s.segments,mediaId:s.mediaId})));}
 export function makeStageCaller({model,modelName,cacheDir,provenance={},onCall=()=>{}}){
  fs.mkdirSync(cacheDir,{recursive:true});
@@ -17,7 +17,7 @@ export function makeStageCaller({model,modelName,cacheDir,provenance={},onCall=(
   throw last;
  };caller.invalidateLast=()=>{if(lastFile)fs.writeFileSync(lastFile,JSON.stringify({__invalid:true}));};return caller;
 }
-export async function runPipeline({sources,title,notebookId,dataDir,call,progress=()=>{},classifyLimit=6}){
+export async function runPipeline({sources,title,notebookId,dataDir,call,progress=()=>{},classifyLimit=12}){
  const input_hash=sourceFingerprint(sources),pipeline_id='P'+hash([PIPELINE_VERSION,input_hash]).slice(0,20),runDir=path.join(dataDir,'pipeline-v2',pipeline_id);fs.mkdirSync(runDir,{recursive:true});
  const write=(name,value)=>fs.writeFileSync(path.join(runDir,name),JSON.stringify(value,null,2));
  progress({stage:'evidence_cleaner',completed:0,total:1});const raw=ingestEvidence(sources,{dataDir,notebookId});if(!raw.length)throw Error('请先导入文字或完成转写');
@@ -25,7 +25,7 @@ export async function runPipeline({sources,title,notebookId,dataDir,call,progres
  const mapped=await synthesize(clean.evidence,{call,progress});write('map-reduce.json',mapped);
  const reviewed=await auditFacts(mapped.facts,clean.evidence,mapped.conflicts,{call,progress});write('audit.json',reviewed);
  const rendered=renderNote({title,facts:reviewed.facts,clusters:mapped.clusters,audits:reviewed.audits,conflicts:mapped.conflicts,evidence:clean.evidence,glossary:clean.glossary});
- const artifact={schema_version:'2.0',pipeline_id,input_hash,title,domain:clean.domain,glossary:clean.glossary,evidence:clean.evidence,facts:reviewed.facts,conflicts:mapped.conflicts,audits:reviewed.audits,clusters:mapped.clusters,markdown:rendered.markdown,metrics:{raw_evidence:raw.length,noise:clean.evidence.filter(e=>e.noise).length,unknown_visual:clean.evidence.filter(e=>e.source_type==='UNKNOWN_VISUAL_OCR').length,map_batches:mapped.map_batches,extracted_cards:mapped.extracted_cards,semantic_merges:mapped.semantic_merges,facts:reviewed.facts.length,core:reviewed.facts.filter(f=>f.layer==='CORE').length,context:reviewed.facts.filter(f=>f.layer==='CONTEXT').length,unresolved:reviewed.facts.filter(f=>f.layer==='UNRESOLVED').length,conflicts:mapped.conflicts.length,rejected_map_cards:mapped.rejects.length,rewrites:reviewed.rewrites.length,scope_downgrades:reviewed.scope_checks.filter(c=>!c.generalizable||c.counterexample.trim()).length},provenance:{pipeline_version:PIPELINE_VERSION,independence:'separate_context_same_configured_model',scientific_verification:'MODEL_REVIEW_NOT_EXTERNAL_CERTIFICATION'}};
+ const artifact={schema_version:'2.0',pipeline_id,input_hash,title,domain:clean.domain,glossary:clean.glossary,evidence:clean.evidence,facts:reviewed.facts,conflicts:mapped.conflicts,audits:reviewed.audits,clusters:mapped.clusters,markdown:rendered.markdown,metrics:{raw_evidence:raw.length,noise:clean.evidence.filter(e=>e.noise).length,unknown_visual:clean.evidence.filter(e=>e.source_type==='UNKNOWN_VISUAL_OCR').length,map_batches:mapped.map_batches,extracted_cards:mapped.extracted_cards,semantic_merges:mapped.semantic_merges,coverage_recovered:mapped.coverage.reduce((n,b)=>n+b.recovered,0),facts:reviewed.facts.length,core:reviewed.facts.filter(f=>f.layer==='CORE').length,context:reviewed.facts.filter(f=>f.layer==='CONTEXT').length,unresolved:reviewed.facts.filter(f=>f.layer==='UNRESOLVED').length,conflicts:mapped.conflicts.length,rejected_map_cards:mapped.rejects.length,rewrites:reviewed.rewrites.length,scope_downgrades:reviewed.scope_checks.filter(c=>!c.generalizable||c.counterexample.trim()).length},provenance:{pipeline_version:PIPELINE_VERSION,independence:'separate_context_same_configured_model',scientific_verification:'MODEL_REVIEW_NOT_EXTERNAL_CERTIFICATION'}};
  artifact.pipeline_id='P'+hash(artifact).slice(0,20);
  const finalDir=path.join(dataDir,'pipeline-v2',artifact.pipeline_id);fs.mkdirSync(finalDir,{recursive:true});
  for(const file of ['evidence.json','map-reduce.json','audit.json'])fs.copyFileSync(path.join(runDir,file),path.join(finalDir,file));

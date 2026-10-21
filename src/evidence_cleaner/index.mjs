@@ -42,7 +42,7 @@ export function ingestEvidence(sources,{dataDir,notebookId}={}){
  }
  return out;
 }
-export async function cleanEvidence(raw,{title,call,classifyLimit=6}){
+export async function cleanEvidence(raw,{title,call,classifyLimit=12}){
  const evidence=structuredClone(raw),frequency=new Map();
  for(const e of evidence.filter(e=>['UNKNOWN_VISUAL_OCR','UI_OR_INSTRUMENT_OCR'].includes(e.source_type)))for(const line of new Set(e.text.split('\n').map(norm).filter(Boolean)))frequency.set(line,(frequency.get(line)||0)+1);
  const visualCount=evidence.filter(e=>e.source_type==='UNKNOWN_VISUAL_OCR').length;
@@ -53,9 +53,12 @@ export async function cleanEvidence(raw,{title,call,classifyLimit=6}){
   if(e.source_type==='UNKNOWN_VISUAL_OCR'&&e.text.split('\n').some(line=>(frequency.get(norm(line))||0)>Math.max(8,visualCount*0.65)))e.flags.push('PERSISTENT_OVERLAY_CANDIDATE');
  }
  // Classify only actual images; budget exhaustion remains UNKNOWN, never assumed to be slides.
- const candidates=evidence.filter(e=>!e.noise&&e.source_type==='UNKNOWN_VISUAL_OCR'&&e.frame_path),chosen=[];
- for(let i=0;i<Math.min(classifyLimit,candidates.length);i++)chosen.push(candidates[Math.floor(i*candidates.length/Math.min(classifyLimit,candidates.length))]);
- for(const e of chosen){try{const v=await call('visual_classification',CLASSIFY_PROMPT,{evidence_id:e.id,body:e.text},e.frame_path);if(['SLIDE_DOCUMENT_OCR','UI_OR_INSTRUMENT_OCR'].includes(v.source_type)&&typeof v.confidence==='number'&&v.confidence>=0.85){e.source_type=v.source_type;e.classification_method='VLM_IMAGE_CLASSIFICATION';e.flags=e.flags.filter(x=>x!=='UNKNOWN_VISUAL_ROLE');if(v.source_type==='UI_OR_INSTRUMENT_OCR')e.flags.push('HIGH_RISK_ISOLATED_NUMBER');}}catch{e.flags.push('CLASSIFICATION_UNAVAILABLE');}}
+ const chosen=selectVisualCandidates(evidence,classifyLimit);
+ for(const e of chosen){try{const v=await call('visual_classification',CLASSIFY_PROMPT,{evidence_id:e.id,body:e.text},e.frame_path);
+  if(['SUBTITLE_OCR','SLIDE_DOCUMENT_OCR','UI_OR_INSTRUMENT_OCR'].includes(v.source_type)&&typeof v.confidence==='number'&&v.confidence>=0.85&&typeof v.text==='string'&&v.text.trim().length>=4&&e.text.includes(v.text.trim())){
+   e.source_type=v.source_type;e.text=v.text.trim();e.classification_method='VLM_IMAGE_REGION_CLASSIFICATION';e.flags=e.flags.filter(x=>x!=='UNKNOWN_VISUAL_ROLE');if(v.source_type==='UI_OR_INSTRUMENT_OCR')e.flags.push('HIGH_RISK_ISOLATED_NUMBER');
+  }
+ }catch{e.flags.push('CLASSIFICATION_UNAVAILABLE');}}
  for(const e of evidence.filter(e=>e.source_type==='UI_OR_INSTRUMENT_OCR')){
   const speech=evidence.filter(a=>a.source_type==='ASR_TRANSCRIPT'&&a.media_id===e.media_id&&a.start_time===e.start_time);
   const nums=e.text.match(/\d+(?:[.,]\d+)?/g)||[];
@@ -69,4 +72,12 @@ export async function cleanEvidence(raw,{title,call,classifyLimit=6}){
  const g=await call('glossary',GLOSSARY_PROMPT,{title,full_scan_items:usable.length,terms:[...freq].sort((a,b)=>b[1]-a[1]).slice(0,100),samples:sampled});
  const glossary=(Array.isArray(g.candidates)?g.candidates:[]).slice(0,8).filter(c=>typeof c.observed==='string'&&typeof c.proposed==='string'&&typeof c.reason==='string'&&Array.isArray(c.evidence_ids)&&c.evidence_ids.length&&c.evidence_ids.every(id=>usable.some(e=>e.id===id&&e.raw_text.includes(c.observed)))).map(c=>({observed:c.observed,proposed:c.proposed,reason:c.reason,evidence_ids:c.evidence_ids,status:'CANDIDATE_ONLY'}));
  return {evidence,domain:typeof g.domain==='string'?g.domain:'未知',glossary};
+}
+
+// Prioritize readable OCR where speech has no subtitle partner; do not promote it without image review.
+export function selectVisualCandidates(evidence,limit){
+ const candidates=evidence.filter(e=>!e.noise&&e.frame_path&&e.source_type==='UNKNOWN_VISUAL_OCR'&&norm(e.text).length>=8);
+ const priority=candidates.filter(e=>!evidence.some(s=>s.media_id===e.media_id&&s.start_time===e.start_time&&s.source_type==='SUBTITLE_OCR'&&!s.noise)&&evidence.some(s=>s.media_id===e.media_id&&s.start_time===e.start_time&&s.source_type==='ASR_TRANSCRIPT'));
+ const chosen=[];const pick=(items,n)=>{for(let i=0;i<Math.min(n,items.length);i++){const e=items[Math.floor(i*items.length/Math.min(n,items.length))];if(!chosen.includes(e))chosen.push(e);}};
+ pick(priority,limit);pick(candidates.filter(e=>!chosen.includes(e)),limit-chosen.length);return chosen;
 }

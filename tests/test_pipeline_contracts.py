@@ -1,6 +1,6 @@
 import unittest
 from pydantic import ValidationError
-from src.schemas.pipeline import EvidenceItem, VerifiedQuizItem, AtomicFactCard
+from src.schemas.pipeline import EvidenceItem, VerifiedQuizItem, AtomicFactCard, FactParameter
 from scripts.visual_review import typed_evidence
 from src.schemas import FrameEvidence
 
@@ -18,6 +18,10 @@ class PipelineContracts(unittest.TestCase):
         self.assertEqual(items[2]['source_type'],'UNKNOWN_VISUAL_OCR')
         self.assertIn('VISUAL_INFERENCE',items[3]['flags'])
         self.assertNotIn('可能是仪器',items[1]['text'])
+    def test_parameter_roles_roundtrip(self):
+        p=FactParameter(name='电压',value='12',unit='V',quantity_role='输入',stage='转换前',object='电源',source_scope='本次')
+        self.assertEqual(p.model_dump()['stage'],'转换前')
+        self.assertEqual(FactParameter(name='电压',value='12',unit='V').quantity_role,'UNSPECIFIED')
     def test_blind_disagreement_never_validates(self):
         with self.assertRaises(ValidationError):
             VerifiedQuizItem(id='Q1',content='问题',topic='概念',dimension='WHY',options=[{'id':x,'text':x} for x in 'ABCD'],correct_answer='A',explanation='解析',fact_ids=['F1'],pipeline_id='P1',blind_verification={'answers':['B'],'unique':True,'sufficient_conditions':True,'non_overlapping':True,'option_judgments':[{'id':x,'valid':x=='B','reason':'理由'} for x in 'ABCD'],'rationale':'独立理由'})
