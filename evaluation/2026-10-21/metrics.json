@@ -1,0 +1,16 @@
+{
+  "checklist_items": 30,
+  "coverage": {
+    "MISSING": 19,
+    "FULL": 7,
+    "PARTIAL": 4
+  },
+  "full_coverage": 0.23333333333333334,
+  "recognizable_coverage": 0.36666666666666664,
+  "fact_cards": 12,
+  "literal_quotes_matched": 16,
+  "literal_quotes_total": 16,
+  "quiz_whitelist_pass": 2,
+  "quiz_total": 2,
+  "reviewed_frames": 8
+}

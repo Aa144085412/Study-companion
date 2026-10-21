@@ -1,0 +1,2711 @@
+{
+  "date": "2026-10-21",
+  "pipeline_id": "P9dc798f979bffc37d78b",
+  "artifact_sha256": "c2297bd9eab973100087dd5f337bc4977565b662c6cdd88e0bf92e4ae6fb0064",
+  "code_commit": "8610803",
+  "reviewer": "Codex evidence-based review, NOT human expert gold standard",
+  "method": "Exploratory checklist authored after viewing output; full subtitle timeline read; 8 cached frames visually inspected; no direct audio listening; no held-out blind study",
+  "visual_frames": [
+    "00371-1530040.jpg",
+    "00093-357440.jpg",
+    "00120-437570.jpg",
+    "00130-618970.jpg",
+    "00039-178920.jpg",
+    "00286-1262620.jpg",
+    "00139-639320.jpg",
+    "00373-1534840.jpg"
+  ],
+  "definitions": {
+    "FULL": "最终笔记完整、忠实呈现本条内容；不是科学认证",
+    "PARTIAL": "仅待核对提示/缺重要条件或例外/存在措辞泛化",
+    "MISSING": "最终笔记中未见对应内容；相关章节标题不算覆盖"
+  },
+  "benchmark": [
+    {
+      "id": "B01",
+      "target": "Buffer融化后均匀性",
+      "start": 88,
+      "end": 94,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E7d0f1de6c8509cab",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我们要等它全部融化 此箭头朝上冷",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00019-90340.jpg"
+        },
+        {
+          "id": "Ed477cbf2d1310c82",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大明蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00019-90340.jpg"
+        },
+        {
+          "id": "Ec9d7b5af52e5f269",
+          "source_type": "SUBTITLE_OCR",
+          "text": "否则它就是不均匀的 此箭头朝上冷",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00020-92040.jpg"
+        },
+        {
+          "id": "E157831ce4b6e5dfd",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大蝶iii",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00020-92040.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B02",
+      "target": "本课最后加酶",
+      "start": 110,
+      "end": 116,
+      "status": "FULL",
+      "fact_ids": [
+        "F4ac87a8e264ae2d8"
+      ],
+      "evidence": [
+        {
+          "id": "Ea8802fb34fbc7a83",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后我们都是最后才加酶 此箭头朝上",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00021-113330.jpg"
+        },
+        {
+          "id": "Ed621fa17c13f8722",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大荣",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00021-113330.jpg"
+        },
+        {
+          "id": "Ed622fbdc3715d453",
+          "source_type": "SUBTITLE_OCR",
+          "text": "此箭头朝上",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00022-118745.jpg"
+        },
+        {
+          "id": "Ea9b424c96068589c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "端",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00022-118745.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B03",
+      "target": "本课使用2x混合液",
+      "start": 153,
+      "end": 160,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "Eae65c1e1de088b55",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我为什么选这个酶呢",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00030-154920.jpg"
+        },
+        {
+          "id": "E15bd50a2091d905c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00030-154920.jpg"
+        },
+        {
+          "id": "Ed75ad5f925525f3c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "首先它是一个2x的mix",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00031-157350.jpg"
+        },
+        {
+          "id": "Ecb9b0f66c23304c5",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00031-157350.jpg"
+        },
+        {
+          "id": "E78bc176ef0995a7c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "也就是说我配的时候就会比较方便",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00032-160330.jpg"
+        },
+        {
+          "id": "E7de30fa6743e4883",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00032-160330.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B04",
+      "target": "区分厂家声称与讲者延伸时间习惯",
+      "start": 162,
+      "end": 172,
+      "status": "FULL",
+      "fact_ids": [
+        "F9471885eb2130f10"
+      ],
+      "evidence": [
+        {
+          "id": "E4f7216ec9a367b0b",
+          "source_type": "SUBTITLE_OCR",
+          "text": "按照它官方的说法是说它可以5秒p1kb",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00034-166500.jpg"
+        },
+        {
+          "id": "E6829bf26af822e15",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶iI",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00034-166500.jpg"
+        },
+        {
+          "id": "E63626391b385e3dc",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但一般我都会稍微延长一点",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00035-169420.jpg"
+        },
+        {
+          "id": "Eed14f97759686ce2",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00035-169420.jpg"
+        },
+        {
+          "id": "Eff9af4d054b9cc65",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就10秒/1kb来算吧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00036-171420.jpg"
+        },
+        {
+          "id": "E8d1ef0864d9534d5",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00036-171420.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B05",
+      "target": "保真度口述的后期纠正和无精确统计声明",
+      "start": 174,
+      "end": 194,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "Ebe3f486cc9917449",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是我会认为它的保真度没有这么高",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00038-175920.jpg"
+        },
+        {
+          "id": "E1b539705aeb448b0",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00038-175920.jpg"
+        },
+        {
+          "id": "E749b00b7a03d6403",
+          "source_type": "SUBTITLE_OCR",
+          "text": "虽然它官方应该写的是99% （后面查了下官方说PCR错误率<0.005%）",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00039-178920.jpg"
+        },
+        {
+          "id": "E487062c11fa505eb",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00039-178920.jpg"
+        },
+        {
+          "id": "Ee51ecb6a340715ba",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但我经常挑克隆的话",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00040-181920.jpg"
+        },
+        {
+          "id": "E5744c12bb7cfbb67",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00040-181920.jpg"
+        },
+        {
+          "id": "Ed8fb87d898d0a76b",
+          "source_type": "SUBTITLE_OCR",
+          "text": "你会发现可能你挑五个",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00041-184420.jpg"
+        },
+        {
+          "id": "Eec70b16a5919bf49",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00041-184420.jpg"
+        },
+        {
+          "id": "E06ab550474418f52",
+          "source_type": "SUBTITLE_OCR",
+          "text": "它可能会有三个是",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00042-186420.jpg"
+        },
+        {
+          "id": "Ecba83eece5fd558c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00042-186420.jpg"
+        },
+        {
+          "id": "E0ce5e515e8477c87",
+          "source_type": "SUBTITLE_OCR",
+          "text": "两三个",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00043-188420.jpg"
+        },
+        {
+          "id": "Ed6dacadde46a60fc",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00043-188420.jpg"
+        },
+        {
+          "id": "E391ec0052ebddd59",
+          "source_type": "SUBTITLE_OCR",
+          "text": "矣两三个有点夸张了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00044-190420.jpg"
+        },
+        {
+          "id": "E058e856ecbe15f64",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00044-190420.jpg"
+        },
+        {
+          "id": "Ee9d845c858be49fa",
+          "source_type": "SUBTITLE_OCR",
+          "text": "（无精确统计）但确实是会有突变的情况存在",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00045-192920.jpg"
+        },
+        {
+          "id": "E1cdd038b7e08c3b5",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00045-192920.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B06",
+      "target": "本课按说明书配方等比例缩小体系",
+      "start": 198,
+      "end": 211,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E5bebfa1b251615dd",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那它的配方也同样是按照protocol来就行了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00048-199420.jpg"
+        },
+        {
+          "id": "E09e1a91df32e0914",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶ii",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00048-199420.jpg"
+        },
+        {
+          "id": "E28f90045252f3e3f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那它的配方也同样是按照protocol来就行了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00049-201420.jpg"
+        },
+        {
+          "id": "E77e96db59533bb03",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00049-201420.jpg"
+        },
+        {
+          "id": "E2241e660b328dc66",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是它的官方是50ul的体系",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00050-203420.jpg"
+        },
+        {
+          "id": "E34598da980a3f74b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00050-203420.jpg"
+        },
+        {
+          "id": "Eb12e20f0354ea236",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这个情况下如果你并不需要 这么多PCR产物",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00051-205420.jpg"
+        },
+        {
+          "id": "Ec4d5d3777f4ab029",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00051-205420.jpg"
+        },
+        {
+          "id": "E2e82d4b9bde4c9c8",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这个情况下如果你并不需要 这么多PCR产物",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00052-207420.jpg"
+        },
+        {
+          "id": "E3ee4384a99955260",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00052-207420.jpg"
+        },
+        {
+          "id": "E9e20026d662ee79d",
+          "source_type": "SUBTITLE_OCR",
+          "text": "你可以等比例地缩小",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00053-209420.jpg"
+        },
+        {
+          "id": "Ebbfd86b877fc8593",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶bilb",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00053-209420.jpg"
+        },
+        {
+          "id": "E62ab6d2248e810bc",
+          "source_type": "SUBTITLE_OCR",
+          "text": "比如说你配20配10凹也是可以的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00054-212220.jpg"
+        },
+        {
+          "id": "Eef8b7792cc399817",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00054-212220.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B07",
+      "target": "基因组模板用于获取同源臂的本课举例",
+      "start": 225,
+      "end": 237,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E4d872e8d7e97b06f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后第一类是基因组",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00058-227940.jpg"
+        },
+        {
+          "id": "E8efdb0c61457039b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴媒",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00058-227940.jpg"
+        },
+        {
+          "id": "E04108fe821e20480",
+          "source_type": "SUBTITLE_OCR",
+          "text": "基因组一般就是用在CRISPR/Cas9的 那种质粒上",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00059-231040.jpg"
+        },
+        {
+          "id": "E16517fa0d940d72c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00059-231040.jpg"
+        },
+        {
+          "id": "Edf71abe5d380e0b8",
+          "source_type": "SUBTITLE_OCR",
+          "text": "你要p你目的基因的同源臂的部分",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00060-235340.jpg"
+        },
+        {
+          "id": "E8317c787bc964ce0",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00060-235340.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B08",
+      "target": "RNA反转录得到cDNA及CDS扩增的本课解释",
+      "start": 238,
+      "end": 249,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "Ee444a6533628a135",
+          "source_type": "SUBTITLE_OCR",
+          "text": "一般都是通过提取你所用的细胞系的RNA",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00062-241360.jpg"
+        },
+        {
+          "id": "Ea8035ecb84abf6ed",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶l",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00062-241360.jpg"
+        },
+        {
+          "id": "Ec97373adb6275942",
+          "source_type": "SUBTITLE_OCR",
+          "text": "一般都是通过提取你所用的细胞系的RNA",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00063-244460.jpg"
+        },
+        {
+          "id": "E56d85de5110531b3",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00063-244460.jpg"
+        },
+        {
+          "id": "Eda5a14ab34830cce",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后反转成cDNA",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00064-246360.jpg"
+        },
+        {
+          "id": "E602e5c06243d307a",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶b",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00064-246360.jpg"
+        },
+        {
+          "id": "E55f020ed8223c37e",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就只p它的cds区域",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00065-248680.jpg"
+        },
+        {
+          "id": "E5b4052a9af9b4584",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶bI",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00065-248680.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B09",
+      "target": "从已有质粒扩增目的片段以转入另一载体",
+      "start": 250,
+      "end": 264,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E8b2f635f58f03b71",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后第三个就是质粒",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00066-251120.jpg"
+        },
+        {
+          "id": "Ecd009b223cbe0a5a",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00066-251120.jpg"
+        },
+        {
+          "id": "E1429301cb0830a31",
+          "source_type": "SUBTITLE_OCR",
+          "text": "像我令天做的就是",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00067-253620.jpg"
+        },
+        {
+          "id": "Eacb8b23d3ab09def",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶bi",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00067-253620.jpg"
+        },
+        {
+          "id": "Eb6e1c45a28302e75",
+          "source_type": "SUBTITLE_OCR",
+          "text": "从这个质粒转移到另一个质粒上去",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00068-256540.jpg"
+        },
+        {
+          "id": "E27d11e74a4212d48",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00068-256540.jpg"
+        },
+        {
+          "id": "E5312e36156d354fc",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那我现在就是p这个质粒a上面的目的基因",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00069-260440.jpg"
+        },
+        {
+          "id": "E9f950571a460982a",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00069-260440.jpg"
+        },
+        {
+          "id": "E9a9e7fce48a28ef6",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后转移到我刚刚酶切的那个载体上",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00070-264960.jpg"
+        },
+        {
+          "id": "Ee4d9cbf2b8816a36",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00070-264960.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B10",
+      "target": "引物干粉与已配好溶液两种交付形式",
+      "start": 285,
+      "end": 306,
+      "status": "PARTIAL",
+      "fact_ids": [
+        "Fd5f44ed18fce7405"
+      ],
+      "evidence": [
+        {
+          "id": "E3fdb9a61f6d25f50",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那这个引物呢我就合成好了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00079-286040.jpg"
+        },
+        {
+          "id": "Ebf721fe58e69e2d6",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00079-286040.jpg"
+        },
+        {
+          "id": "E3fa7e7f8925ecf61",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那合成好的引物一般都是干粉的形式",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00080-287590.jpg"
+        },
+        {
+          "id": "E3069ed5bb98d23e9",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00080-287590.jpg"
+        },
+        {
+          "id": "E048abd748276f02e",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那合成好的引物一般都是干粉的形式",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00081-289240.jpg"
+        },
+        {
+          "id": "E8dfdc01f93f2a8ee",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00081-289240.jpg"
+        },
+        {
+          "id": "E306da00508ab4b0e",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这个时候就要离心",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00082-290840.jpg"
+        },
+        {
+          "id": "E356881b8d19f9ff3",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00082-290840.jpg"
+        },
+        {
+          "id": "E6d91a6c8788bb752",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后按照它上面所说的加多少水",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00083-292840.jpg"
+        },
+        {
+          "id": "E692a22da7ade832a",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴媒山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00083-292840.jpg"
+        },
+        {
+          "id": "Ec38db507a8145439",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后按照它上面所说的加多少水",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00084-294340.jpg"
+        },
+        {
+          "id": "Ec6694de6436dce34",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "胡蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00084-294340.jpg"
+        },
+        {
+          "id": "Ee1c937491197fd8f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后把它配成10uM的浓度",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00085-296040.jpg"
+        },
+        {
+          "id": "Edc99614b650778c6",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00085-296040.jpg"
+        },
+        {
+          "id": "Ee34b6878761d59d7",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后我们这边测序公司还有一个服务",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00086-299340.jpg"
+        },
+        {
+          "id": "Ec390a4de4cbaf1a0",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00086-299340.jpg"
+        },
+        {
+          "id": "Ecd53852914c9ab08",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后我们这边测序公司还有一个服务",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00087-301340.jpg"
+        },
+        {
+          "id": "E7e86a8da5b01bbdb",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶bi",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00087-301340.jpg"
+        },
+        {
+          "id": "E2d2343208b52b19e",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是它已经帮你加好水了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00088-303340.jpg"
+        },
+        {
+          "id": "E150f3228637215a9",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00088-303340.jpg"
+        },
+        {
+          "id": "E97611bacff6c3e8f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这样到时候就是摇匀就可以直接用",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00089-306540.jpg"
+        },
+        {
+          "id": "Ec7cefa477ca664cc",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶b山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00089-306540.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B11",
+      "target": "退火温度主要依据引物",
+      "start": 356,
+      "end": 361,
+      "status": "FULL",
+      "fact_ids": [
+        "Fc0acd5f4e4b70931"
+      ],
+      "evidence": [
+        {
+          "id": "Eb2cc320fa1614c88",
+          "source_type": "SUBTITLE_OCR",
+          "text": "RampRate:0.0°C/s +Cycle Options Done Eot 这个退火温度主要就是根据你的引物来算的 BIO-CENER",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00093-357440.jpg"
+        },
+        {
+          "id": "E591d9ffd66eca9b1",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "EditFile\n1/16/20298:24:59PM\nbiibil\n蝴蝶\n98.0\n98.0\n68.0\n.0\n68.0\nGOT\n00:15\n00:05\n02:00\n16.0\n8\n2\n32\nIncrement:0.ooC/Cyc\nGradient:0.0°C\nExtend:0 s/Cyc",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00093-357440.jpg"
+        },
+        {
+          "id": "E78db7587f0c65223",
+          "source_type": "SUBTITLE_OCR",
+          "text": "Delete Done 这个退火温度主要就是根据你的引物来算的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00094-359240.jpg"
+        },
+        {
+          "id": "E1c2176c38394fa38",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bilil\n蝴蝶\n0:86\n98.0\n03:00\n00:10\n68.0\n63.0\n68.0\n00:15\nGOTO\n00:05\n02:00\n16.0\nX32\nTemi\nTim\nBack\nEnter\n+Temp",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00094-359240.jpg"
+        },
+        {
+          "id": "Edef6d77d34676ace",
+          "source_type": "SUBTITLE_OCR",
+          "text": "Options Done Exot 然后我的大概在59.5度左右",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00095-362140.jpg"
+        },
+        {
+          "id": "Ec6beccfe5d9c40f2",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "98.0\n98.0\n蝴蝶\n03:00\n00:10\n68.0\n68.0\n59\nGOT\n00:15\n02:00\n00:05\n16.0\n8\n2\n32\nX\nTem\nTim\nBack\nEnter\n+Temp",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00095-362140.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B12",
+      "target": "本次PCR产物长度是示例值",
+      "start": 364,
+      "end": 370,
+      "status": "FULL",
+      "fact_ids": [
+        "F4c3a1e64785d67bf"
+      ],
+      "evidence": [
+        {
+          "id": "E29b31c8095865406",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后我就设8秒吧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00097-370440.jpg"
+        },
+        {
+          "id": "E59e415c8d2c71989",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "98.0\n98.0\nbilibii\n蝴蝶\n03:00\n00:10\n68.0\n59.5\n68.0\nGOT\n00:15\n00:05\n02:00\n16.0\n8\nX|32\nTem\nTim\nEnter\n-Temp\nDone\nEoat",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00097-370440.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B13",
+      "target": "凝胶等待时间仅是本次估计",
+      "start": 429,
+      "end": 439,
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F392560ca955251bb"
+      ],
+      "evidence": [
+        {
+          "id": "E142e1f9a49cbb396",
+          "source_type": "SUBTITLE_OCR",
+          "text": "现在呢我就可以先准备配DNA胶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00117-430520.jpg"
+        },
+        {
+          "id": "E4bca79e9285cd79b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00117-430520.jpg"
+        },
+        {
+          "id": "E81d713f2c8a3a2cc",
+          "source_type": "SUBTITLE_OCR",
+          "text": "也就是琼脂糖凝胶电泳",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00118-432770.jpg"
+        },
+        {
+          "id": "Efbf6fa8e021b896c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那这个时候我等它（指DNA胶）凝固",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00119-435370.jpg"
+        },
+        {
+          "id": "E5d2874f85d71c229",
+          "source_type": "SUBTITLE_OCR",
+          "text": "二三十分钟吧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00120-437570.jpg"
+        },
+        {
+          "id": "E4ffa5f76bc94ff5c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00120-437570.jpg"
+        },
+        {
+          "id": "Ec9e8badd59d030cb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "刚好等我那些都结束了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00121-440170.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B14",
+      "target": "本课酶切产物与原质粒对照",
+      "start": 628,
+      "end": 650,
+      "status": "FULL",
+      "fact_ids": [
+        "Ff21280b391317cfd"
+      ],
+      "evidence": [
+        {
+          "id": "Edd08837787218750",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这个是15000的marker",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00135-630770.jpg"
+        },
+        {
+          "id": "E39c942eb108b2bdd",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00135-630770.jpg"
+        },
+        {
+          "id": "E831a209ad68fa6a2",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这边是5000的marker",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00136-633170.jpg"
+        },
+        {
+          "id": "E34d9205a14f3712c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00136-633170.jpg"
+        },
+        {
+          "id": "E0d083bcd2de01b12",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这个就是我",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00137-635420.jpg"
+        },
+        {
+          "id": "Eb82fe6c48977f037",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00137-635420.jpg"
+        },
+        {
+          "id": "Edcadac5dd24ffc82",
+          "source_type": "SUBTITLE_OCR",
+          "text": "大家一定要记得",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00138-637520.jpg"
+        },
+        {
+          "id": "E9544498751792e2d",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00138-637520.jpg"
+        },
+        {
+          "id": "Ed653f7961fee8ce3",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是做酶切的话一定是要做原管质粒的对照的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00139-639320.jpg"
+        },
+        {
+          "id": "E295bb3ffd27a22fd",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶市山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00139-639320.jpg"
+        },
+        {
+          "id": "Eee9e0c64266a1ddd",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是做酶切的话一定是要做原管质粒的对照的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00140-641320.jpg"
+        },
+        {
+          "id": "E9a0a19f4c3f13396",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00140-641320.jpg"
+        },
+        {
+          "id": "E801959dcdd4850c9",
+          "source_type": "SUBTITLE_OCR",
+          "text": "可以看到我这原管质粒是有两条带",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00141-643770.jpg"
+        },
+        {
+          "id": "E676ab80aacd4841e",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶I",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00141-643770.jpg"
+        },
+        {
+          "id": "E108fe424e5db4dff",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这条弱一点的可能就是开环",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00142-646270.jpg"
+        },
+        {
+          "id": "Ee2e70f21727f266c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶I\n正",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00142-646270.jpg"
+        },
+        {
+          "id": "E565de006c29845e1",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这条弱一点的可能就是开环",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00143-648270.jpg"
+        },
+        {
+          "id": "E16d589a6b79c47b5",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00143-648270.jpg"
+        },
+        {
+          "id": "E2c4aa85ac48ee9d2",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这个是我双酶切之后的质粒",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00144-650770.jpg"
+        },
+        {
+          "id": "E3ee08f79c6c103a4",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00144-650770.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B15",
+      "target": "未切质粒不同构象影响条带的讲者解释",
+      "start": 643,
+      "end": 650,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E108fe424e5db4dff",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这条弱一点的可能就是开环",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00142-646270.jpg"
+        },
+        {
+          "id": "Ee2e70f21727f266c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶I\n正",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00142-646270.jpg"
+        },
+        {
+          "id": "E565de006c29845e1",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这条弱一点的可能就是开环",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00143-648270.jpg"
+        },
+        {
+          "id": "E16d589a6b79c47b5",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00143-648270.jpg"
+        },
+        {
+          "id": "E2c4aa85ac48ee9d2",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这个是我双酶切之后的质粒",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00144-650770.jpg"
+        },
+        {
+          "id": "E3ee08f79c6c103a4",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00144-650770.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B16",
+      "target": "UV长时间照射可能损伤DNA",
+      "start": 704,
+      "end": 712,
+      "status": "FULL",
+      "fact_ids": [
+        "F72d44c8b636abdb1"
+      ],
+      "evidence": [
+        {
+          "id": "E36919f867956f4cc",
+          "source_type": "SUBTITLE_OCR",
+          "text": "而且我切呢其实有两种方法",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00169-704500.jpg"
+        },
+        {
+          "id": "Ef19676936e9aab6d",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "100",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00169-704500.jpg"
+        },
+        {
+          "id": "E7034fd85d9230fc7",
+          "source_type": "SUBTITLE_OCR",
+          "text": "而且我切呢其实有两种方法 Near",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00170-706000.jpg"
+        },
+        {
+          "id": "E9d7a335d35319b54",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "\nGel Image System\nPower\nZeem\nIn\nOut",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00170-706000.jpg"
+        },
+        {
+          "id": "E2470ed3f5e75c2eb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "Power 现在UV是关掉了的啊",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00171-708000.jpg"
+        },
+        {
+          "id": "E444706cbc53d6b09",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "GelImageSystem",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00171-708000.jpg"
+        },
+        {
+          "id": "E18cee0d1d15ceff7",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为UV照久了对我们的DNA可能是有损伤的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00172-709750.jpg"
+        },
+        {
+          "id": "E00b0adff92804518",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bilibii\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00172-709750.jpg"
+        },
+        {
+          "id": "E0971d196042a0e4a",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为UV照久了对我们的DNA可能是有损伤的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00173-711750.jpg"
+        },
+        {
+          "id": "E7d3120665a97d88b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶Li",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00173-711750.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B17",
+      "target": "本次切胶避开疑似背景区域",
+      "start": 672,
+      "end": 703,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E17fa10f607967c27",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但我发现好像没有鉴定胶跑得好看",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00156-676400.jpg"
+        },
+        {
+          "id": "Ef44c140dacf6cb4f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "胡蝶\n只",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00156-676400.jpg"
+        },
+        {
+          "id": "E29706cb6e92044ed",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "模式\n10\n1301024\n二",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00157-677960.jpg"
+        },
+        {
+          "id": "E72aefd72d618a306",
+          "source_type": "SUBTITLE_OCR",
+          "text": "而且这个地方不好说吼",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00158-680880.jpg"
+        },
+        {
+          "id": "E6ddd2706fba2e396",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bilbili\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00158-680880.jpg"
+        },
+        {
+          "id": "Eea5f4073913ddd22",
+          "source_type": "SUBTITLE_OCR",
+          "text": "有可能是他的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00159-684250.jpg"
+        },
+        {
+          "id": "E23e76f6cbc00a639",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "biibili\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00159-684250.jpg"
+        },
+        {
+          "id": "Ec33eb1decd345c3d",
+          "source_type": "SUBTITLE_OCR",
+          "text": "有一点就是它有一点背景",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00160-686500.jpg"
+        },
+        {
+          "id": "E1546e5a525dddc68",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bibili\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00160-686500.jpg"
+        },
+        {
+          "id": "E18324ef0699b811f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是这种情况呢你就可以大概再跑久一点",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00161-688000.jpg"
+        },
+        {
+          "id": "Eb9e13d8b3a394418",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00161-688000.jpg"
+        },
+        {
+          "id": "E7a62d48a9285aec3",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是这种情况呢你就可以大概再跑久一点",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00162-689500.jpg"
+        },
+        {
+          "id": "E1c36a9f55d1195e6",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "DL",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00162-689500.jpg"
+        },
+        {
+          "id": "E542d0366857684eb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "或者切的时候就切不要这么靠下",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00163-691500.jpg"
+        },
+        {
+          "id": "E776bbb55dae3e85e",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "通常横式\n10\n1280:1024",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00163-691500.jpg"
+        },
+        {
+          "id": "E93eeeb1425f4683a",
+          "source_type": "SUBTITLE_OCR",
+          "text": "或者切的时候就切不要这么靠下",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00164-693500.jpg"
+        },
+        {
+          "id": "Ee452907b8c813caa",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "通常模式\n灵敏\n1280x1024\n度",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00164-693500.jpg"
+        },
+        {
+          "id": "E458961672bace457",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我呢就再跑一会儿吧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00165-696250.jpg"
+        },
+        {
+          "id": "Edb3b6d0ee21d16b2",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bilbil\n蝴蝶\nCCP",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00165-696250.jpg"
+        },
+        {
+          "id": "E5764016ff0fa8884",
+          "source_type": "SUBTITLE_OCR",
+          "text": "（已经再跑了一会） 嗯我就这么切吧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00166-699000.jpg"
+        },
+        {
+          "id": "Eaf6259945468a185",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00166-699000.jpg"
+        },
+        {
+          "id": "E47f660ba7bdbffcd",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是我可能会不要最下面的这么一点点",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00167-701000.jpg"
+        },
+        {
+          "id": "Ef08262299e1e7f8e",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bilibii\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00167-701000.jpg"
+        },
+        {
+          "id": "Ed6f6f91262b05c21",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是我可能会不要最下面的这么一点点",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00168-703000.jpg"
+        },
+        {
+          "id": "E897c2530ebd174ac",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bilbii\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00168-703000.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B18",
+      "target": "点样间隔和外侧位置用于避免误切",
+      "start": 746,
+      "end": 766,
+      "status": "FULL",
+      "fact_ids": [
+        "F94bc7ace5f6cd9fb"
+      ],
+      "evidence": [
+        {
+          "id": "E90c8fb552717c4e2",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后这里其实还有一个小技巧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00185-746920.jpg"
+        },
+        {
+          "id": "E2c1609366a40d488",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00185-746920.jpg"
+        },
+        {
+          "id": "E781a21a03dcc0b8a",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是你的切的载体要和你原载体最好是空一列",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00186-749400.jpg"
+        },
+        {
+          "id": "E7759ae8e7f84ead8",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00186-749400.jpg"
+        },
+        {
+          "id": "E2aa8590e1e3b0683",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是你的切的载体要和你原载体最好是空一列",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00187-752320.jpg"
+        },
+        {
+          "id": "E432d91bf6e1dd700",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00187-752320.jpg"
+        },
+        {
+          "id": "Ee346fb1f10770645",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这样子切的时候你就不会可能误切到它",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00188-755520.jpg"
+        },
+        {
+          "id": "E8fa289aecc5978df",
+          "source_type": "SUBTITLE_OCR",
+          "text": "以及你可以把你要切的部分放到最外面一格",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00189-758380.jpg"
+        },
+        {
+          "id": "E07dc6f6d0f7687ce",
+          "source_type": "SUBTITLE_OCR",
+          "text": "以及你可以把你要切的部分放到最外面一格",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00190-760740.jpg"
+        },
+        {
+          "id": "E172cff3defb4e3f2",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "Lilibili\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00190-760740.jpg"
+        },
+        {
+          "id": "E73577c31b49382d7",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这样子你就可以直接把旁边这一段全部都切下来",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00191-763940.jpg"
+        },
+        {
+          "id": "Ec74cb03879dbebe7",
+          "source_type": "SUBTITLE_OCR",
+          "text": "也方便你操作",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00192-766540.jpg"
+        },
+        {
+          "id": "E847d382f47f44d8f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00192-766540.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B19",
+      "target": "凝胶回收与反应液直接纯化是不同路径",
+      "start": 780,
+      "end": 794,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "Eb6c70e2b16e3c189",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那一般的胶回收试剂盒不管是国产还是进口 Freezethissideup",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00197-782080.jpg"
+        },
+        {
+          "id": "E19f95745b94b4989",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "端",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00197-782080.jpg"
+        },
+        {
+          "id": "E6992c9bab1c61f33",
+          "source_type": "SUBTITLE_OCR",
+          "text": "都会有两个部分吧应该叫 Freeze thisside up",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00198-785080.jpg"
+        },
+        {
+          "id": "Ea6c3c9666674163c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "端",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00198-785080.jpg"
+        },
+        {
+          "id": "E45ad364798a579c2",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后一种就是从琼脂糖凝胶的DNA回收 Freezethissdeup",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00199-787580.jpg"
+        },
+        {
+          "id": "E905d54068e2a4aa1",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "端",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00199-787580.jpg"
+        },
+        {
+          "id": "E301e58eadc98f59e",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是我刚刚切胶的这一种",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00200-790580.jpg"
+        },
+        {
+          "id": "E49b8473186d65c5f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "线",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00200-790580.jpg"
+        },
+        {
+          "id": "E729ae98b747f5fda",
+          "source_type": "SUBTITLE_OCR",
+          "text": "还有一种是直接从反应液中纯化DNA",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00201-794080.jpg"
+        },
+        {
+          "id": "Eb6ae8e26a4509ebb",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "然",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00201-794080.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B20",
+      "target": "纯化路径选择与下游重组或连接需求有关",
+      "start": 796,
+      "end": 844,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E72412af393b01aee",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那刚刚可以看到我刚刚跑胶出来 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00202-797080.jpg"
+        },
+        {
+          "id": "E09b872b6ac6a83c1",
+          "source_type": "SUBTITLE_OCR",
+          "text": "PCR的结果是很单一的条带 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00203-799080.jpg"
+        },
+        {
+          "id": "Ec97ebc83e4323cb1",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "线十",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00203-799080.jpg"
+        },
+        {
+          "id": "E28f0da389203a06a",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那我呢就没有切胶 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00204-802360.jpg"
+        },
+        {
+          "id": "Eed4e9bdba94b50f9",
+          "source_type": "SUBTITLE_OCR",
+          "text": "至于酶切 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00205-805560.jpg"
+        },
+        {
+          "id": "E38f97172fc1c31ea",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "然",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00205-805560.jpg"
+        },
+        {
+          "id": "E3997e2eb30568f65",
+          "source_type": "SUBTITLE_OCR",
+          "text": "其实我也准备了一份是直接纯化的 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00206-808560.jpg"
+        },
+        {
+          "id": "E8a81613259116203",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "然",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00206-808560.jpg"
+        },
+        {
+          "id": "E4e78d64ce7d7f18d",
+          "source_type": "SUBTITLE_OCR",
+          "text": "所以刚刚我为什么跑了一个小（孔）胶 一个大孔）胶 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00207-811920.jpg"
+        },
+        {
+          "id": "Ec102443b0a184266",
+          "source_type": "SUBTITLE_OCR",
+          "text": "其实跑一个也行 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00208-813880.jpg"
+        },
+        {
+          "id": "E002b4504d71ad6aa",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "然",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00208-813880.jpg"
+        },
+        {
+          "id": "Ea1ddf2319a62c0d7",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那大家知道胶回收这种方法呢 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00209-816760.jpg"
+        },
+        {
+          "id": "Ee41d0b427ce388e3",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "线",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00209-816760.jpg"
+        },
+        {
+          "id": "E7c77a6d6d4b4f352",
+          "source_type": "SUBTITLE_OCR",
+          "text": "其实效率会低很多 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00210-820480.jpg"
+        },
+        {
+          "id": "E803b71fbaffa4991",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "线",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00210-820480.jpg"
+        },
+        {
+          "id": "Ed8f73edda57aefec",
+          "source_type": "SUBTITLE_OCR",
+          "text": "比如说我切两微克（质粒） 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00211-823000.jpg"
+        },
+        {
+          "id": "Ee8f0be3d5e5a6a93",
+          "source_type": "SUBTITLE_OCR",
+          "text": "等一下大家可以看一下它的效率到底是多少 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00212-826000.jpg"
+        },
+        {
+          "id": "Ec39d464e7a0ae315",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为我等一下打算做这个质粒 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00213-830500.jpg"
+        },
+        {
+          "id": "E2828ee890b1f7a37",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "然",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00213-830500.jpg"
+        },
+        {
+          "id": "E55a0535091741fcb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "而不是用连接的方法 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00214-833750.jpg"
+        },
+        {
+          "id": "E44bd899954f4ad18",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "然",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00214-833750.jpg"
+        },
+        {
+          "id": "E527b6bb6407d0c1a",
+          "source_type": "SUBTITLE_OCR",
+          "text": "所以它这个反应液里面残留有切下来那个 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00215-837250.jpg"
+        },
+        {
+          "id": "Ef7e2991372e2b32a",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那个片段是对我重组是没有影响的 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00216-841250.jpg"
+        },
+        {
+          "id": "E244a55f0aafbea87",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "然",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00216-841250.jpg"
+        },
+        {
+          "id": "E99581029925e363c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "而且实际上这种直接提取方法效率一般 都比胶回收效率高 注：具体使用哪种回收方法请按实验需求选择",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00217-846750.jpg"
+        },
+        {
+          "id": "E436c8e4cc3a0fea2",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "继",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00217-846750.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B21",
+      "target": "直接纯化不需凝胶溶解环节",
+      "start": 902,
+      "end": 915,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E0de14fd04e945d08",
+          "source_type": "SUBTITLE_OCR",
+          "text": "BufferG 完全溶解",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00234-905000.jpg"
+        },
+        {
+          "id": "Efc6e8ed3c0808be8",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "胡",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00234-905000.jpg"
+        },
+        {
+          "id": "E1dac86048bb24cf6",
+          "source_type": "SUBTITLE_OCR",
+          "text": "BufferG 那我现在放水浴锅",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00235-906180.jpg"
+        },
+        {
+          "id": "Eb67cedb982c09e23",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00235-906180.jpg"
+        },
+        {
+          "id": "Ee1c0c602647f988f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "BufferG: 对于我这种纯化液直接回收的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00236-908180.jpg"
+        },
+        {
+          "id": "E1dcf106c24f4d461",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大太胡山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00236-908180.jpg"
+        },
+        {
+          "id": "E7e5d069778322c7f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "022.924 BufferG! 其实是不需要",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00237-910380.jpg"
+        },
+        {
+          "id": "Ea2acf8db5619eb1f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大太",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00237-910380.jpg"
+        },
+        {
+          "id": "Eae339a6d72188bff",
+          "source_type": "SUBTITLE_OCR",
+          "text": "BufferGo 就是其实是不需要凝胶（溶解）这个步骤",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00238-912340.jpg"
+        },
+        {
+          "id": "Ee046e6898afdb4ff",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大太胡地山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00238-912340.jpg"
+        },
+        {
+          "id": "E741ac5defc72ee97",
+          "source_type": "SUBTITLE_OCR",
+          "text": "BufferG. 那就快一点",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00239-914220.jpg"
+        },
+        {
+          "id": "E72e7dcd2edc3c9fb",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大太",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00239-914220.jpg"
+        },
+        {
+          "id": "Ecca162890a1c6da0",
+          "source_type": "SUBTITLE_OCR",
+          "text": "基本上看不到凝胶块了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00240-970480.jpg"
+        },
+        {
+          "id": "E37e23cae23b3e4f0",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大太胡",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00240-970480.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B22",
+      "target": "本次回收效率比较属于单次结果而非通则",
+      "start": 1059,
+      "end": 1118,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E20efa3bef81abae5",
+          "source_type": "SUBTITLE_OCR",
+          "text": "种是直接回收",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00243-1060220.jpg"
+        },
+        {
+          "id": "Ed6757374892957dc",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00243-1060220.jpg"
+        },
+        {
+          "id": "E839cc5179b471a7b",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后我都是用10ul去重悬的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00244-1062660.jpg"
+        },
+        {
+          "id": "Eff45c46cfd20f3bb",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00244-1062660.jpg"
+        },
+        {
+          "id": "E652cce19292f5a43",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是我胶回收的浓度是40.95ng/μl",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00245-1067140.jpg"
+        },
+        {
+          "id": "E2bab50cc2a34047b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00245-1067140.jpg"
+        },
+        {
+          "id": "Ed38896175da805fb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是我直接回收的浓度是103.20ng/ul",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00246-1073100.jpg"
+        },
+        {
+          "id": "E3440225591f79f9e",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00246-1073100.jpg"
+        },
+        {
+          "id": "E1b48b766053b597d",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后我的输入都是2μg",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00247-1078220.jpg"
+        },
+        {
+          "id": "E175b12c027b2f94b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00247-1078220.jpg"
+        },
+        {
+          "id": "E6ce497e3fdb56242",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是我那个直接回收的用了2叫去跑了一下胶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00248-1082460.jpg"
+        },
+        {
+          "id": "E4374534a04e8ef1d",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00248-1082460.jpg"
+        },
+        {
+          "id": "E91c71d3df9ffcc48",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我先算一下它的回收效率",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00249-1086300.jpg"
+        },
+        {
+          "id": "E3a64152edcbeeffa",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00249-1086300.jpg"
+        },
+        {
+          "id": "Ef2c5883984c7e9da",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00250-1091360.jpg"
+        },
+        {
+          "id": "E520c197540d5d5bb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "直接回收的效率是54.32%",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00251-1096220.jpg"
+        },
+        {
+          "id": "E93e3d8269a868909",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00251-1096220.jpg"
+        },
+        {
+          "id": "Efe5bbbb31fcd2aee",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我直接回收是比我胶回收的效率是 高了33.84%的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00252-1098320.jpg"
+        },
+        {
+          "id": "E92bbca3c1d6f576f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00252-1098320.jpg"
+        },
+        {
+          "id": "E000f4d778ebe4a5b",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我直接回收是比我胶回收的效率是 高了33.84%的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00253-1101320.jpg"
+        },
+        {
+          "id": "E1552aa4ce8b3f8a7",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00253-1101320.jpg"
+        },
+        {
+          "id": "E38c4aee8bd8ed264",
+          "source_type": "SUBTITLE_OCR",
+          "text": "所以直接回收",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00254-1105320.jpg"
+        },
+        {
+          "id": "Ed4d11328ab38eb70",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00254-1105320.jpg"
+        },
+        {
+          "id": "E020bc4736439df75",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是最终目的是要得到你的质粒",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00255-1109320.jpg"
+        },
+        {
+          "id": "E4b43b1b2e05cd57f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00255-1109320.jpg"
+        },
+        {
+          "id": "Edfa64411f4c28660",
+          "source_type": "SUBTITLE_OCR",
+          "text": "所以最后我们",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00256-1111770.jpg"
+        },
+        {
+          "id": "E0c4d16c45638dccc",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我今晚其实会把两个都做一下",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00257-1113470.jpg"
+        },
+        {
+          "id": "Ecb517d3d6cbea17b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大关",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00257-1113470.jpg"
+        },
+        {
+          "id": "E8053deed45f82727",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后看一下他们的效率怎么样",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00258-1115920.jpg"
+        },
+        {
+          "id": "Ec0fd31a6b0262665",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "大大大大天",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00258-1115920.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B23",
+      "target": "载体对照用于评估背景克隆的本课设计",
+      "start": 1190,
+      "end": 1215,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "Eff3c9a50041f2e66",
+          "source_type": "SUBTITLE_OCR",
+          "text": "产生假阳性的可能大多都是由于你的 载体没有切干净造成的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00270-1195800.jpg"
+        },
+        {
+          "id": "E1e7e6724c2fab697",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00270-1195800.jpg"
+        },
+        {
+          "id": "E77ac0b35dd6a4026",
+          "source_type": "SUBTITLE_OCR",
+          "text": "产生假阳性的可能大多都是由于你的 载体没有切干净造成的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00271-1199800.jpg"
+        },
+        {
+          "id": "E54554d5cc0e9fc5b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00271-1199800.jpg"
+        },
+        {
+          "id": "Ea8bc5d91460491f6",
+          "source_type": "SUBTITLE_OCR",
+          "text": "所以这里我会做一个载体的对照",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00272-1203300.jpg"
+        },
+        {
+          "id": "Eaae27e9b163f0ac9",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "bibi\n蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00272-1203300.jpg"
+        },
+        {
+          "id": "E9055b4983412c82f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "对照直接10叫就可以了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00273-1205800.jpg"
+        },
+        {
+          "id": "E56bdf985f07f87fc",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00273-1205800.jpg"
+        },
+        {
+          "id": "E0988907e12dd0651",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为理论上它要是能产生克隆",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00274-1208300.jpg"
+        },
+        {
+          "id": "E3f54cd3652a2955a",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00274-1208300.jpg"
+        },
+        {
+          "id": "E4106f156f72dfea2",
+          "source_type": "SUBTITLE_OCR",
+          "text": "主要是因为里面有没切干净的完整质粒",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00275-1211300.jpg"
+        },
+        {
+          "id": "E72a8dfbdb14eaa4c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00275-1211300.jpg"
+        },
+        {
+          "id": "Ec9e82d5e21c6f9bd",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后有完整质粒就相当于做快转了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00276-1213800.jpg"
+        },
+        {
+          "id": "E9b1164625be5aa11",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00276-1213800.jpg"
+        },
+        {
+          "id": "E36e8b47636b9990c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "快转10ul就够了",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00277-1215800.jpg"
+        },
+        {
+          "id": "Ed73e0949d3e7b7ed",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00277-1215800.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B24",
+      "target": "画面明确注明本例省去摇菌步骤",
+      "start": 1259,
+      "end": 1268,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E1d6a2b4c853b3c6e",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这个是LB是还没有加氨卡霉素的哦",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00285-1260120.jpg"
+        },
+        {
+          "id": "E549a1652f14652ff",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00285-1260120.jpg"
+        },
+        {
+          "id": "E8c587abfb09a3fa7",
+          "source_type": "SUBTITLE_OCR",
+          "text": "注：这里省去了摇菌的步骤 因为我们那个菌液比较少",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00286-1262620.jpg"
+        },
+        {
+          "id": "Ef484145cf085c199",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00286-1262620.jpg"
+        },
+        {
+          "id": "E39aa10b3d29bdd58",
+          "source_type": "SUBTITLE_OCR",
+          "text": "注：这里省去了摇菌的步骤 就100μl嘛比较难涂开",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00287-1265120.jpg"
+        },
+        {
+          "id": "Ed1b99a8f4962795c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00287-1265120.jpg"
+        },
+        {
+          "id": "Ec94b68b283c69df8",
+          "source_type": "SUBTITLE_OCR",
+          "text": "注：这里省去了摇菌的步骤 我们一般都会补300叫l左右",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00288-1267620.jpg"
+        },
+        {
+          "id": "Ee3a98a806bcaf9bb",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00288-1267620.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B25",
+      "target": "讲者将直接送板限定在其高成功率场景",
+      "start": 1439,
+      "end": 1456,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E2fd7a181c7ece144",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是这种情况下呢",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00325-1440390.jpg"
+        },
+        {
+          "id": "E7a82e567c88cbc45",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00325-1440390.jpg"
+        },
+        {
+          "id": "E3b4905753641c9e5",
+          "source_type": "SUBTITLE_OCR",
+          "text": "是适用于我这种成功率比较高的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00326-1442430.jpg"
+        },
+        {
+          "id": "E2153fe54879865ad",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00326-1442430.jpg"
+        },
+        {
+          "id": "E160f390773d80728",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为我基本上知道它长菌基本上都是成功的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00327-1444370.jpg"
+        },
+        {
+          "id": "E6a7829699ce88a2f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00327-1444370.jpg"
+        },
+        {
+          "id": "Ea24c859ff7d37f28",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为我基本上知道它长菌基本上都是成功的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00328-1445790.jpg"
+        },
+        {
+          "id": "Ecbab390ecc2b4205",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶击",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00328-1445790.jpg"
+        },
+        {
+          "id": "Ec0f086c8177fe337",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为我的对照没有长嘛",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00329-1447090.jpg"
+        },
+        {
+          "id": "Ed9b737f35eb37d50",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00329-1447090.jpg"
+        },
+        {
+          "id": "E7bec6e2329eb2417",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是对于一些可能你是单酶切然后做连接那种",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00330-1448970.jpg"
+        },
+        {
+          "id": "Edbc9b55b0b91d72f",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00330-1448970.jpg"
+        },
+        {
+          "id": "Ee13e41bf62954d19",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是对于一些可能你是单酶切然后做连接那种",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00331-1450810.jpg"
+        },
+        {
+          "id": "E266fdc1a6b2158b4",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00331-1450810.jpg"
+        },
+        {
+          "id": "Ecacf2f34194a365c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是对于一些可能你是单酶切然后做连接那种",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00332-1452270.jpg"
+        },
+        {
+          "id": "Ee421fa829b894fca",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00332-1452270.jpg"
+        },
+        {
+          "id": "Eca90eb39b8441aa6",
+          "source_type": "SUBTITLE_OCR",
+          "text": "它的成功率就不是很高",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00333-1453990.jpg"
+        },
+        {
+          "id": "Ed23b94da0302e988",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00333-1453990.jpg"
+        },
+        {
+          "id": "E84baf27106479b2c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "因为有很多自连的情况出现",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00334-1455950.jpg"
+        },
+        {
+          "id": "Ee1041d557ddbea72",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00334-1455950.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B26",
+      "target": "本课后续仍送测序验证",
+      "start": 1402,
+      "end": 1424,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E18dcc902188d3ba4",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后送测序",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00310-1405970.jpg"
+        },
+        {
+          "id": "E72abc43e5a2f6b40",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00310-1405970.jpg"
+        },
+        {
+          "id": "Ee81101dfac42baf8",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00311-1409470.jpg"
+        },
+        {
+          "id": "E987104639467f69c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶b",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00312-1412970.jpg"
+        },
+        {
+          "id": "Eeab3c74eae1bc0c0",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后再把提出来的质粒送去测序公司测序",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00313-1415470.jpg"
+        },
+        {
+          "id": "E7abd3fe9655edc5c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00313-1415470.jpg"
+        },
+        {
+          "id": "Ecb9acc77393169b5",
+          "source_type": "SUBTITLE_OCR",
+          "text": "但是我们这边的测序公司",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00314-1418470.jpg"
+        },
+        {
+          "id": "Ee235826e741c8259",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00314-1418470.jpg"
+        },
+        {
+          "id": "E0a9ea45408def3f4",
+          "source_type": "SUBTITLE_OCR",
+          "text": "就是你把板子送给他",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00315-1420970.jpg"
+        },
+        {
+          "id": "E12ecda4883b21623",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00315-1420970.jpg"
+        },
+        {
+          "id": "E6387de0a48e1a540",
+          "source_type": "SUBTITLE_OCR",
+          "text": "让他去摇让他去提让他去测",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00316-1422970.jpg"
+        },
+        {
+          "id": "E941c408924b2f951",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00316-1422970.jpg"
+        },
+        {
+          "id": "E4f62528604387e24",
+          "source_type": "SUBTITLE_OCR",
+          "text": "收的钱和你直接把质粒送过去是一样的",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00317-1425470.jpg"
+        },
+        {
+          "id": "E21790c0e5c6d84b4",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00317-1425470.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B27",
+      "target": "菌落PCR作为筛选且不能无条件判阴性",
+      "start": 1457,
+      "end": 1473,
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F555bccf80714bada"
+      ],
+      "evidence": [
+        {
+          "id": "Eac0d8cb072da964f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "可能你就要做菌P",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00336-1459430.jpg"
+        },
+        {
+          "id": "E4e104f2f6e75d723",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00336-1459430.jpg"
+        },
+        {
+          "id": "E67a2b6045c641888",
+          "source_type": "SUBTITLE_OCR",
+          "text": "菌P就是可能你这里长了就挑20个吧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00337-1461250.jpg"
+        },
+        {
+          "id": "E2e2d2b4b88363cb9",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00337-1461250.jpg"
+        },
+        {
+          "id": "Ebf53ae1b55b83aeb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "菌P就是可能你这里长了就挑20个吧",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00338-1462910.jpg"
+        },
+        {
+          "id": "E24e06ab30c4440bd",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00338-1462910.jpg"
+        },
+        {
+          "id": "Eb2daf3002e9680fb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后挑",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00339-1463990.jpg"
+        },
+        {
+          "id": "E3d0a50adc6934d1c",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00339-1463990.jpg"
+        },
+        {
+          "id": "E431a92db268f77db",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后用一对引物是",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00340-1465770.jpg"
+        },
+        {
+          "id": "Ed0929c491dab6e2b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00340-1465770.jpg"
+        },
+        {
+          "id": "E11bdda2a714ccf43",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这个引1物能p出来你的目的片段",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00341-1468230.jpg"
+        },
+        {
+          "id": "E3ac6616a99b73889",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00341-1468230.jpg"
+        },
+        {
+          "id": "Ee5773825842cb23f",
+          "source_type": "SUBTITLE_OCR",
+          "text": "这个引|物能p出来你的目的片段",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00342-1469790.jpg"
+        },
+        {
+          "id": "Ec80ff6d404fddc57",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00342-1469790.jpg"
+        },
+        {
+          "id": "E51b9df603098505b",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后如果没有条带或条带较短的话那就是阴性",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00343-1471050.jpg"
+        },
+        {
+          "id": "Ec84436f32d62a91b",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00343-1471050.jpg"
+        },
+        {
+          "id": "Eac2f7102fd813668",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后如果没有条带或条带较短的话那就是阴性",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00344-1472450.jpg"
+        },
+        {
+          "id": "Ef128c920e8f420da",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山i",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00344-1472450.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B28",
+      "target": "有PCR条带仍未排除点突变的课内说明",
+      "start": 1480,
+      "end": 1489,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "Ef49f28d74862025e",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后提质粒之后再送去测序",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00351-1481170.jpg"
+        },
+        {
+          "id": "E7c5deab2d86aa260",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00351-1481170.jpg"
+        },
+        {
+          "id": "E8e61aea5cb3970fb",
+          "source_type": "SUBTITLE_OCR",
+          "text": "然后提质粒之后再送去测序",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00352-1482210.jpg"
+        },
+        {
+          "id": "E70752d865cb72949",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00352-1482210.jpg"
+        },
+        {
+          "id": "E1f5fb627f1de19e9",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那种情况下",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00353-1483210.jpg"
+        },
+        {
+          "id": "E26a2b52986e226c0",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00353-1483210.jpg"
+        },
+        {
+          "id": "Eed3f2ca65f5ee9ca",
+          "source_type": "SUBTITLE_OCR",
+          "text": "只要你菌Pp出来了条带",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00354-1484070.jpg"
+        },
+        {
+          "id": "Edd006164f1faba49",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00354-1484070.jpg"
+        },
+        {
+          "id": "Ee340add7193a6b5c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "只要你菌Pp出来了条带",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00355-1485090.jpg"
+        },
+        {
+          "id": "E8663f186dbc64399",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00355-1485090.jpg"
+        },
+        {
+          "id": "E54dbd08869a3f588",
+          "source_type": "SUBTITLE_OCR",
+          "text": "基本上你那个克隆除了点突变这种情况的出现 以外",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00356-1486130.jpg"
+        },
+        {
+          "id": "Ec929ad0d9cb69d75",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00356-1486130.jpg"
+        },
+        {
+          "id": "E051a0f07fe2d00e5",
+          "source_type": "SUBTITLE_OCR",
+          "text": "基本上你那个克隆除了点突变这种情况的出现 以外",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00357-1487050.jpg"
+        },
+        {
+          "id": "Edbd8e0fff7d37eb2",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山市",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00357-1487050.jpg"
+        },
+        {
+          "id": "E0b208468903fd7cd",
+          "source_type": "SUBTITLE_OCR",
+          "text": "基本上你那个克隆除了点突变这种情况的出现 以外",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00358-1489290.jpg"
+        },
+        {
+          "id": "Ea75c9d4f630956d6",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "蝴蝶山街",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00358-1489290.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B29",
+      "target": "查看测序峰图以检查比对异常",
+      "start": 1518,
+      "end": 1528,
+      "status": "MISSING",
+      "fact_ids": [],
+      "evidence": [
+        {
+          "id": "E53141d261ed4683c",
+          "source_type": "SUBTITLE_OCR",
+          "text": "那我一共是挑了5个克隆嘛",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00366-1521540.jpg"
+        },
+        {
+          "id": "E63a5b38d938b3895",
+          "source_type": "SUBTITLE_OCR",
+          "text": "我们首先会注意到",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00367-1523140.jpg"
+        },
+        {
+          "id": "E974711e16c558070",
+          "source_type": "SUBTITLE_OCR",
+          "text": "谈这里好像有个突变对不对",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00368-1524640.jpg"
+        },
+        {
+          "id": "Eae9a653a08c03fc8",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "我们可以点击测序峰图看看具体情况",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00369-1526440.jpg"
+        },
+        {
+          "id": "E78fc7903b545d956",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "我们可以点击测序峰图看看具体情况",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00370-1527940.jpg"
+        }
+      ]
+    },
+    {
+      "id": "B30",
+      "target": "画面中的混合碱基及质粒可能不纯的谨慎判断",
+      "start": 1528,
+      "end": 1535,
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F265a44d928783bab"
+      ],
+      "evidence": [
+        {
+          "id": "E3cb2bf49a7f23e99",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "发现这个位置存在两种不同的碱基",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00371-1530040.jpg"
+        },
+        {
+          "id": "E1420ff8f7ddec5de",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "而别的克隆就没有这种情况",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00372-1532640.jpg"
+        },
+        {
+          "id": "Ea4b7416376b67b97",
+          "source_type": "UNKNOWN_VISUAL_OCR",
+          "text": "也就是说这个质粒可能不纯",
+          "frame_path": "C:\\Users\\a1440\\Desktop\\Study companion\\data\\visual-review\\4b1fd9f3-c998-4f65-9ee5-4db7bf90f7d9-c5fe385c-2981-4bfd-baee-fb57beda8ad9\\frames\\00373-1534840.jpg"
+        }
+      ]
+    }
+  ],
+  "fact_reviews": [
+    {
+      "fact_id": "F4ac87a8e264ae2d8",
+      "statement": "酶应在最后加入反应体系。",
+      "layer": "CONTEXT",
+      "status": "SUPPORTED_CONTEXT",
+      "review_note": "字幕支持本课做法；不得外推所有酶和反应。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "Ea8802fb34fbc7a83",
+          "quote": "然后我们都是最后才加酶"
+        }
+      ]
+    },
+    {
+      "fact_id": "F9471885eb2130f10",
+      "statement": "官方声称该酶可5秒延伸1kb，实际操作中常按10秒/1kb计算。",
+      "layer": "CONTEXT",
+      "status": "SUPPORTED_CONTEXT",
+      "review_note": "忠实保留厂家声称/讲者习惯，但parameters仅有10，遗漏另一个5；非现行厂家规范认证。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E4f7216ec9a367b0b",
+          "quote": "按照它官方的说法是说它可以5秒p1kb"
+        },
+        {
+          "evidence_id": "Eff9af4d054b9cc65",
+          "quote": "就10秒/1kb来算吧"
+        }
+      ]
+    },
+    {
+      "fact_id": "Fd5f44ed18fce7405",
+      "statement": "合成好的引物通常为干粉形式，需离心后加水配制成10uM浓度。",
+      "layer": "UNRESOLVED",
+      "status": "PARTIAL_AND_PENDING",
+      "review_note": "遗漏同段已配好溶液的例外；浓度建议只能作为本例；审计另混淆溶液与反应终浓度。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E3fa7e7f8925ecf61",
+          "quote": "那合成好的引物一般都是干粉的形式"
+        },
+        {
+          "evidence_id": "Ee1c937491197fd8f",
+          "quote": "然后把它配成10uM的浓度"
+        }
+      ]
+    },
+    {
+      "fact_id": "Fc0acd5f4e4b70931",
+      "statement": "PCR退火温度主要根据引物序列计算确定。",
+      "layer": "CORE",
+      "status": "SUPPORTED_CORE",
+      "review_note": "字幕直接支持；官方PCR资料也支持按引物Tm确定，但不意味只由序列决定。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "Eb2cc320fa1614c88",
+          "quote": "这个退火温度主要就是根据你的引物来算的"
+        }
+      ]
+    },
+    {
+      "fact_id": "F392560ca955251bb",
+      "statement": "琼脂糖凝胶通常需要二三十分钟凝固。",
+      "layer": "CONTEXT",
+      "status": "OVERGENERALIZED",
+      "review_note": "原片为本次等候估计，生成句加入通常；单次标签没能约束句内量词。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E5d2874f85d71c229",
+          "quote": "二三十分钟吧"
+        }
+      ]
+    },
+    {
+      "fact_id": "F4c3a1e64785d67bf",
+      "statement": "本次实验的PCR产物长度约为700bp多一点。",
+      "layer": "CONTEXT",
+      "status": "SUPPORTED_CONTEXT",
+      "review_note": "本次长度近似值，其他时间字幕补充bp单位；局部引文700未独立给单位。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E3c5699319fdfbebf",
+          "quote": "我的PCR产物大概就是在7OO多一点"
+        }
+      ]
+    },
+    {
+      "fact_id": "Ff21280b391317cfd",
+      "statement": "进行质粒酶切时，必须设置原管质粒作为对照。",
+      "layer": "CONTEXT",
+      "status": "SUPPORTED_CONTEXT",
+      "review_note": "画面确认原管字样确为字幕；本课要求，不证明对所有实验都是必须。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "Ed653f7961fee8ce3",
+          "quote": "就是做酶切的话一定是要做原管质粒的对照的"
+        }
+      ]
+    },
+    {
+      "fact_id": "F72d44c8b636abdb1",
+      "statement": "长时间紫外照射可能会损伤DNA。",
+      "layer": "CORE",
+      "status": "SUPPORTED_CORE",
+      "review_note": "字幕支持且Addgene资料支持UV损伤DNA。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E18cee0d1d15ceff7",
+          "quote": "因为UV照久了对我们的DNA可能是有损伤的"
+        }
+      ]
+    },
+    {
+      "fact_id": "F94bc7ace5f6cd9fb",
+      "statement": "切胶回收时，待切载体最好与原载体空一列，或将待切部分放在最外侧一格，以避免误切。",
+      "layer": "CONTEXT",
+      "status": "SUPPORTED_CONTEXT",
+      "review_note": "相邻字幕说明间隔防误切，属于有场景的技巧。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E781a21a03dcc0b8a",
+          "quote": "就是你的切的载体要和你原载体最好是空一列"
+        },
+        {
+          "evidence_id": "E8fa289aecc5978df",
+          "quote": "以及你可以把你要切的部分放到最外面一格"
+        }
+      ]
+    },
+    {
+      "fact_id": "Ff87559ae49b808a3",
+      "statement": "转化实验中产生假阳性克隆，大多是由于载体未切干净，残留完整质粒所致。",
+      "layer": "UNRESOLVED",
+      "status": "PENDING_APPROPRIATE",
+      "review_note": "原片包含大多这一讲者判断；缺少普遍统计支持，不能进入核心。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "Eff3c9a50041f2e66",
+          "quote": "产生假阳性的可能大多都是由于你的 载体没有切干净造成的"
+        }
+      ]
+    },
+    {
+      "fact_id": "F555bccf80714bada",
+      "statement": "若菌落PCR无条带或条带较短，则判定为阴性克隆。",
+      "layer": "UNRESOLVED",
+      "status": "PENDING_APPROPRIATE",
+      "review_note": "原片确如此说；无产物也可能是反应问题，不能视作无条件阴性判据。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E51b9df603098505b",
+          "quote": "然后如果没有条带或条带较短的话那就是阴性"
+        }
+      ]
+    },
+    {
+      "fact_id": "F265a44d928783bab",
+      "statement": "若同一位置存在两种不同的碱基，则该质粒可能不纯。",
+      "layer": "UNRESOLVED",
+      "status": "RECOVERABLE_VISUAL_EVIDENCE",
+      "review_note": "最终卡留待核对；同时间原图和UNKNOWN OCR有清晰碱基/可能不纯字幕，未进入审计引用。",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E286cd115fee310cd",
+          "quote": "我发现这个位置存在两种不同的剪辑"
+        },
+        {
+          "evidence_id": "E489aad846ddd2160",
+          "quote": "也就是说这个质力可能不存"
+        }
+      ]
+    }
+  ]
+}

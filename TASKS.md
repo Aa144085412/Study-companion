@@ -8,6 +8,11 @@
 - status: done · owner: Codex · files: src/evidence_cleaner/*, src/note_synthesizer/*, src/attribution_auditor/*, src/note_renderer/*, src/quiz_engine/*, src/pipeline/*, src/schemas/*, server.mjs, public/*, scripts/*, tests/*, docs/*, CONTEXT.md, TASKS.md
 - 验收：契约与跨领域回归、真实课程重跑、三层笔记/归因报告/盲测题对比；不把模型一致性称作科学认证。
 
+## T42 · 当前笔记准确性首轮评估
+- status: done · owner: Codex · files: evaluation/2026-10-21/*, scripts/evaluate_notes.py, docs/笔记准确性首轮评估.md, CONTEXT.md, TASKS.md
+- 范围：冻结现有产物；逐卡核对、30项探索性覆盖清单、8帧直接视读和有限官方来源核验。非人工金标准，不修改生产笔记或提示词。
+- 结果：完整7/30、部分4/30、缺失19/30；16/16引文逐字匹配，2/2题符合核心白名单。发现字幕角色误分导致证据丢失、审计浓度角色混淆、单次数据措辞泛化、结构参数漏存。报告与复算脚本已保存。
+
 ## T41 · 五阶段管线质量覆盖扩展
 - status: open · owner: 未分配
 - 扩展真实跨领域课程回归；全课画面语义分类和布局提取；有证据的仪器读数语义对齐；外部标准核验；Map知识点覆盖率；不同模型验证器。T40仅完成可运行首版与现有课程验证，未达到这些完整产品目标。
