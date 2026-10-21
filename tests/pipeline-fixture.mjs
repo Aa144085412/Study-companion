@@ -7,6 +7,7 @@ export function stageResult(stage,input){
  if((stage==='attribution_audit'||stage==='parameter_audit'))return {audits:input.facts.map(f=>({fact_id:f.id,attribution:'NONE',supported:true,generalizable:true,rationale:'原文支持概念',proposed_correction:'',standard_boundary:'',external_reference_ids:[],decision:'ACCEPT',certainty:'MODEL_REVIEW'}))};
  if(stage==='scope_check')return {checks:input.claims.map(c=>({fact_id:c.fact_id,generalizable:true,counterexample:'',rationale:'无缺失前提'}))};
  if(stage==='quiz_generate')return {questions:Array.from({length:5},(_,i)=>({content:'为什么需要检查'+i+'？',topic:'判断依据',dimension:'WHY',options:'ABCD'.split('').map(id=>({id,text:'选项'+id})),correct_answer:'B',explanation:'B符合事实，其他不符合',fact_ids:[input.facts[0].id]}))};
+ if(stage==='answer_grounding')return {answer_text:input.answer_text,supported:true,conditions_preserved:true,unsupported_claims:[],supports:[{fact_id:input.facts[0].id,quote:input.facts[0].statement}],rationale:'完整引用支持'};
  if(stage==='blind_solver')return {answers:['B'],unique:true,sufficient_conditions:true,non_overlapping:true,pedagogical_value:true,option_judgments:'ABCD'.split('').map(id=>({id,valid:id==='B',reason:'独立检查'+id})),rationale:'仅根据题干判定'};
  throw Error('unknown stage '+stage);
 }

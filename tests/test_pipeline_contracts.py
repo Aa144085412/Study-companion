@@ -24,5 +24,5 @@ class PipelineContracts(unittest.TestCase):
         self.assertEqual(FactParameter(name='电压',value='12',unit='V').quantity_role,'UNSPECIFIED')
     def test_blind_disagreement_never_validates(self):
         with self.assertRaises(ValidationError):
-            VerifiedQuizItem(id='Q1',content='问题',topic='概念',dimension='WHY',options=[{'id':x,'text':x} for x in 'ABCD'],correct_answer='A',explanation='解析',fact_ids=['F1'],pipeline_id='P1',blind_verification={'answers':['B'],'unique':True,'sufficient_conditions':True,'non_overlapping':True,'option_judgments':[{'id':x,'valid':x=='B','reason':'理由'} for x in 'ABCD'],'rationale':'独立理由'})
+            VerifiedQuizItem(id='Q1',content='问题',topic='概念',dimension='WHY',options=[{'id':x,'text':x} for x in 'ABCD'],correct_answer='A',explanation='解析',fact_ids=['F1'],pipeline_id='P1',answer_grounding={'answer_text':'A','supported':True,'conditions_preserved':True,'unsupported_claims':[],'supports':[{'fact_id':'F1','quote':'有效引用'}],'rationale':'来源支持'},blind_verification={'answers':['B'],'unique':True,'sufficient_conditions':True,'non_overlapping':True,'option_judgments':[{'id':x,'valid':x=='B','reason':'理由'} for x in 'ABCD'],'rationale':'独立理由'})
 if __name__=='__main__': unittest.main()

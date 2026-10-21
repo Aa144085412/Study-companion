@@ -110,6 +110,18 @@ class BlindSolverResult(Contract):
     option_judgments: list[OptionJudgment] = Field(min_length=4, max_length=4)
     rationale: str = Field(min_length=1)
 
+class GroundingSupport(Contract):
+    fact_id: str
+    quote: str = Field(min_length=4)
+
+class AnswerGrounding(Contract):
+    answer_text: str
+    supported: Literal[True]
+    conditions_preserved: Literal[True]
+    unsupported_claims: list[str] = Field(max_length=0)
+    supports: list[GroundingSupport] = Field(min_length=1)
+    rationale: str = Field(min_length=1)
+
 class VerifiedQuizItem(Contract):
     id: str
     content: str
@@ -119,12 +131,15 @@ class VerifiedQuizItem(Contract):
     correct_answer: Literal['A','B','C','D']
     explanation: str
     fact_ids: list[str] = Field(min_length=1)
+    answer_grounding: AnswerGrounding
     blind_verification: BlindSolverResult
     verification_status: Literal['BLIND_MODEL_AGREEMENT'] = 'BLIND_MODEL_AGREEMENT'
     pipeline_id: str
     @model_validator(mode='after')
     def gate(self):
         b=self.blind_verification
+        if self.answer_grounding.answer_text != next((o.text for o in self.options if o.id == self.correct_answer), None) or any(s.fact_id not in self.fact_ids for s in self.answer_grounding.supports):
+            raise ValueError('answer grounding must match the answer and cited facts')
         if {o.id for o in self.options} != set('ABCD') or len({o.text for o in self.options})!=4:
             raise ValueError('four distinct options required')
         if not (b.unique and b.sufficient_conditions and b.non_overlapping and b.answers==[self.correct_answer]):

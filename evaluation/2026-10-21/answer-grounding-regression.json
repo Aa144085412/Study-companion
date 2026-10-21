@@ -1,0 +1,20 @@
+{
+  "question_id": "ecf8155f-16ab-4bea-b3df-cd8ef6b3b383",
+  "previous_blind_pass": true,
+  "grounding": {
+    "answer_text": "载体未完全线性化，残留的完整质粒发生了快速自连转化",
+    "supported": false,
+    "conditions_preserved": true,
+    "unsupported_claims": [
+      "发生了快速自连转化"
+    ],
+    "supports": [
+      {
+        "fact_id": "F35a27757b7c66b0d",
+        "quote": "如果载体对照产生克隆，主要是因为里面有没切干净的完整质粒，相当于做了快速转化"
+      }
+    ],
+    "rationale": "事实仅支持“没切干净的完整质粒”导致“快速转化”，未明确提及“自连”这一具体机制。选项中的“自连转化”引入了事实中未支持的细节，且“快速自连”与事实中的“快速转化”在机制描述上不完全等同（完整质粒无需自连即可转化，除非指环状化过程，但事实未明示）。因此，选项包含未被核心事实直接支持的机制断言。"
+  },
+  "accepted": false
+}

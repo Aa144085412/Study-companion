@@ -14,8 +14,15 @@
 - 结果：完整7/30、部分4/30、缺失19/30；16/16引文逐字匹配，2/2题符合核心白名单。发现字幕角色误分导致证据丢失、审计浓度角色混淆、单次数据措辞泛化、结构参数漏存。报告与复算脚本已保存。
 
 ## T43 · 修复首轮评估发现的证据、参数与覆盖缺陷
-- status: doing · owner: Codex · files: src/evidence_cleaner/*, src/note_synthesizer/*, src/attribution_auditor/*, src/pipeline/*, src/schemas/pipeline.py, src/note_renderer/*, tests/*, public/app.js, docs/*, evaluation/2026-10-21/*, CONTEXT.md, TASKS.md
+- status: done · owner: Codex · files: src/evidence_cleaner/*, src/note_synthesizer/*, src/attribution_auditor/*, src/pipeline/*, src/schemas/pipeline.py, src/note_renderer/*, tests/*, public/app.js, docs/*, evaluation/2026-10-21/*, CONTEXT.md, TASKS.md
 - 保留冻结基线，新增修复后对比；不按课程术语硬编码。
+
+- 本轮验收：完整覆盖7→19/30，11项部分覆盖已转T44；118/118引文匹配。新增答案来源门禁拦截真实盲测误通过题，最终2题通过/3题拒绝，未代答。报告见docs/笔记质量修复回归.md；不代表剩余语义缺陷全部解决。
+
+## T44 · 修复复测暴露的剩余语义与质量缺陷
+- status: open · owner: 未分配
+- 依据：docs/笔记质量修复回归.md，11项部分覆盖。优先修复对象/步骤绑定、百分比差值与相对量、原因错误拼接、独立审计错误否决；保留领域无关实现，不按本课术语硬编码。
+- 扩展题目证据门禁真实跨领域回归；同模型盲解和来源核对仍可能共同出错，不能称科学认证。
 
 ## T41 · 五阶段管线质量覆盖扩展
 - status: open · owner: 未分配

@@ -3,7 +3,7 @@ import {noiseScore,ingestEvidence,cleanEvidence,selectVisualCandidates} from '..
 import {validateFacts,detectConflicts,deduplicate,mergeEquivalent,synthesize,reconcileClusters} from '../src/note_synthesizer/index.mjs';
 import {assignLayer,auditFacts,enforceAttribution,auditEvidence,completeAudits} from '../src/attribution_auditor/index.mjs';
 import {renderNote} from '../src/note_renderer/index.mjs';
-import {blindPayload,blindPass,generateVerifiedQuiz} from '../src/quiz_engine/index.mjs';
+import {blindPayload,blindPass,generateVerifiedQuiz,groundingPass} from '../src/quiz_engine/index.mjs';
 import {quizEligible} from '../src/pipeline/common.mjs';
 const fact=(extra={})=>({id:'F1',topic:'设置',step:'启动',entity:'服务',property:'超时',statement:'该演示超时为10秒',parameters:[{name:'timeout',value:'10',unit:'s'}],conditions:['本机'],knowledge_type:'CONDITIONAL_PRACTICE',evidence_quotes:[{evidence_id:'E1',quote:'超时设置为10秒'}],flags:[],verification:'UNREVIEWED',layer:'UNRESOLVED',...extra});
 const ev=(extra={})=>({id:'E1',source_id:'s',segment_id:'seg',media_id:'m',title:'软件课程',start_time:0,end_time:2,source_type:'SUBTITLE_OCR',raw_text:'超时设置为10秒',text:'超时设置为10秒',confidence:.95,flags:[],classification_method:'metadata',aligned_evidence_ids:[],frame_path:null,noise:false,...extra});
@@ -50,7 +50,7 @@ test('blind solver sees neither key, explanation, facts nor transcripts and reje
 test('renderer separates single demonstration values and unresolved conflict from core',()=>{
  const facts=[fact({knowledge_type:'SINGLE_RUN_METRIC',flags:['SINGLE_RUN_METRIC'],layer:'CONTEXT'}),fact({id:'F2',statement:'乱码不能直接放正文',layer:'UNRESOLVED'})];
  const result=renderNote({title:'物理课',facts,clusters:[{title:'测量',fact_ids:['F1','F2']}],audits:[{fact_id:'F2',attribution:'ASR_OCR_DISTORTION',rationale:'单位存在识别冲突'}],conflicts:[],evidence:[ev()],glossary:[]});
- assert.match(result.markdown,/单次示例数据/);assert.match(result.markdown,/单位存在识别冲突/);assert.ok(!result.markdown.includes('乱码不能直接放正文'));
+ assert.match(result.markdown,/单次示例数据/);assert.match(result.markdown,/疑似语音\/画面识别误差/);assert.ok(!result.markdown.includes('乱码不能直接放正文'));
 });
 
 test('semantic Reduce merges paraphrases but cannot erase conditions or conflicts',()=>{
@@ -137,4 +137,37 @@ test('missing or duplicate audits remain unresolved and cannot enter quiz bank',
  assert.equal(quizEligible(assignLayer(cards[1],output[1])),false);
  assert.equal(completeAudits({audits:[good,good]},cards)[0].supported,false);
  assert.equal(completeAudits({},cards).length,2);
+});
+
+test('renderer does not promote audit speculation or raw ASR noise into notes',()=>{
+ const a=fact({layer:'UNRESOLVED'}),b=fact({id:'F2',layer:'CONTEXT',knowledge_type:'SINGLE_RUN_METRIC',statement:'Snapdragon纸律乱码'});
+ const output=renderNote({title:'课程',facts:[a,b],clusters:[{title:'主题',fact_ids:['F1','F2']}],audits:[{fact_id:'F1',attribution:'NONE',rationale:'虚构的学科标准',proposed_correction:'未经证实的纠正'}],conflicts:[],evidence:[ev({source_type:'ASR_TRANSCRIPT'})],glossary:[]});
+ assert.ok(!output.markdown.includes('虚构的学科标准'));assert.ok(!output.markdown.includes('未经证实的纠正'));assert.ok(!output.markdown.includes('Snapdragon'));
+ assert.match(output.markdown,/仅引用语音转写/);
+});
+
+test('mixed single-run evidence renders visual quote without importing ASR entity errors',()=>{
+ const f=fact({layer:'CONTEXT',parameters:[],knowledge_type:'SINGLE_RUN_METRIC',entity:'wrong-ASR-name',statement:'wrong-ASR-name and action',evidence_quotes:[{evidence_id:'E1',quote:'wrong-ASR-name'},{evidence_id:'E2',quote:'点击序列比对'}]});
+ const result=renderNote({title:'课程',facts:[f],clusters:[{title:'分析',fact_ids:[f.id]}],audits:[],conflicts:[],evidence:[ev({source_type:'ASR_TRANSCRIPT'}),ev({id:'E2'})],glossary:[]});
+ assert.ok(!result.markdown.includes('wrong-ASR-name'));assert.match(result.markdown,/点击序列比对/);
+});
+
+test('answer grounding rejects invented mechanism even when blind solver agrees',()=>{
+ const core=[fact({statement:'校验输入可以发现格式错误'})],q={correct_answer:'A',options:[{id:'A',text:'校验会自动修复硬件'}],fact_ids:['F1']};
+ const result={answer_text:q.options[0].text,supported:false,conditions_preserved:true,unsupported_claims:['自动修复没有依据'],supports:[{fact_id:'F1',quote:core[0].statement}],rationale:'发现不等于修复'};
+ assert.equal(groundingPass(q,result,core),false);
+ assert.equal(groundingPass(q,{...result,supported:true,unsupported_claims:[],supports:[{fact_id:'F1',quote:'虚构的引用原句'}]},core),false);
+ assert.ok(groundingPass(q,{...result,supported:true,unsupported_claims:[]},core));
+});
+
+test('quiz pipeline refuses a blind-approved answer when its mechanism lacks source support',async()=>{
+ const q={content:'为什么需要校验？',topic:'校验',dimension:'WHY',options:'ABCD'.split('').map(id=>({id,text:'选项'+id})),correct_answer:'B',explanation:'添加了未支持的机制',fact_ids:['F1']};
+ const core=fact({knowledge_type:'GENERAL_PRINCIPLE',layer:'CORE',verification:'MODEL_REVIEWED',parameters:[]});
+ const calls=[];
+ const result=await generateVerifiedQuiz({schema_version:'2.0',pipeline_id:'P1',domain:'软件',facts:[core]},{call:async(stage)=>{
+  calls.push(stage);if(stage==='quiz_generate')return {questions:[q]};
+  if(stage==='blind_solver')return {answers:['B'],unique:true,sufficient_conditions:true,non_overlapping:true,pedagogical_value:true,option_judgments:'ABCD'.split('').map(id=>({id,valid:id==='B',reason:'独立判断'})),rationale:'盲解同意'};
+  return {supported:false,unsupported_claims:['没有事实支持机制']};
+ }});
+ assert.deepEqual(calls,['quiz_generate','blind_solver','answer_grounding']);assert.equal(result.questions.length,0);assert.equal(result.rejections[0].reason,'ANSWER_NOT_GROUNDED');
 });

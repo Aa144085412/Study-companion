@@ -1,0 +1,272 @@
+{
+  "pipeline_id": "Pe5aacc8ee24291a69111",
+  "artifact_sha256": "ea85a2be6705b97ddbdb8385d8f094e6231d183175046f0106938a9496113b1e",
+  "reviewer": "Codex exploratory review of final rendered notes; no new full audio listening; not human expert gold standard",
+  "ratings": [
+    {
+      "id": "B01",
+      "status": "FULL",
+      "fact_ids": [
+        "F9d2c720144790339"
+      ],
+      "reason": "正文保留融化与均匀性的关系。"
+    },
+    {
+      "id": "B02",
+      "status": "FULL",
+      "fact_ids": [
+        "F0097928295b72350"
+      ],
+      "reason": "作为本课做法保留最后加酶。"
+    },
+    {
+      "id": "B03",
+      "status": "FULL",
+      "fact_ids": [
+        "Fb3dad3430588436a"
+      ],
+      "reason": "明确本课选用2x mix及原因。"
+    },
+    {
+      "id": "B04",
+      "status": "FULL",
+      "fact_ids": [
+        "F3a89f95d181aa6c5"
+      ],
+      "reason": "同一条情境记录区分厂家5与讲者10，结构参数同时保留两值。"
+    },
+    {
+      "id": "B05",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F0fad434efa6f1626"
+      ],
+      "reason": "转为待核对，但后期纠正与无精确统计未形成完整正文解释。"
+    },
+    {
+      "id": "B06",
+      "status": "FULL",
+      "fact_ids": [
+        "Fbd036eeb6dd0ae8b"
+      ],
+      "reason": "本课条件下等比例缩小体系已恢复。"
+    },
+    {
+      "id": "B07",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F156cf7a9c5e53b4d"
+      ],
+      "reason": "事实被独立审查降级；审计理由混淆同源臂用途与表达，正文仅留待核对提示。"
+    },
+    {
+      "id": "B08",
+      "status": "FULL",
+      "fact_ids": [
+        "F289e634f7e1871a6",
+        "F018233392ecc4eb3"
+      ],
+      "reason": "RNA反转录与本次CDS扩增两部分均显示。"
+    },
+    {
+      "id": "B09",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F19598f02b73899ca"
+      ],
+      "reason": "有载体间转移记录，但扩增环节仍用未解释的p表达。"
+    },
+    {
+      "id": "B10",
+      "status": "FULL",
+      "fact_ids": [
+        "F6747780a04233f8a",
+        "F81127597f435601b",
+        "F59c5573eed83db47"
+      ],
+      "reason": "同时呈现干粉复溶与已配好溶液。"
+    },
+    {
+      "id": "B11",
+      "status": "FULL",
+      "fact_ids": [
+        "Fe4005fe97103fea0"
+      ],
+      "reason": "引物决定退火温度的依据保留。"
+    },
+    {
+      "id": "B12",
+      "status": "FULL",
+      "fact_ids": [
+        "F6907d85f07892f1b"
+      ],
+      "reason": "长度明确为单次记录，不作为通用值。"
+    },
+    {
+      "id": "B13",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F0f9e4b5251ea6ce9"
+      ],
+      "reason": "去掉通常泛化，但卡片将凝固等待标为电泳持续时间，对象仍错。"
+    },
+    {
+      "id": "B14",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F61de562c1b40f5af"
+      ],
+      "reason": "绝对化必须被降级；正文只给核对提示，未重写成忠实的本课对照设计。"
+    },
+    {
+      "id": "B15",
+      "status": "FULL",
+      "fact_ids": [
+        "F59b708438618ef8e"
+      ],
+      "reason": "显示本次两条带及较弱条带可能开环的谨慎解释。"
+    },
+    {
+      "id": "B16",
+      "status": "FULL",
+      "fact_ids": [
+        "F9efdfcf6d7f9f529"
+      ],
+      "reason": "保留UV可能损伤DNA的原理。"
+    },
+    {
+      "id": "B17",
+      "status": "FULL",
+      "fact_ids": [
+        "F06285e4b247b9e60"
+      ],
+      "reason": "保留背景干扰下避开相关区域的本课做法。"
+    },
+    {
+      "id": "B18",
+      "status": "FULL",
+      "fact_ids": [
+        "Fde21ca8a9c07d1df",
+        "F15c4b803d997817a"
+      ],
+      "reason": "间隔与外侧布局均已恢复。"
+    },
+    {
+      "id": "B19",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F03ca8a7e30ab1048",
+        "F3b41e6932e165fdb"
+      ],
+      "reason": "路径分类被降级，直接纯化流程仍可见，但缺少清晰对比。"
+    },
+    {
+      "id": "B20",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "Ffe64f4787ca47f23"
+      ],
+      "reason": "恢复了下游连接与重组关系，但无影响仍表述过强，前提字段也不够准确。"
+    },
+    {
+      "id": "B21",
+      "status": "FULL",
+      "fact_ids": [
+        "F3b41e6932e165fdb"
+      ],
+      "reason": "明确直接纯化不需凝胶溶解。"
+    },
+    {
+      "id": "B22",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F206551f1f143d3b9",
+        "Fd5ef83397ec72d84",
+        "Fcb3fd9a1ddf065c0",
+        "F683af45b5ff6c19d",
+        "Ffa53678401bc882f"
+      ],
+      "reason": "单次标签已建立，但百分比差值仍被写成相对提升幅度，部分ASR数值被保守隐藏。"
+    },
+    {
+      "id": "B23",
+      "status": "FULL",
+      "fact_ids": [
+        "F35a27757b7c66b0d",
+        "F8fd7bc71a8d10521"
+      ],
+      "reason": "载体背景克隆解释与本课对照结果已恢复；具体不清楚体积单独待核对。"
+    },
+    {
+      "id": "B24",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F0b4c77f9767d18fa"
+      ],
+      "reason": "明确本例省略步骤，但省略原因与难以涂开的原因发生混接。"
+    },
+    {
+      "id": "B25",
+      "status": "FULL",
+      "fact_ids": [
+        "F3ea68ebfe9f1be97"
+      ],
+      "reason": "直接送板策略保留高成功率前提。"
+    },
+    {
+      "id": "B26",
+      "status": "FULL",
+      "fact_ids": [
+        "F116fedd3934987d8",
+        "F3ea68ebfe9f1be97",
+        "Fa497afd341dcce18"
+      ],
+      "reason": "正文保留本课送板测序的后续流程。"
+    },
+    {
+      "id": "B27",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F12b717e62733c39c",
+        "F7d9a6394a9173dbf"
+      ],
+      "reason": "筛选用途保留，绝对判阴性被拦截，但缺少已核实的完整判读条件。"
+    },
+    {
+      "id": "B28",
+      "status": "PARTIAL",
+      "fact_ids": [
+        "F30c25c0dd3d30019"
+      ],
+      "reason": "过度推断已降级；正文未明确恢复点突变仍需排除的教学解释。"
+    },
+    {
+      "id": "B29",
+      "status": "FULL",
+      "fact_ids": [
+        "F5896602dbd1f6a6f"
+      ],
+      "reason": "恢复查看峰图检查具体异常的内容。"
+    },
+    {
+      "id": "B30",
+      "status": "FULL",
+      "fact_ids": [
+        "Fee185899753bbb1f",
+        "F33ed42b2c1a3f8d9"
+      ],
+      "reason": "中央字幕进入证据链，保留混合碱基与可能不纯的谨慎判断。"
+    }
+  ],
+  "checks": [
+    "完整Node回归89项通过；新增端到端门禁后相关测试24项通过；Python19项与语法检查通过。",
+    "88张最终事实：7核心、66情境、15待核对；7批提取，27张补提取，3张候选因引文不匹配拒绝。",
+    "最终引用逐字匹配与分组完整性由比较脚本再次核验；逐字匹配不是语义正确性证明。",
+    "结构参数同时保留厂家与讲者两组数值；引物配制浓度已重写为本次情境，无终浓度错比。",
+    "原始ASR/OCR与完整审计推测保留在详情中；正文未出现Snapdragon、纸律、Tare Tare三个已观察到的污染样例。",
+    "本轮未进行新的整片听音或外部专家认证；审计范围误判、对象错配、百分点混淆列为后续缺陷。",
+    "发现旧盲测通过题仍夹带未被来源支持的机制；新增answer_grounding门禁，真实错误题重放被拒绝，记录见answer-grounding-regression.json。",
+    "旧题以验证版本切换失效；新题必须同时通过盲解、答案与解析来源核对和Pydantic契约。",
+    "最终题组2道通过、3道拒绝；2/2题通过盲解及来源核对并引用当前CORE事实，Pydantic再次验证通过；未代答。"
+  ]
+}

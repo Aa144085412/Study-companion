@@ -1,0 +1,23 @@
+{
+  "before": {
+    "MISSING": 19,
+    "FULL": 7,
+    "PARTIAL": 4
+  },
+  "after": {
+    "FULL": 19,
+    "PARTIAL": 11
+  },
+  "pipeline_id": "Pe5aacc8ee24291a69111",
+  "reviewer": "Codex exploratory development-set review, not human gold standard",
+  "literal_quotes": {
+    "matched": 118,
+    "total": 118
+  },
+  "facts": 88,
+  "layers": {
+    "CORE": 7,
+    "CONTEXT": 66,
+    "UNRESOLVED": 15
+  }
+}
