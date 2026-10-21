@@ -349,19 +349,28 @@ checkHealth();
 var tutorBusy=false,quizIndex=0,quizBook=null,quizReview=false;
 function renderTutor(){
  if(quizBook!==current){quizBook=current;const pending=state.notebooks.find(b=>b.id===current)?.quizSession?.questions?.filter(q=>q.verification_status==='BLIND_MODEL_AGREEMENT'&&q.pipeline_id===state.notebooks.find(b=>b.id===current)?.auditedPipeline?.id).findIndex(q=>!q.answer);quizIndex=pending>=0?pending:0;quizReview=false;}
- const notebook=state.notebooks.find(b=>b.id===current),session=notebook?.quizSession,all=(session?.questions||[]).filter(q=>q.verification_status==='BLIND_MODEL_AGREEMENT'&&q.pipeline_id===notebook?.auditedPipeline?.id),items=quizReview?all.filter(q=>q.answer&&!q.correct):all;
+ const notebook=state.notebooks.find(b=>b.id===current),session=notebook?.quizSession,all=(session?.questions||[]).filter(q=>q.verification_status==='BLIND_MODEL_AGREEMENT'&&q.pipeline_id===notebook?.auditedPipeline?.id),items=quizReview?all.filter(q=>q.answer&&!q.correct&&q.review_status!=='QUARANTINED'):all;
  quizIndex=Math.max(0,Math.min(quizIndex,items.length-1));
- const answered=all.filter(q=>q.answer),correct=answered.filter(q=>q.correct),q=items[quizIndex],box=$('tutorContent');box.replaceChildren();
+ const answered=all.filter(q=>q.answer&&q.review_status!=='QUARANTINED'),correct=answered.filter(q=>q.correct),q=items[quizIndex],box=$('tutorContent');box.replaceChildren();
  $('quizProgress').textContent=`共 ${all.length} 题 · 已答 ${answered.length} · 答对 ${correct.length} · 待复习 ${answered.length-correct.length}`+(quizReview?' · 错题回顾':'');
  $('quizNumbers').replaceChildren(...items.map((item,i)=>button(String(all.indexOf(item)+1)+(item.answer?(item.correct?' ✓':' ×'):''),()=>{quizIndex=i;renderTutor();},'secondary'+(i===quizIndex?' quiz-active':''))));
  $('tutorNext').disabled=tutorBusy||!notebook?.auditedPipeline||!notebook.auditedPipeline.metrics.core;$('tutorNext').textContent=tutorBusy?'正在生成题组…':all.length?'再生成合格题组':'生成合格题组';
  $('quizReview').textContent=quizReview?'返回全部题目':'错题回顾';
  if(!q){box.append(node('p','hint',quizReview?'目前没有错题。':notebook?.auditedPipeline?'只有通过核心层准入与独立盲测的题目会显示；可生成最多5题。':'请先在共读笔记点击从资料整理，完成五阶段审计。旧题仍保留在历史数据中，但不再作答。'));return;}
  box.append(node('h3','',`第 ${all.indexOf(q)+1} 题 · ${q.topic}`),node('p','',q.content));
- const options=node('div','quiz-options');for(const option of q.options){const b=button(option.id+'. '+option.text,()=>quizAnswer(q.id,option.id),'secondary quiz-option');b.disabled=!!q.answer||tutorBusy;if(q.answer&&option.id===q.correct_answer)b.classList.add('quiz-correct');if(q.answer===option.id&&!q.correct)b.classList.add('quiz-wrong');options.append(b);}box.append(options);
- if(q.answer){box.append(node('p','',q.correct?'✓ 回答正确':'✗ 你的选择：'+q.answer+'；正确答案：'+q.correct_answer),node('p','',q.explanation));box.append(button('查看审计后的事实依据',async()=>{const ref=await api('/api/quiz/reference?notebookId='+encodeURIComponent(current)+'&questionId='+encodeURIComponent(q.id));showReference(ref);},'citation'));box.append(node('p','hint','已通过独立上下文盲测；模型一致性不等于外部科学认证。'));}
+ const options=node('div','quiz-options');for(const option of q.options){const b=button(option.id+'. '+option.text,()=>quizAnswer(q.id,option.id),'secondary quiz-option');b.disabled=!!q.answer||tutorBusy||q.review_status==='QUARANTINED';if(q.review_status!=='QUARANTINED'&&q.answer&&option.id===q.correct_answer)b.classList.add('quiz-correct');if(q.review_status!=='QUARANTINED'&&q.answer===option.id&&!q.correct)b.classList.add('quiz-wrong');options.append(b);}box.append(options);
+ if(q.answer&&q.review_status!=='QUARANTINED'){box.append(node('p','',q.correct?'✓ 回答正确':'✗ 你的选择：'+q.answer+'；正确答案：'+q.correct_answer),node('p','',q.explanation));box.append(button('查看审计后的事实依据',async()=>{const ref=await api('/api/quiz/reference?notebookId='+encodeURIComponent(current)+'&questionId='+encodeURIComponent(q.id));showReference(ref);},'citation'));box.append(node('p','hint','已通过独立上下文盲测；模型一致性不等于外部科学认证。'));}
+ if(q.review_status==='QUARANTINED')box.append(node('p','hint','本题已暂停核对，不计入答对或错题统计。原作答记录保留。'));
+ else box.append(button('题目有疑问',()=>run(()=>quizReport(q.id)),'secondary'));
  if(quizIndex<items.length-1)box.append(button('下一题 →',()=>{quizIndex++;renderTutor();},'secondary'));
  $('tutorMastery').textContent='';
+}
+async function quizReport(questionId){
+ if(tutorBusy)return;
+ const reason=window.prompt('哪里有疑问？例如条件不足、答案有误、看不懂表述。提交后暂停本题，不影响其他题目。');
+ if(reason===null||!reason.trim())return;
+ const notebookId=needBook(),session=state.notebooks.find(b=>b.id===notebookId)?.quizSession;
+ tutorBusy=true;renderTutor();try{await api('/api/quiz',{notebookId,action:'report',version:session.version,questionId,reason});await refresh();$('tutorStatus').textContent='已记录问题并暂停本题；核对后需重新生成。';}finally{tutorBusy=false;renderTutor();}
 }
 async function quizAnswer(questionId,answer){
  if(tutorBusy)return;const notebookId=needBook(),session=state.notebooks.find(b=>b.id===notebookId)?.quizSession;

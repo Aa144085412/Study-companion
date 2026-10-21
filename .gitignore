@@ -11,3 +11,6 @@ __pycache__/
 # 敏感：登录态 cookie，绝不提交
 cookies.txt
 cookies*.txt
+
+# 第三方微信批量抓取工具（clone 自 GitHub，勿提交）
+tools/wechat-article-downloader/

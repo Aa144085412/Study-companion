@@ -4,6 +4,16 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T45 · 通用学习工具产品化评估与本地家庭私测第一阶段
+- status: open · owner: Codex · files: server.mjs, public/app.js, tests/quiz.test.mjs, src/release/*, scripts/check-release.mjs, evaluation/release/*, docs/产品化迭代路线.md, CONTEXT.md, TASKS.md
+- 用户确认：领域/学段通用，少量家庭本地安装私测。先建立发布验收、题目问题反馈与暂停机制；不把本轮称为完成全部产品化。
+
+- 2026-10-22：用户要求先暂停产品化扩展，优先考虑视频溯源；举报/暂停代码雏形随当前快照保存，未完成专项验收。发布检查脚本与完整产品化方案尚未落地。
+
+## T46 · 当前版本GitHub快照与架构不足说明
+- status: doing · owner: Codex
+- 范围：当前源码及已有工作树变更，docs/现有架构与不足-2026-10-22.md；现有测试90/90、Python19/19、语法通过。用户明确授权推送GitHub，未授权公开部署。
+
 ## T40 · 领域无关五阶段证据与审计管线
 - status: done · owner: Codex · files: src/evidence_cleaner/*, src/note_synthesizer/*, src/attribution_auditor/*, src/note_renderer/*, src/quiz_engine/*, src/pipeline/*, src/schemas/*, server.mjs, public/*, scripts/*, tests/*, docs/*, CONTEXT.md, TASKS.md
 - 验收：契约与跨领域回归、真实课程重跑、三层笔记/归因报告/盲测题对比；不把模型一致性称作科学认证。

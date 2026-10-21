@@ -685,11 +685,22 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       if(req.method==='POST' && p==='/api/quiz'){
         const x=await body(req),nb=book(x.notebookId),artifact=auditedArtifact(nb),session=nb.quizSession||{version:0,questions:[]};
         if(x.version!==session.version)throw fail('练习进度已更新，请刷新后重试',409);
-        if(!['generate','answer'].includes(x.action))throw fail('无效练习动作');
+        if(!['generate','answer','report'].includes(x.action))throw fail('无效练习动作');
         if(tutorLocks.has(nb.id))throw fail('正在进行独立盲测，请稍候',409);
+        if(x.action==='report'){
+          const q=session.questions.find(q=>q.id===x.questionId);
+          if(!q)throw fail('题目不存在',404);
+          if(q.pipeline_id!==artifact.pipeline_id)throw fail('题目版本已变化，请刷新',409);
+          if(q.review_status==='QUARANTINED')return json(res,session);
+          const reason=typeof x.reason==='string'?x.reason.trim():'';
+          if(!reason||reason.length>1000)throw fail('请填写1至1000字的问题说明');
+          q.review_status='QUARANTINED';q.quality_report={id:uuid(),reason,createdAt:now(),pipelineId:q.pipeline_id,status:'OPEN'};
+          session.version++;nb.quizSession=session;save();return json(res,session);
+        }
         if(x.action==='answer'){
           const q=session.questions.find(q=>q.id===x.questionId);if(!q)throw fail('题目不存在',404);
           if(q.pipeline_id!==artifact.pipeline_id||q.verification_status!=='BLIND_MODEL_AGREEMENT')throw fail('本题未通过当前审计管线，已停止作答',409);
+          if(q.review_status==='QUARANTINED')throw fail('本题已暂停，待核对后重新出题',409);
           if(q.answer)throw fail('本题已作答，请继续下一题或复习解析',409);
           if(!['A','B','C','D'].includes(x.answer))throw fail('请选择一个选项');
           q.answer=x.answer;q.correct=x.answer===q.correct_answer;q.answeredAt=now();session.version++;nb.quizSession=session;save();return json(res,session);
