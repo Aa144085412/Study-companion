@@ -1,7 +1,7 @@
-import {QUIZ_PROMPT,parseQuiz} from './src/deeptutor/quiz.mjs';
+import {runPipeline,makeStageCaller,sourceFingerprint} from './src/pipeline/index.mjs';
+import {generateVerifiedQuiz} from './src/quiz_engine/index.mjs';
 import http from 'node:http';
 import {labelEvidence,batches,retrieve,validateCitations} from './src/distiller/evidence.mjs';
-import {parseTurn} from './src/deeptutor/engine.mjs';
 import {SKILL_PROMPTS} from './src/skill_builder/prompts.mjs';
 import {compilePackage} from './src/skill_builder/package.mjs';
 import fs from 'node:fs';
@@ -16,8 +16,6 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const DISTILL_PROMPT=fs.readFileSync(path.join(ROOT,'src/distiller/prompts.txt'),'utf8');
-const TUTOR_PROMPT=fs.readFileSync(path.join(ROOT,'src/deeptutor/prompts.txt'),'utf8');
 const uuid = () => randomUUID();
 const now = () => new Date().toISOString();
 const fail = (message, status = 400) => Object.assign(new Error(message), { status });
@@ -214,44 +212,32 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
   }
   const generationStatus=new Map();
   const generationLocks=new Set();
+  async function validatePipelineContract(kind,file){
+    const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+    if(!fs.existsSync(py))throw fail('缺少Pydantic运行环境，请配置 .venv-ocr 后再运行审计管线',503);
+    await new Promise((resolve,reject)=>{const proc=spawn(py,['-X','utf8',path.join(ROOT,'scripts','validate_pipeline.py'),kind,file],{cwd:ROOT,windowsHide:true});let error='';proc.stderr.on('data',x=>error+=x);proc.on('error',reject);proc.on('close',code=>code===0?resolve():reject(fail('审计数据契约校验未通过：'+error.slice(-900),502)));});
+  }
+  function stageCaller(){return makeStageCaller({model,modelName:db.settings.model,cacheDir:path.join(dataDir,'pipeline-v2','stage-cache'),provenance:{url:db.settings.llmUrl}});}
+  function auditedArtifact(nb){
+    if(!nb.auditedPipeline)throw fail('请先点击从资料整理，生成经过五阶段审计的笔记',409);
+    const sources=db.sources.filter(s=>s.notebookId===nb.id);
+    if(nb.auditedPipeline.inputHash!==sourceFingerprint(sources))throw fail('资料已更新，请重新生成审计笔记后出题',409);
+    return JSON.parse(fs.readFileSync(path.join(dataDir,'pipeline-v2',nb.auditedPipeline.id,'artifact.json'),'utf8'));
+  }
   async function generateNote(notebookId){
     if(generationLocks.has(notebookId))throw fail('这本笔记正在整理，请等待当前任务完成',409);
-    generationLocks.add(notebookId);
-    const progress={status:'running',completed:0,total:0,startedAt:now()};generationStatus.set(notebookId,progress);
+    generationLocks.add(notebookId);const progress={status:'running',stage:'evidence_cleaner',completed:0,total:1,startedAt:now()};generationStatus.set(notebookId,progress);
+    const call=stageCaller();
     try{
-    if(!db.settings.model.trim())throw fail('请先设置本地模型');
-    const refs=labelEvidence(evidence(notebookId)),parts=batches(refs);
-    if(!parts.length)throw fail('请先导入文字资料或完成转写');
-    progress.total=parts.length;
-    const cacheDir=path.join(dataDir,'note-cache');fs.mkdirSync(cacheDir,{recursive:true});
-    const outputs=[];
-    for(const part of parts){
-      const key=createHash('sha256').update(JSON.stringify({notebookId,part,prompt:DISTILL_PROMPT,model:db.settings.model,url:db.settings.llmUrl,version:3})).digest('hex');
-      const cacheFile=path.join(cacheDir,key+'.json');
-      if(fs.existsSync(cacheFile)){const cached=JSON.parse(fs.readFileSync(cacheFile,'utf8'));if(typeof cached.content==='string'&&cached.content.trim()){outputs.push(cached.content);progress.completed=outputs.length;continue;}}
-      async function summarize(chunk,depth=0){
-        const result=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:4000,chat_template_kwargs:{enable_thinking:false},messages:[{role:'system',content:DISTILL_PROMPT+'\n本批只写精炼学习要点，控制在700个汉字以内；按知识点合并，避免按帧或逐句展开。没有信息的栏目省略，不重复列出所有OCR错误。不要输出思考过程。'},{role:'user',content:JSON.stringify({sources:chunk})}]},db.settings.llmUrl,240000);
-        if(result.choices?.[0]?.finish_reason==='length'){
-          if(depth>=4)throw fail('模型多次截断本批笔记；已完成批次保留，请检查模型输出设置后重试',502);
-          let halves;
-          if(chunk.length>1){const mid=Math.ceil(chunk.length/2);halves=[chunk.slice(0,mid),chunk.slice(mid)];}
-          else {const item=chunk[0],mid=Math.ceil(item.text.length/2);if(mid<40)throw fail('模型无法完成短片段，请检查模型设置',502);halves=[[{...item,text:item.text.slice(0,mid)}],[{...item,text:item.text.slice(mid)}]];}
-          return (await summarize(halves[0],depth+1))+'\n\n'+(await summarize(halves[1],depth+1));
-        }
-        const raw=(result.choices?.[0]?.message?.content||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();
-        if(!raw)throw fail('分段笔记为空，未保存不完整笔记',502);
-        return validateCitations(raw,chunk);
-      }
-      const content=await summarize(part);outputs.push(content);
-      fs.writeFileSync(cacheFile,JSON.stringify({content}));progress.completed=outputs.length;
-    }
-    const content=outputs.map((s,i)=>outputs.length>1?'## 课程资料 · 第 '+(i+1)+' 部分\n\n'+s:s).join('\n\n');
-    const used=new Set([...content.matchAll(/\[(S\d+)\]/g)].map(m=>m[1]));
-    book(notebookId);
-    if(JSON.stringify(refs)!==JSON.stringify(labelEvidence(evidence(notebookId))))throw fail('整理期间资料发生变化，请重试；未保存过期资料草稿',409);
-    progress.status='done';
-    return {id:uuid(),notebookId,content,citations:refs.filter(r=>used.has(r.label)),coverage:{processed:refs.length,total:refs.length,batches:parts.length}};
-    }catch(e){progress.status='failed';progress.error=e.message;throw e;}finally{generationLocks.delete(notebookId);}
+      if(!db.settings.model.trim())throw fail('请先设置本地模型');
+      const nb=book(notebookId),sources=structuredClone(db.sources.filter(s=>s.notebookId===notebookId));
+      const result=await runPipeline({sources,title:nb.title,notebookId,dataDir,call,progress:p=>Object.assign(progress,p)});
+      await validatePipelineContract('artifact',path.join(result.runDir,'artifact.json'));
+      if(!db.notebooks.includes(nb)||sourceFingerprint(db.sources.filter(s=>s.notebookId===notebookId))!==result.artifact.input_hash)throw fail('整理期间资料发生变化，未保存过期结果，请重试',409);
+      nb.auditedPipeline={id:result.artifact.pipeline_id,inputHash:result.artifact.input_hash,metrics:result.artifact.metrics,createdAt:now()};
+      progress.status='done';progress.stage='complete';save();
+      return {id:uuid(),notebookId,content:result.artifact.markdown,citations:result.citations,auditPipelineId:result.artifact.pipeline_id,coverage:{processed:result.artifact.evidence.length,total:result.artifact.evidence.length,batches:result.artifact.metrics.map_batches},auditMetrics:result.artifact.metrics};
+    }catch(e){call.invalidateLast?.();progress.status='failed';progress.error=e.message;throw e;}finally{generationLocks.delete(notebookId);}
   }
   const tutorLocks=new Set();
   const TOOL_CONTEXT={spawn,transcriber,save,now,uuid,dataDir,ROOT};
@@ -679,7 +665,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const run={id:uuid(),kind:'visual',sourceId:media.id,notebookId:media.notebookId,status:'running',createdAt:now()};
         const out=path.join(dataDir,'visual-review',media.id+'-'+transcript.id);fs.mkdirSync(out,{recursive:true});
         const config=path.join(out,'input.json');
-        fs.writeFileSync(config,JSON.stringify({video:path.join(dataDir,'media',media.file),out,segments:transcript.segments,mediaId:media.id,notebookId:media.notebookId,runId:run.id,api:`http://127.0.0.1:${req.socket.localPort}`,llmUrl:db.settings.llmUrl,model:db.settings.model,visionEnabled:x.visionEnabled===true,maxVlm:8}));
+        fs.writeFileSync(config,JSON.stringify({video:path.join(dataDir,'media',media.file),out,segments:transcript.segments,transcriptId:transcript.id,title:media.title,mediaId:media.id,notebookId:media.notebookId,runId:run.id,api:`http://127.0.0.1:${req.socket.localPort}`,llmUrl:db.settings.llmUrl,model:db.settings.model,visionEnabled:x.visionEnabled===true,maxVlm:8}));
         db.agentRuns.push(run);save();
         try{
           const child=pipelineLauncher(path.join(ROOT,'.venv-ocr','Scripts','python.exe'),[path.join(ROOT,'scripts','visual_review.py'),'--input',config],{cwd:ROOT,detached:true,stdio:'ignore'});
@@ -687,83 +673,36 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         }catch(e){run.status='failed';run.error=e.message;save();throw fail('字幕核对启动失败',500);}
         return json(res,run,202);
       }
+      if(req.method==='GET' && p==='/api/quiz/reference'){
+        const nb=book(u.searchParams.get('notebookId')),artifact=auditedArtifact(nb),q=nb.quizSession?.questions.find(q=>q.id===u.searchParams.get('questionId')&&q.pipeline_id===artifact.pipeline_id&&q.verification_status==='BLIND_MODEL_AGREEMENT');
+        if(!q)throw fail('题目已失效',404);const f=artifact.facts.find(f=>f.id===q.fact_ids[0]),e=artifact.evidence.find(e=>e.id===f.evidence_quotes[0].evidence_id);
+        return json(res,{sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,title:e.title,text:e.text,start:e.start_time===null?undefined:e.start_time*1000,end:e.end_time===null?undefined:e.end_time*1000});
+      }
+      if(req.method==='GET' && p==='/api/audit'){
+        const nb=book(u.searchParams.get('notebookId'));return json(res,auditedArtifact(nb));
+      }
+      if(p==='/api/tutor')throw fail('旧版原始资料出题入口已停用，请使用经过审计的选择题速练',410);
       if(req.method==='POST' && p==='/api/quiz'){
-        const x=await body(req),nb=book(x.notebookId),session=nb.quizSession||{version:0,questions:[]};
+        const x=await body(req),nb=book(x.notebookId),artifact=auditedArtifact(nb),session=nb.quizSession||{version:0,questions:[]};
         if(x.version!==session.version)throw fail('练习进度已更新，请刷新后重试',409);
         if(!['generate','answer'].includes(x.action))throw fail('无效练习动作');
-        if(tutorLocks.has(nb.id))throw fail('正在生成题组，请稍候',409);
+        if(tutorLocks.has(nb.id))throw fail('正在进行独立盲测，请稍候',409);
         if(x.action==='answer'){
           const q=session.questions.find(q=>q.id===x.questionId);if(!q)throw fail('题目不存在',404);
+          if(q.pipeline_id!==artifact.pipeline_id||q.verification_status!=='BLIND_MODEL_AGREEMENT')throw fail('本题未通过当前审计管线，已停止作答',409);
           if(q.answer)throw fail('本题已作答，请继续下一题或复习解析',409);
           if(!['A','B','C','D'].includes(x.answer))throw fail('请选择一个选项');
           q.answer=x.answer;q.correct=x.answer===q.correct_answer;q.answeredAt=now();session.version++;nb.quizSession=session;save();return json(res,session);
         }
-        if(!db.settings.model.trim())throw fail('请先设置本地模型');
-        const all=labelEvidence(evidence(nb.id));if(!all.length)throw fail('请先导入课程资料');
-        const weak=session.questions.filter(q=>q.answer&&!q.correct).map(q=>q.topic);
-        const visual=all.filter(r=>/联合证据/.test(r.title)).map(r=>({...r,text:r.text.split('\n').filter(line=>/^(画面字幕|课件\/画面正文) OCR 候选：/.test(line)).map(line=>line.replace(/^[^：]+：/,'')).filter(line=>line.trim().length>=8).join('\n')})).filter(r=>r.text.length>=20);
-        const timed=all.filter(r=>r.start!==undefined),pool=visual.length>=5?visual:timed.length?timed:all;
-        const offset=Math.floor(session.questions.length/5),refs=[];
-        for(let i=0;i<10&&i<pool.length;i++)refs.push(pool[(Math.floor(i*pool.length/Math.min(10,pool.length))+offset)%pool.length]);
-        if(weak.length)for(const r of retrieve(pool,weak.slice(-3).join(' '),2000))if(!refs.some(e=>e.label===r.label))refs.push(r);
-        tutorLocks.add(nb.id);
+        tutorLocks.add(nb.id);const call=stageCaller();
         try{
-          const result=await model('/chat/completions',{model:db.settings.model,max_tokens:4000,temperature:0.2,chat_template_kwargs:{enable_thinking:false},messages:[{role:'system',content:QUIZ_PROMPT},{role:'user',content:JSON.stringify({sources:refs,previous_questions:session.questions.slice(-20).map(q=>q.content),weak_topics:weak.slice(-5)})}]},db.settings.llmUrl,240000);
-          if(result.choices?.[0]?.finish_reason==='length')throw fail('题组生成被截断，请重试',502);
-          let questions;try{questions=parseQuiz(result.choices?.[0]?.message?.content||'',refs);}catch(e){
-            const raw=result.choices?.[0]?.message?.content||'';
-            fs.writeFileSync(path.join(dataDir,'quiz-validation-last.json'),JSON.stringify({refs,raw,error:e.message}));
-            const repaired=await model('/chat/completions',{model:db.settings.model,max_tokens:4000,temperature:0,chat_template_kwargs:{enable_thinking:false},messages:[{role:'system',content:QUIZ_PROMPT},{role:'user',content:JSON.stringify({sources:refs,invalid_output:raw,instruction:'修正格式和来源。source_quote 只复制对应text单独一行中的8至20个连续字符，不能改写、纠正错字或拼接不同句子。每题必须包含 explanation 字段，不得用text代替。仍输出完整5题。'})}]},db.settings.llmUrl,240000);
-            try{if(repaired.choices?.[0]?.finish_reason==='length')throw Error('修正题组被截断');questions=parseQuiz(repaired.choices?.[0]?.message?.content||'',refs);}catch(err){throw fail(err.message,502);}
-          }
-          if(!db.notebooks.includes(nb)||JSON.stringify(all)!==JSON.stringify(labelEvidence(evidence(nb.id))))throw fail('资料已改变，请重试',409);
-          const previous=new Set(session.questions.map(q=>q.content));if(questions.some(q=>previous.has(q.content)))throw fail('模型生成了重复题，请重试',502);
-          session.questions.push(...questions.map((q,index)=>{const shift=(index+session.questions.length)%4;const options=q.options.map((_,i)=>q.options[(i+shift)%4]);const correct=options.findIndex(o=>o.id===q.correct_answer);const explanation=q.explanation.replace(/(?<![A-Za-z])([ABCD])(?![A-Za-z])/g,letter=>'ABCD'[options.findIndex(o=>o.id===letter)]);return {...q,explanation,options:options.map((o,i)=>({id:'ABCD'[i],text:o.text})),correct_answer:'ABCD'[correct],id:uuid(),createdAt:now()};}));session.version++;nb.quizSession=session;save();return json(res,session);
-        }finally{tutorLocks.delete(nb.id);}
-      }
-      if(req.method==='GET' && p==='/api/tutor'){
-        const nb=book(u.searchParams.get('notebookId'));
-        return json(res,nb.learningSession||{turns:[],mastery:[],version:0});
-      }
-      if(req.method==='POST' && p==='/api/tutor'){
-        const x=await body(req),nb=book(x.notebookId);
-        if(!['next','answer'].includes(x.action))throw fail('无效学习动作');
-        if(!db.settings.model.trim())throw fail('请先设置本地模型');
-        if(tutorLocks.has(nb.id))throw fail('本课程正在生成反馈，请稍候',409);
-        const session=nb.learningSession||{turns:[],mastery:[],version:0};
-        if(x.version!==session.version)throw fail('学习进度已更新，请刷新后重试',409);
-        const current=session.turns.at(-1);
-        if(x.action==='answer'&&(!current||current.id!==x.questionId))throw fail('当前题目已改变',409);
-        if(x.action==='next'&&current&&!current.evaluation&&!x.replaceUnanswered)throw fail('请先回答当前题目',409);
-        if(x.action==='answer'&&(typeof x.answer!=='string'||!x.answer.trim()||x.answer.length>4000))throw fail('请填写 1–4000 字的回答');
-        const all=labelEvidence(evidence(nb.id).sort((a,b)=>Number(b.start!==undefined)-Number(a.start!==undefined)));
-        if(!all.length)throw fail('请先导入课程文字或转写');
-        let refs;
-        if(x.action==='answer'){
-          refs=all.filter(e=>current.refs.some(r=>r.sourceId===e.sourceId&&r.segmentId===e.segmentId&&r.offset===e.offset&&r.text===e.text));
-          if(!refs.length)throw fail('本题来源已修改或删除，请恢复来源后重试',409);
-        }else{
-          const chunks=batches(all),weak=session.mastery.find(m=>['partial','failed'].includes(m.status));
-          const index=session.turns.length-(x.replaceUnanswered&&current&&!current.evaluation?1:0);
-          refs=weak?retrieve(all,weak.topic):chunks[index%chunks.length];
-        }
-        tutorLocks.add(nb.id);
-        try{
-          const answer=await model('/chat/completions',{model:db.settings.model,temperature:0.2,max_tokens:1800,messages:[{role:'system',content:TUTOR_PROMPT},{role:'user',content:JSON.stringify({action:x.action,sources:refs,current_question:current?.question,student_answer:x.answer,previous_mastery:session.mastery,previous_questions:session.turns.slice(-8).map(t=>t.question.content)})}]});
-          let result;try{result=parseTurn(answer.choices?.[0]?.message?.content||'',x.action,refs);}catch(e){throw fail(e.message,502);}
-          if(!db.notebooks.includes(nb))throw fail('笔记本已删除，未写入反馈',409);
-          if(JSON.stringify(labelEvidence(evidence(nb.id).sort((a,b)=>Number(b.start!==undefined)-Number(a.start!==undefined))))!==JSON.stringify(all))throw fail('资料已改变，未保存旧材料反馈，请重试',409);
-          const updated=structuredClone(session);
-          if(x.action==='next'&&current&&!current.evaluation&&x.replaceUnanswered){updated.superseded??=[];updated.superseded.push(updated.turns.pop());}
-          if(x.action==='next')updated.turns.push({id:uuid(),question:result.question,refs,createdAt:now()});
-          else{
-            const turn=updated.turns.at(-1);turn.answer=x.answer;turn.evaluation=result.evaluation;turn.feedback=result.feedback_message;
-            turn.attempts??=[];turn.attempts.push({answer:x.answer,evaluation:result.evaluation,feedback:result.feedback_message,createdAt:now()});
-            const topic=turn.question.topic;updated.mastery=updated.mastery.filter(m=>m.topic!==topic);
-            updated.mastery.push({topic,status:result.evaluation,last_feedback:result.feedback_message});
-          }
-          updated.version++;nb.learningSession=updated;save();return json(res,updated);
-        }finally{tutorLocks.delete(nb.id);}
+          const result=await generateVerifiedQuiz(artifact,{call,previous:session.questions});
+          const file=path.join(dataDir,'pipeline-v2',artifact.pipeline_id,'verified-quiz.json');fs.writeFileSync(file,JSON.stringify(result.questions,null,2));
+          await validatePipelineContract('quiz',file);
+          fs.writeFileSync(path.join(dataDir,'pipeline-v2',artifact.pipeline_id,'quiz-audit.json'),JSON.stringify(result,null,2));
+          if(!db.notebooks.includes(nb)||auditedArtifact(nb).pipeline_id!==artifact.pipeline_id)throw fail('出题期间笔记或资料改变，请重试',409);
+          session.questions.push(...result.questions);session.version++;session.lastGeneration={accepted:result.questions.length,rejected:result.rejections.length,reason:result.reason||'',pipelineId:artifact.pipeline_id};nb.quizSession=session;save();return json(res,session);
+        }catch(e){call.invalidateLast?.();throw e;}finally{tutorLocks.delete(nb.id);}
       }
       if(req.method==='GET' && p==='/api/generate/status'){
         const id=new URL(req.url,'http://localhost').searchParams.get('notebookId');book(id);
@@ -774,7 +713,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(generationLocks.has(x.notebookId))return x.background?json(res,generationStatus.get(x.notebookId),202):json(res,{error:'这本笔记正在整理，请等待当前任务完成'},409);
         const work=async()=>{const draft=await generateNote(x.notebookId);
           const reply={...draft,role:'assistant',type:'draft',text:draft.content,createdAt:now(),truncated:false};
-          const revision={id:uuid(),notebookId:x.notebookId,content:draft.content,citations:draft.citations,coverage:draft.coverage,createdAt:now()};db.revisions.push(revision);reply.noteRevisionId=revision.id;save();return reply;};
+          const revision={id:uuid(),notebookId:x.notebookId,content:draft.content,citations:draft.citations,coverage:draft.coverage,auditPipelineId:draft.auditPipelineId,createdAt:now()};db.revisions.push(revision);reply.noteRevisionId=revision.id;save();return reply;};
         if(x.background){void work().catch(e=>{generationStatus.set(x.notebookId,{...generationStatus.get(x.notebookId),status:'failed',error:e.message});});return json(res,generationStatus.get(x.notebookId),202);}
         return json(res,await work());
       }

@@ -6,6 +6,20 @@ from urllib.request import Request, urlopen
 from urllib.parse import urlparse
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from src.schemas import FrameEvidence, RawMultimodalDocument, TimelineSegment
+from src.schemas.pipeline import EvidenceItem
+
+def typed_evidence(cfg, segments, results):
+    items=[]
+    for seg,e in zip(segments,results):
+        for kind,value,confidence,flags in [
+            ('ASR_TRANSCRIPT',e.asr_text,None,[]),
+            ('SUBTITLE_OCR',e.subtitle_text,e.ocr_confidence,[]),
+            ('UNKNOWN_VISUAL_OCR',e.slide_text,e.slide_confidence,['UNKNOWN_VISUAL_ROLE']),
+            ('VLM_VISUAL_INFERENCE',e.visual_description,None,['VISUAL_INFERENCE'])]:
+            if not value.strip(): continue
+            identity=hashlib.sha256((seg['id']+kind+value).encode()).hexdigest()[:16]
+            items.append(EvidenceItem(id='E'+identity,source_id=cfg.get('transcriptId',cfg['mediaId']),segment_id=seg['id'],media_id=cfg['mediaId'],title=cfg.get('title','课程证据'),start_time=seg['start']/1000,end_time=seg['end']/1000,source_type=kind,raw_text=value,text=value,confidence=confidence,flags=flags,classification_method='region_candidate_only',frame_path=e.frame_path if kind!='ASR_TRANSCRIPT' else None).model_dump(mode='json'))
+    return items
 
 def subtitle_rows(rows,height):
     found=[]
@@ -94,6 +108,8 @@ def main():
         if e.slide_changed:lines.append('课件/画面正文 OCR 候选（不是人工确认）：'+e.slide_text)
         elif e.slide_id:lines.append(f'画面正文沿用 {e.slide_start_time:.2f} 秒，画面标识 {e.slide_id}')
         if e.visual_description:lines.append('本地视觉模型推断：'+e.visual_description)
+    (out/'evidence-items.v2.json').write_text(json.dumps(typed_evidence(cfg,segments,results),ensure_ascii=False,indent=2),encoding='utf-8')
+    # Legacy display export only. The audited pipeline consumes typed evidence / FrameEvidence.
     document=RawMultimodalDocument(media_type='video',title=cfg.get('title','视频课程联合证据'),segments=[TimelineSegment(start_time=seg['start']/1000,end_time=seg['end']/1000,asr_text=e.asr_text,visual_description='字幕OCR候选：'+e.subtitle_text+'\n课件/画面正文OCR候选：'+e.slide_text+'\n视觉模型推断：'+e.visual_description) for seg,e in zip(segments,results)])
     (out/'raw-multimodal-document.json').write_text(document.model_dump_json(indent=2),encoding='utf-8')
     md='\n'.join(lines);(out/'review.md').write_text(md,encoding='utf-8')

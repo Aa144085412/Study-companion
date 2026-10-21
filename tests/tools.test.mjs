@@ -1,3 +1,4 @@
+import {stageResult,stageName} from './pipeline-fixture.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {createApp} from '../server.mjs';
 
 const SKILL_MD='---\nname: test-media-skill\nkind: knowledge\ntitle: 测试媒体知识\ndescription: 测试知识 skill\n---\n# 测试媒体知识\n\n## 概览\n测试。\n\n## 核心要点\n- 参数待核对。\n\n## 来源\n- 测试视频。\n';
@@ -31,6 +32,7 @@ function fakeAgentModel(){
       }
       return jsonResp('已完成：落了共读笔记并生成 skill。');
     }
+    if(stageName(payload))return jsonResp(JSON.stringify(stageResult(stageName(payload),JSON.parse(user))));
     if(/只输出 experiment 或 knowledge/.test(user)) return jsonResp('knowledge');
     if(/^你是实验笔记整理助手|你是知识整理助手/.test(sys)) return jsonResp(SKILL_MD);
     if(sys.startsWith('你是研习伴')) return jsonResp(NOTE_MD);
@@ -125,7 +127,7 @@ test('POST /api/tools/loop runs import_to_notebook then make_skill, lands a note
   assert.match(nb.title,/视频学习 · 测试视频标题/);
   const src=st.body.sources.find(s=>s.notebookId===nb.id&&s.kind==='text');
   assert.ok(src);
-  assert.ok(st.body.revisions.some(rv=>rv.notebookId===nb.id&&/测试学习笔记/.test(rv.content)));
+  assert.ok(st.body.revisions.some(rv=>rv.notebookId===nb.id&&/核心原理与标准规范/.test(rv.content)));
   // a skill file was written
   assert.equal(r.body.skill.name,'test-media-skill');
   assert.equal(r.body.skill.kind,'knowledge');

@@ -1,3 +1,4 @@
+import {stageResult,stageName} from './pipeline-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';
@@ -9,16 +10,21 @@ test('quiz rejects invented evidence, duplicate options and invalid answer keys'
 });
 test('five questions persist, answers grade without model calls and version prevents duplicate submissions',async t=>{
  const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'study-quiz-'));let calls=0;
- const modelFetch=async()=>{calls++;if(calls===1)return new Response(JSON.stringify({choices:[{message:{content:'{}'}}]}));return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify({questions:questions()})}}]}));};
+ const modelFetch=async(url,opts)=>{calls++;const payload=JSON.parse(opts.body),stage=stageName(payload),input=JSON.parse(payload.messages[1].content);return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(stageResult(stage,input))}}]}));};
  let app=createApp({dataDir,modelFetch});await new Promise(r=>app.listen(0,'127.0.0.1',r));
  const api=async(p,data)=>{const r=await fetch('http://127.0.0.1:'+app.address().port+p,data?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}:{});return {status:r.status,body:await r.json()};};
  t.after(async()=>{await new Promise(r=>app.close(r));fs.rmSync(dataDir,{recursive:true,force:true});});
  const nb=(await api('/api/notebooks',{title:'课'})).body;await api('/api/settings',{llmUrl:'http://127.0.0.1:1234/v1',model:'test',asrUrl:'http://127.0.0.1:8000/v1',asrModel:'whisper'});await api('/api/sources',{notebookId:nb.id,title:'课.txt',content:'明确材料事实'});
- let r=await api('/api/quiz',{notebookId:nb.id,action:'generate',version:0});assert.equal(r.status,200);assert.equal(r.body.questions.length,5);const id=r.body.questions[0].id;
- r=await api('/api/quiz',{notebookId:nb.id,action:'answer',version:1,questionId:id,answer:'A'});assert.equal(r.status,200);assert.equal(r.body.questions[0].correct,false);assert.equal(calls,2);
+ assert.equal((await api('/api/quiz',{notebookId:nb.id,action:'generate',version:0})).status,409);
+ assert.equal((await api('/api/generate',{notebookId:nb.id})).status,200);
+ let r=await api('/api/quiz',{notebookId:nb.id,action:'generate',version:0});assert.equal(r.status,200);assert.equal(r.body.questions.length,5);const id=r.body.questions[0].id;const beforeAnswerCalls=calls;
+ r=await api('/api/quiz',{notebookId:nb.id,action:'answer',version:1,questionId:id,answer:'A'});assert.equal(r.status,200);assert.equal(r.body.questions[0].correct,false);assert.equal(calls,beforeAnswerCalls);
  assert.equal((await api('/api/quiz',{notebookId:nb.id,action:'answer',version:1,questionId:id,answer:'B'})).status,409);
  assert.equal((await api('/api/quiz',{notebookId:nb.id,action:'answer',version:2,questionId:id,answer:'B'})).status,409);
  await new Promise(r=>app.close(r));app=createApp({dataDir,modelFetch});await new Promise(r=>app.listen(0,'127.0.0.1',r));
  const state=(await api('/api/state')).body;assert.equal(state.notebooks[0].quizSession.questions[0].answer,'A');assert.equal(state.notebooks[0].quizSession.questions.length,5);
+ await api('/api/sources',{notebookId:nb.id,title:'新增.txt',content:'新增课程材料'});
+ const beforeStale=calls;assert.equal((await api('/api/quiz',{notebookId:nb.id,action:'generate',version:2})).status,409);assert.equal(calls,beforeStale);
+ assert.equal((await api('/api/quiz',{notebookId:nb.id,action:'answer',version:2,questionId:state.notebooks[0].quizSession.questions[1].id,answer:'B'})).status,409);
 });
 

@@ -4,6 +4,14 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T40 · 领域无关五阶段证据与审计管线
+- status: done · owner: Codex · files: src/evidence_cleaner/*, src/note_synthesizer/*, src/attribution_auditor/*, src/note_renderer/*, src/quiz_engine/*, src/pipeline/*, src/schemas/*, server.mjs, public/*, scripts/*, tests/*, docs/*, CONTEXT.md, TASKS.md
+- 验收：契约与跨领域回归、真实课程重跑、三层笔记/归因报告/盲测题对比；不把模型一致性称作科学认证。
+
+## T41 · 五阶段管线质量覆盖扩展
+- status: open · owner: 未分配
+- 扩展真实跨领域课程回归；全课画面语义分类和布局提取；有证据的仪器读数语义对齐；外部标准核验；Map知识点覆盖率；不同模型验证器。T40仅完成可运行首版与现有课程验证，未达到这些完整产品目标。
+
 ## T39 · 选择题组与即时反馈
 - status: done · owner: Codex · files: server.mjs, src/deeptutor/quiz.mjs, public/*, tests/quiz.test.mjs, CONTEXT.md, TASKS.md
 - 验证：67/67；真实5题入库，原句引用匹配、用户未代答。
