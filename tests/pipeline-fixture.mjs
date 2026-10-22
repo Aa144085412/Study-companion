@@ -5,6 +5,8 @@ export function stageResult(stage,input){
  if(stage==='coverage_review')return {facts:[]};
  if(stage==='global_reduce')return {clusters:[{title:'概念与判断',fact_ids:input.facts.map(f=>f.id)}],conflicts:[]};
  if((stage==='attribution_audit'||stage==='parameter_audit'))return {audits:input.facts.map(f=>({fact_id:f.id,attribution:'NONE',supported:true,generalizable:true,rationale:'原文支持概念',proposed_correction:'',standard_boundary:'',external_reference_ids:[],decision:'ACCEPT',certainty:'MODEL_REVIEW'}))};
+ if(stage==='source_relations')return {actions:[],causal_links:[],ambiguities:[]};
+ if(stage==='semantic_check')return {checks:input.facts.map(f=>({fact_id:f.id,binding_supported:true,causality_supported:true,quantity_supported:true,evidence_quotes:f.evidence_quotes,rationale:'来源支持对象和命题'}))};
  if(stage==='scope_check')return {checks:input.claims.map(c=>({fact_id:c.fact_id,generalizable:true,counterexample:'',rationale:'无缺失前提'}))};
  if(stage==='quiz_generate')return {questions:Array.from({length:5},(_,i)=>({content:'为什么需要检查'+i+'？',topic:'判断依据',dimension:'WHY',options:'ABCD'.split('').map(id=>({id,text:'选项'+id})),correct_answer:'B',explanation:'B符合事实，其他不符合',fact_ids:[input.facts[0].id]}))};
  if(stage==='answer_grounding')return {answer_text:input.answer_text,supported:true,conditions_preserved:true,unsupported_claims:[],supports:[{fact_id:input.facts[0].id,quote:input.facts[0].statement}],rationale:'完整引用支持'};

@@ -1,0 +1,429 @@
+{
+  "scope": "3 observed failures and 6 synthetic development cases; not held-out gold standard",
+  "results": [
+    {
+      "fact": {
+        "id": "F0f9e4b5251ea6ce9",
+        "topic": "凝胶电泳",
+        "step": "电泳时间",
+        "entity": "本次电泳实验",
+        "property": "持续时间",
+        "statement": "本次演示记录：二三十分钟吧",
+        "parameters": [
+          {
+            "name": "duration",
+            "value": "20-30",
+            "unit": "min",
+            "quantity_role": "duration",
+            "stage": "electrophoresis",
+            "object": "current_run",
+            "source_scope": "SINGLE_RUN"
+          }
+        ],
+        "conditions": [],
+        "knowledge_type": "SINGLE_RUN_METRIC",
+        "evidence_quotes": [
+          {
+            "evidence_id": "E5d2874f85d71c229",
+            "quote": "二三十分钟吧"
+          }
+        ],
+        "flags": [
+          "SINGLE_RUN_METRIC"
+        ],
+        "verification": "MODEL_REVIEWED",
+        "layer": "CONTEXT"
+      },
+      "expected": false,
+      "kind": "observed_course_error",
+      "decision": {
+        "fact_id": "F0f9e4b5251ea6ce9",
+        "passed": false,
+        "attribution": "MODEL_INDUCTION_ERROR",
+        "rationale": "证据显示“二三十分钟”是等待DNA胶凝固的时间，而非电泳时间。Fact将对象错误绑定为电泳持续时间。",
+        "check": {
+          "fact_id": "F0f9e4b5251ea6ce9",
+          "binding_supported": false,
+          "causality_supported": true,
+          "quantity_supported": true,
+          "evidence_quotes": [
+            {
+              "evidence_id": "Efbf6fa8e021b896c",
+              "quote": "那这个时候我等它（指DNA胶）凝固"
+            },
+            {
+              "evidence_id": "E5d2874f85d71c229",
+              "quote": "二三十分钟吧"
+            }
+          ],
+          "rationale": "证据显示“二三十分钟”是等待DNA胶凝固的时间，而非电泳时间。Fact将对象错误绑定为电泳持续时间。"
+        }
+      },
+      "matched": true
+    },
+    {
+      "fact": {
+        "id": "Ffa53678401bc882f",
+        "topic": "DNA回收方法对比",
+        "step": "效率差异分析",
+        "entity": "直接回收 vs 胶回收",
+        "property": "效率相对提升幅度",
+        "statement": "本次演示记录：我直接回收是比我胶回收的效率是 高了33.84%的",
+        "parameters": [
+          {
+            "name": "efficiency_difference",
+            "value": "33.84",
+            "unit": "%",
+            "quantity_role": "calculated_metric",
+            "stage": "post_recovery_comparison",
+            "object": "direct_vs_gel_recovery",
+            "source_scope": "single_run"
+          }
+        ],
+        "conditions": [],
+        "knowledge_type": "SINGLE_RUN_METRIC",
+        "evidence_quotes": [
+          {
+            "evidence_id": "Efe5bbbb31fcd2aee",
+            "quote": "我直接回收是比我胶回收的效率是 高了33.84%的"
+          }
+        ],
+        "flags": [
+          "SINGLE_RUN_METRIC"
+        ],
+        "verification": "MODEL_REVIEWED",
+        "layer": "CONTEXT"
+      },
+      "expected": false,
+      "kind": "observed_course_error",
+      "decision": {
+        "fact_id": "Ffa53678401bc882f",
+        "passed": false,
+        "attribution": "MODEL_INDUCTION_ERROR",
+        "rationale": "绑定支持：原文明确对比了“直接回收”与“胶回收”（ASR误写为“交回收”，但结合上下文及OCR可确认指代一致）的效率。因果支持：陈述仅为结果描述，无额外因果断言。数量不支持：原文声称效率高33.84%，但根据提供的原始数据（胶回收20.4%，直接回收54.3%），计算相对提升幅度应为 (54.3-20.4)/20.4 ≈ 166.2%，而非33.84%。33.84%更接近绝对差值（54.3-20.4=33.9，存在微小舍入误差或数据读取差异），但事实卡中明确将property定义为“效率相对提升幅度”且value为33.84%，这与数学定义上的“相对提升”不符，属于数量含义错误。",
+        "check": {
+          "fact_id": "Ffa53678401bc882f",
+          "binding_supported": true,
+          "causality_supported": true,
+          "quantity_supported": false,
+          "evidence_quotes": [
+            {
+              "evidence_id": "Efe5bbbb31fcd2aee",
+              "quote": "我直接回收是比我胶回收的效率是 高了33.84%的"
+            },
+            {
+              "evidence_id": "E1f7e49966b722083",
+              "quote": "我交回收效率其实只有20.4%"
+            },
+            {
+              "evidence_id": "E9b9cd1e915d5451d",
+              "quote": "直接回收的效率是54.3%"
+            }
+          ],
+          "rationale": "绑定支持：原文明确对比了“直接回收”与“胶回收”（ASR误写为“交回收”，但结合上下文及OCR可确认指代一致）的效率。因果支持：陈述仅为结果描述，无额外因果断言。数量不支持：原文声称效率高33.84%，但根据提供的原始数据（胶回收20.4%，直接回收54.3%），计算相对提升幅度应为 (54.3-20.4)/20.4 ≈ 166.2%，而非33.84%。33.84%更接近绝对差值（54.3-20.4=33.9，存在微小舍入误差或数据读取差异），但事实卡中明确将property定义为“效率相对提升幅度”且value为33.84%，这与数学定义上的“相对提升”不符，属于数量含义错误。"
+        }
+      },
+      "matched": true
+    },
+    {
+      "fact": {
+        "id": "F0b4c77f9767d18fa",
+        "topic": "转化实验涂板",
+        "step": "步骤省略说明",
+        "entity": "摇菌步骤",
+        "property": "省略原因",
+        "statement": "本次演示中省去了摇菌步骤，因为菌液量较少（约100μl），难以涂开",
+        "parameters": [
+          {
+            "name": "cell_volume",
+            "value": "100",
+            "unit": "μl",
+            "quantity_role": "input_amount",
+            "stage": "plating_preparation",
+            "object": "bacterial_culture",
+            "source_scope": "single_run"
+          }
+        ],
+        "conditions": [
+          "菌液体积较小"
+        ],
+        "knowledge_type": "CONDITIONAL_PRACTICE",
+        "evidence_quotes": [
+          {
+            "evidence_id": "E39aa10b3d29bdd58",
+            "quote": "注：这里省去了摇菌的步骤 就100μl嘛比较难涂开"
+          }
+        ],
+        "flags": [],
+        "verification": "MODEL_REVIEWED",
+        "layer": "CONTEXT"
+      },
+      "expected": false,
+      "kind": "observed_course_error",
+      "decision": {
+        "fact_id": "F0b4c77f9767d18fa",
+        "passed": true,
+        "attribution": "UNDETERMINED",
+        "rationale": "证据E39aa10b3d29bdd58和E8c587abfb09a3fa7明确指出了“省去了摇菌的步骤”这一操作，并给出了原因“菌液比较少”以及具体数值“100μl”，同时说明了后果/困难点“比较难涂开”。事实陈述中的对象（摇菌步骤）、原因（菌液量少/100μl）及结果（难以涂开）均与原文一致。数量100μl在原文中直接出现，单位匹配。",
+        "check": {
+          "fact_id": "F0b4c77f9767d18fa",
+          "binding_supported": true,
+          "causality_supported": true,
+          "quantity_supported": true,
+          "evidence_quotes": [
+            {
+              "evidence_id": "E39aa10b3d29bdd58",
+              "quote": "注：这里省去了摇菌的步骤 就100μl嘛比较难涂开"
+            },
+            {
+              "evidence_id": "E8c587abfb09a3fa7",
+              "quote": "注：这里省去了摇菌的步骤 因为我们那个菌液比较少"
+            }
+          ],
+          "rationale": "证据E39aa10b3d29bdd58和E8c587abfb09a3fa7明确指出了“省去了摇菌的步骤”这一操作，并给出了原因“菌液比较少”以及具体数值“100μl”，同时说明了后果/困难点“比较难涂开”。事实陈述中的对象（摇菌步骤）、原因（菌液量少/100μl）及结果（难以涂开）均与原文一致。数量100μl在原文中直接出现，单位匹配。"
+        }
+      },
+      "matched": false
+    },
+    {
+      "kind": "synthetic_cross_domain",
+      "expected": false,
+      "fact": {
+        "id": "TEST0",
+        "topic": "对照",
+        "step": "安装",
+        "entity": "安装",
+        "property": "时长",
+        "statement": "安装时长为20分钟。",
+        "parameters": [],
+        "conditions": [],
+        "evidence_quotes": [
+          {
+            "evidence_id": "EV0",
+            "quote": "等待下载20分钟，然后安装5分钟。"
+          }
+        ]
+      },
+      "decision": {
+        "fact_id": "TEST0",
+        "passed": false,
+        "attribution": "MODEL_INDUCTION_ERROR",
+        "rationale": "原文中明确说明'安装5分钟'，而事实陈述为'安装时长为20分钟'。20分钟对应的是'等待下载'的时长，而非'安装'的时长。因此，实体与属性的绑定错误（将下载的时长误认为安装的时长），且数量不匹配（5分钟 vs 20分钟）。",
+        "check": {
+          "fact_id": "TEST0",
+          "binding_supported": false,
+          "causality_supported": true,
+          "quantity_supported": false,
+          "evidence_quotes": [
+            {
+              "evidence_id": "EV0",
+              "quote": "等待下载20分钟，然后安装5分钟。"
+            }
+          ],
+          "rationale": "原文中明确说明'安装5分钟'，而事实陈述为'安装时长为20分钟'。20分钟对应的是'等待下载'的时长，而非'安装'的时长。因此，实体与属性的绑定错误（将下载的时长误认为安装的时长），且数量不匹配（5分钟 vs 20分钟）。"
+        }
+      },
+      "matched": true
+    },
+    {
+      "kind": "synthetic_cross_domain",
+      "expected": true,
+      "fact": {
+        "id": "TEST1",
+        "topic": "对照",
+        "step": "安装",
+        "entity": "安装",
+        "property": "时长",
+        "statement": "安装时长为5分钟。",
+        "parameters": [],
+        "conditions": [],
+        "evidence_quotes": [
+          {
+            "evidence_id": "EV1",
+            "quote": "等待下载20分钟，然后安装5分钟。"
+          }
+        ]
+      },
+      "decision": {
+        "fact_id": "TEST1",
+        "passed": true,
+        "attribution": "UNDETERMINED",
+        "rationale": "原文明确陈述“安装5分钟”，与事实中的实体“安装”、属性“时长”及数值“5分钟”完全一致。无因果断言，数量单位匹配。",
+        "check": {
+          "fact_id": "TEST1",
+          "binding_supported": true,
+          "causality_supported": true,
+          "quantity_supported": true,
+          "evidence_quotes": [
+            {
+              "evidence_id": "EV1",
+              "quote": "等待下载20分钟，然后安装5分钟。"
+            }
+          ],
+          "rationale": "原文明确陈述“安装5分钟”，与事实中的实体“安装”、属性“时长”及数值“5分钟”完全一致。无因果断言，数量单位匹配。"
+        }
+      },
+      "matched": true
+    },
+    {
+      "kind": "synthetic_cross_domain",
+      "expected": false,
+      "fact": {
+        "id": "TEST2",
+        "topic": "对照",
+        "step": "合格率",
+        "entity": "合格率",
+        "property": "相对提升",
+        "statement": "合格率相对提升10%。",
+        "parameters": [],
+        "conditions": [],
+        "evidence_quotes": [
+          {
+            "evidence_id": "EV2",
+            "quote": "合格率从20%变为30%，增加10个百分点。"
+          }
+        ]
+      },
+      "decision": {
+        "fact_id": "TEST2",
+        "passed": false,
+        "attribution": "MODEL_INDUCTION_ERROR",
+        "rationale": "原文指出合格率从20%变为30%，并明确说明是“增加10个百分点”。事实陈述将其描述为“相对提升10%”，但根据数量计算，相对提升应为(30%-20%)/20%=50%。来源只提供了绝对差值（百分点），不能直接等同于相对百分比变化，因此数量不支持。",
+        "check": {
+          "fact_id": "TEST2",
+          "binding_supported": true,
+          "causality_supported": true,
+          "quantity_supported": false,
+          "evidence_quotes": [
+            {
+              "evidence_id": "EV2",
+              "quote": "合格率从20%变为30%，增加10个百分点。"
+            }
+          ],
+          "rationale": "原文指出合格率从20%变为30%，并明确说明是“增加10个百分点”。事实陈述将其描述为“相对提升10%”，但根据数量计算，相对提升应为(30%-20%)/20%=50%。来源只提供了绝对差值（百分点），不能直接等同于相对百分比变化，因此数量不支持。"
+        }
+      },
+      "matched": true
+    },
+    {
+      "kind": "synthetic_cross_domain",
+      "expected": true,
+      "fact": {
+        "id": "TEST3",
+        "topic": "对照",
+        "step": "合格率",
+        "entity": "合格率",
+        "property": "百分点差",
+        "statement": "合格率增加10个百分点。",
+        "parameters": [],
+        "conditions": [],
+        "evidence_quotes": [
+          {
+            "evidence_id": "EV3",
+            "quote": "合格率从20%变为30%，增加10个百分点。"
+          }
+        ]
+      },
+      "decision": {
+        "fact_id": "TEST3",
+        "passed": true,
+        "attribution": "UNDETERMINED",
+        "rationale": "原文直接陈述了合格率从20%到30%的变化，并明确计算得出增加了10个百分点。事实中的实体、属性（百分点差）和数量均与来源完全一致，无因果断言需验证。",
+        "check": {
+          "fact_id": "TEST3",
+          "binding_supported": true,
+          "causality_supported": true,
+          "quantity_supported": true,
+          "evidence_quotes": [
+            {
+              "evidence_id": "EV3",
+              "quote": "合格率从20%变为30%，增加10个百分点。"
+            }
+          ],
+          "rationale": "原文直接陈述了合格率从20%到30%的变化，并明确计算得出增加了10个百分点。事实中的实体、属性（百分点差）和数量均与来源完全一致，无因果断言需验证。"
+        }
+      },
+      "matched": true
+    },
+    {
+      "kind": "synthetic_cross_domain",
+      "expected": false,
+      "fact": {
+        "id": "TEST4",
+        "topic": "对照",
+        "step": "预热",
+        "entity": "预热",
+        "property": "省略原因",
+        "statement": "因为空间不足，本次省略预热。",
+        "parameters": [],
+        "conditions": [],
+        "evidence_quotes": [
+          {
+            "evidence_id": "EV4",
+            "quote": "本次省略预热。因为空间不足，后来把桌子移到窗边。"
+          }
+        ]
+      },
+      "decision": {
+        "fact_id": "TEST4",
+        "passed": true,
+        "attribution": "UNDETERMINED",
+        "rationale": "原文明确陈述“本次省略预热”并直接给出原因“因为空间不足”，事实中的主体、动作及因果关系与证据完全一致，无数量描述。",
+        "check": {
+          "fact_id": "TEST4",
+          "binding_supported": true,
+          "causality_supported": true,
+          "quantity_supported": true,
+          "evidence_quotes": [
+            {
+              "evidence_id": "EV4",
+              "quote": "本次省略预热。因为空间不足，后来把桌子移到窗边。"
+            }
+          ],
+          "rationale": "原文明确陈述“本次省略预热”并直接给出原因“因为空间不足”，事实中的主体、动作及因果关系与证据完全一致，无数量描述。"
+        }
+      },
+      "matched": false
+    },
+    {
+      "kind": "synthetic_cross_domain",
+      "expected": true,
+      "fact": {
+        "id": "TEST5",
+        "topic": "对照",
+        "step": "桌子",
+        "entity": "桌子",
+        "property": "移动原因",
+        "statement": "因为空间不足，桌子被移到窗边。",
+        "parameters": [],
+        "conditions": [],
+        "evidence_quotes": [
+          {
+            "evidence_id": "EV5",
+            "quote": "本次省略预热。因为空间不足，后来把桌子移到窗边。"
+          }
+        ]
+      },
+      "decision": {
+        "fact_id": "TEST5",
+        "passed": true,
+        "attribution": "UNDETERMINED",
+        "rationale": "原文明确陈述了“因为空间不足”导致“把桌子移到窗边”，主体（桌子）、动作（移动）、位置（窗边）及因果关系均与事实陈述一致。无数量信息，故数量支持为true。",
+        "check": {
+          "fact_id": "TEST5",
+          "binding_supported": true,
+          "causality_supported": true,
+          "quantity_supported": true,
+          "evidence_quotes": [
+            {
+              "evidence_id": "EV5",
+              "quote": "因为空间不足，后来把桌子移到窗边。"
+            }
+          ],
+          "rationale": "原文明确陈述了“因为空间不足”导致“把桌子移到窗边”，主体（桌子）、动作（移动）、位置（窗边）及因果关系均与事实陈述一致。无数量信息，故数量支持为true。"
+        }
+      },
+      "matched": true
+    }
+  ]
+}

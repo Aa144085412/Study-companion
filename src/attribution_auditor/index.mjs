@@ -1,3 +1,4 @@
+import {reviewSemantics} from './semantic.mjs';
 import {chunkBySize,requireValue,BLOCK_FLAGS,norm} from '../pipeline/common.mjs';
 import {validateFacts} from '../note_synthesizer/index.mjs';import {AUDIT_PROMPT,REWRITE_PROMPT,SCOPE_PROMPT,PARAMETER_PROMPT} from './prompts.mjs';
 export function validateAudits(result,facts){
@@ -64,7 +65,11 @@ export async function auditFacts(facts,evidence,conflicts,{call,progress}){
    if(!c.generalizable||c.counterexample.trim()){const a=audits.find(a=>a.fact_id===f.id);a.decision='PENDING_VERIFICATION';a.generalizable=false;a.rationale='[初审接受已被独立适用范围审查否决] '+c.rationale+(c.counterexample?' 反例/缺失前提：'+c.counterexample:'');f.flags.push('PENDING_VERIFICATION');assignLayer(f,a);}
   }
  }
- return {facts,audits,rewrites,scope_checks};
+ const semantic_checks=await reviewSemantics(facts.filter(f=>f.layer!=='UNRESOLVED'),evidence,{call,progress,refsFor});
+ for(const c of semantic_checks){if(c.passed)continue;const f=facts.find(f=>f.id===c.fact_id),a=audits.find(a=>a.fact_id===c.fact_id);
+  a.supported=false;a.generalizable=false;a.decision='PENDING_VERIFICATION';a.attribution=c.attribution;a.rationale='[独立语义复核未通过] '+c.rationale;a.certainty='SOURCE_CHECK_REQUIRED';assignLayer(f,a);
+ }
+ return {facts,audits,rewrites,scope_checks,semantic_checks};
 }
 
 export function auditEvidence(cards,evidence){
@@ -72,5 +77,5 @@ export function auditEvidence(cards,evidence){
  const seeds=evidence.filter(e=>ids.has(e.id));
  for(const e of seeds)for(const id of e.aligned_evidence_ids)ids.add(id);
  for(const e of evidence)if(!e.noise&&seeds.some(s=>s.media_id&&s.media_id===e.media_id&&s.start_time!==null&&e.start_time!==null&&Math.abs(s.start_time-e.start_time)<=10))ids.add(e.id);
- return evidence.filter(e=>ids.has(e.id)&&!e.noise).map(e=>({id:e.id,source_type:e.source_type,text:e.text,raw_text:e.raw_text,flags:e.flags,aligned_evidence_ids:e.aligned_evidence_ids}));
+ return evidence.filter(e=>ids.has(e.id)&&!e.noise).map(e=>({id:e.id,source_id:e.source_id,media_id:e.media_id,start_time:e.start_time,end_time:e.end_time,source_type:e.source_type,text:e.text,raw_text:e.raw_text,flags:e.flags,aligned_evidence_ids:e.aligned_evidence_ids}));
 }

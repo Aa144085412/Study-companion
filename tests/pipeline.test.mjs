@@ -34,10 +34,10 @@ test('knowledge layers and quiz blacklist fail closed even when auditor says acc
 test('model induction error rewrites against original evidence and is re-audited',async()=>{
  let calls=[];const initial=fact({statement:'超时一定说明服务损坏',parameters:[]});
  const result=await auditFacts([initial],[ev()],[],{progress:()=>{},call:async(stage,prompt,input)=>{
- calls.push(stage);if(stage==='fact_rewrite')return {facts:[fact({statement:'该演示设置超时为10秒',parameters:[]})]};
+ calls.push(stage);if(stage==='source_relations')return {};if(stage==='semantic_check')return {checks:input.facts.map(f=>({fact_id:f.id,binding_supported:true,causality_supported:true,quantity_supported:true,evidence_quotes:[{evidence_id:'E1',quote:'超时设置为10秒'}],rationale:'对象、阶段及数量匹配原句'}))};if(stage==='fact_rewrite')return {facts:[fact({statement:'该演示设置超时为10秒',parameters:[]})]};
  return {audits:input.facts.map(f=>({fact_id:f.id,attribution:calls.length===1?'MODEL_INDUCTION_ERROR':'NONE',supported:calls.length!==1,generalizable:false,rationale:'原文仅说明设置',decision:calls.length===1?'REWRITE':'CONTEXT_ONLY'}))};
  }});
- assert.deepEqual(calls,['attribution_audit','fact_rewrite','attribution_audit']);assert.equal(result.rewrites[0].original_audit.attribution,'MODEL_INDUCTION_ERROR');assert.equal(result.facts[0].layer,'CONTEXT');assert.ok(!result.facts[0].statement.includes('损坏'));
+ assert.deepEqual(calls,['attribution_audit','fact_rewrite','attribution_audit','semantic_check','source_relations','semantic_check']);assert.equal(result.rewrites[0].original_audit.attribution,'MODEL_INDUCTION_ERROR');assert.equal(result.facts[0].layer,'CONTEXT');assert.ok(!result.facts[0].statement.includes('损坏'));
 });
 test('blind solver sees neither key, explanation, facts nor transcripts and rejects ambiguity',async()=>{
  const q={content:'为什么要验证输入？',topic:'验证',dimension:'WHY',options:'ABCD'.split('').map(id=>({id,text:'选项'+id})),correct_answer:'B',explanation:'私有参考解析',fact_ids:['F1']};
@@ -101,6 +101,7 @@ test('coverage review recovers an omitted topic with valid evidence',async()=>{
 test('parameter-only approval cannot cancel a detected induction error',async()=>{
  const parameters=[{name:'超时',value:'10',unit:'s',quantity_role:'等待阈值',stage:'请求',object:'客户端',source_scope:'本次'}];let rewritten=false;
  const result=await auditFacts([fact({parameters})],[ev()],[],{progress:()=>{},call:async(stage,p,input)=>{
+ if(stage==='source_relations')return {};if(stage==='semantic_check')return {checks:input.facts.map(f=>({fact_id:f.id,binding_supported:true,causality_supported:true,quantity_supported:true,evidence_quotes:[{evidence_id:'E1',quote:'超时设置为10秒'}],rationale:'对象、阶段及数量匹配原句'}))};
  if(stage==='fact_rewrite'){rewritten=true;return {facts:[fact({parameters})]};}
  return {audits:input.facts.map(f=>({fact_id:f.id,attribution:stage==='attribution_audit'&&!rewritten?'MODEL_INDUCTION_ERROR':'NONE',supported:stage==='parameter_audit'||rewritten,generalizable:false,rationale:'核对对象和原句',decision:stage==='attribution_audit'&&!rewritten?'REWRITE':'CONTEXT_ONLY'}))};
  }});assert.ok(rewritten);assert.equal(result.rewrites.length,1);assert.equal(result.facts[0].layer,'CONTEXT');
