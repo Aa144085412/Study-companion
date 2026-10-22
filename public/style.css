@@ -17,3 +17,12 @@ button.primary{background:var(--green);color:#fff;border-color:transparent}butto
 .note-render .note-citation{display:inline;width:auto;padding:0 2px;margin:0 1px;border:0;background:transparent;color:#3a83f7;font-size:11px;vertical-align:super;line-height:1;}
 
 .quiz-numbers{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.quiz-numbers .quiz-active{border-color:#3a83f7;background:#eaf2ff}.quiz-options{display:grid;gap:10px;margin:16px 0}.quiz-option{text-align:left;white-space:normal;line-height:1.6}.quiz-option:disabled{opacity:1;cursor:default}.quiz-option.quiz-correct{background:#e7f5ed;border-color:#38946a;color:#206544}.quiz-option.quiz-wrong{background:#fff0ee;border-color:#ce6b60;color:#8f3028}
+
+/* Evidence stays beside the note; narrow screens use a bounded bottom panel. */
+.workspace.evidence-open>.conversation{display:none}
+.workspace>#mediaArea{grid-column:2;grid-row:1;position:sticky;top:16px;background:white;border:1px solid var(--border);border-radius:14px;max-height:calc(100vh - 32px);overflow:auto}
+#evidenceDetails{padding:0 16px 16px;overflow-wrap:anywhere}
+.evidence-quote{margin:12px 0;padding:12px;border-left:3px solid #3a83f7;white-space:pre-wrap;line-height:1.8;background:#f3f6fc}
+.evidence-actions{display:flex;gap:8px;flex-wrap:wrap}.evidence-actions button{font-size:12px}
+.note-citation:focus{outline:3px solid #95bfff;outline-offset:2px}
+@media(max-width:850px){.workspace.evidence-open{padding-bottom:52vh}.workspace>#mediaArea{position:fixed;top:auto;bottom:8px;left:8px;right:8px;max-height:50vh;z-index:9;box-shadow:0 -4px 24px #0002}#mediaArea #player{max-height:22vh}}

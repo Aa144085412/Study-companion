@@ -349,3 +349,9 @@
 - **T6 · GitHub 备份首次 push** — 项目专属 repo + 三件套 + 首次 push 到 `origin=Aa144085412/Study-companion`（`main`）。
 - **T1 · 删除笔记本/来源能力** — `DELETE /api/notebooks/{id}` + `DELETE /api/sources/{id}`（版本链双向级联 + 孤儿媒体文件清理，带守卫）+ 界面删除按钮（`.danger`）+ 二次确认。回归 `tests/delete.test.mjs` 2 项；浏览器实测笔记本删除全流程通过。
 - **T7 · 自然中文朗读（Kokoro-ONNX，纯 CPU 不占显存）** — `POST /api/tts`（≤2000 字，回 `audio/wav`）+ 前端 `speak()`/`stopSpeak()`（走 `/api/tts`、失败回退浏览器本地音）+ 设置 8 中文音色（`db.settings.ttsVoice`）+ `setup-tts.ps1`（`.venv-tts`：kokoro-onnx+soundfile，下载模型/音色，自检写 flag）。活体中修 `ttsStatus()` 漏返 `python` 致 `spawn(undefined)`。`npm test` 11/11；浏览器实测 speak→200→blob 播放、stopSpeak、音色下拉、无控制台报错。详见 `docs/开发进度.md`。
+
+## T47 · 笔记与视频证据同屏核对
+- status: done · owner: Codex · files: public/app.js, public/index.html, public/style.css, src/note_renderer/index.mjs, tests/provenance.test.mjs, docs/按优先级迭代.md, CONTEXT.md, TASKS.md
+- 优先打通引用原文、视频片段、前后文回放和返回笔记；保留历史来源边界，不把可溯源等同于内容正确。
+
+- T47验收：语法通过、Node94/94；实际课程S198/S201同屏视频与原句、前后文与返回通过。历史类型缺失如实提示；语义准确性未重新评估。后续顺序见docs/按优先级迭代.md。

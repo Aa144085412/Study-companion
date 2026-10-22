@@ -10,7 +10,7 @@ function displayStatement(f,evidence){
 }
 export function renderNote({title,facts,clusters,audits,conflicts,evidence,glossary}){
  const labels=new Map(evidence.map((e,i)=>[e.id,'S'+(i+1)]));
- const citations=evidence.map(e=>({label:labels.get(e.id),sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,title:e.title,...(e.start_time===null?{}:{start:Math.round(e.start_time*1000),end:Math.round(e.end_time*1000)}),text:e.text,evidenceId:e.id}));
+ const citations=evidence.map(e=>({label:labels.get(e.id),sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,title:e.title,...(e.start_time===null?{}:{start:Math.round(e.start_time*1000),end:Math.round(e.end_time*1000)}),text:e.text,sourceType:e.source_type,evidenceId:e.id}));
  const quote=f=>[...new Set(f.evidence_quotes.map(q=>'['+labels.get(q.evidence_id)+']'))].join('');
  const lines=['# '+title,'','> 结构化学习笔记。核心层经过来源核对与独立模型审阅，尚不代表外部权威标准认证；不替代原课程及适用规范。'];
  for(const [layer,heading] of [['CORE','核心原理与标准规范'],['CONTEXT','本课实操与特定条件 / 单次演示数据'],['UNRESOLVED','争议/待核对与审计提示']]){
