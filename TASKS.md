@@ -11,13 +11,14 @@
 - 验收：说明链接与 git diff --check；只说明检查，不代表模型或功能验收。上传受连接器 403 阻断，远端仍未创建任务分支。
 
 ## T51 · 兼容云端 API 的模型与语音设置
-- status: doing · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
-- files: server.mjs, public/app.js, public/index.html, src/model_provider/*, tests/provider.test.mjs, .gitignore, CONTEXT.md, TASKS.md
-- 目标：保留本机默认，显式选择云端 HTTPS API；服务端鉴权、独立密钥保存、实际生成连接测试及协议模拟回归。
+- status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- files: server.mjs, public/app.js, public/index.html, src/model_provider/*, src/evidence_cleaner/index.mjs, scripts/visual_review.py, setup-course.ps1, tests/provider.test.mjs, .gitignore, CONTEXT.md, TASKS.md
+- 已实现：保留本机默认，显式选择云端 HTTPS API；服务端鉴权、独立密钥保存、实际生成连接测试、外部识别队列与秒→毫秒溯源、图片统一门禁及协议模拟回归。
+- 验收：Node114/114（API专项14/14）、Python19/19、语法通过；浏览器模拟接口设置与状态验证通过。未做真实云端模型验收。上传受连接器403阻断。
 - 边界：未选定服务商、无真实 API 密钥，不声称真实云端生成验收。语音和视觉按各自实现与依赖明确标注。
 
 ## T52 · 无本地模型的使用说明与交接验证
-- status: open · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- status: doing · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
 - files: docs/云端API接入.md, docs/阶段交付-2026-10-23.md, README.md, CONTEXT.md, TASKS.md
 - 验收：以现有界面字段和真实代码编写步骤，明确已支持/未验证项、服务商接续步骤和上传状态。
 
