@@ -18,9 +18,14 @@
 - 边界：未选定服务商、无真实 API 密钥，不声称真实云端生成验收。语音和视觉按各自实现与依赖明确标注。
 
 ## T52 · 无本地模型的使用说明与交接验证
-- status: doing · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
 - files: docs/云端API接入.md, docs/阶段交付-2026-10-23.md, README.md, CONTEXT.md, TASKS.md
-- 验收：以现有界面字段和真实代码编写步骤，明确已支持/未验证项、服务商接续步骤和上传状态。
+- 验收：以现有界面字段和真实代码编写步骤；README、云端接入说明和阶段记录一致。说明链接与差异空白检查通过；上传仍受连接器403阻断。
+
+## T53 · 既有阶段成果补传 GitHub 与 PR
+- status: blocked · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- 原因：当前 GitHub 连接器创建分支返回403 Resource not accessible by integration；本机直连不可用，远端仍只有 main。业务上传已获用户授权，需要可用写入连接。
+- 验收：重读远端变化；逐阶段上传并核对SHA；创建同一PR并关联聊天。不要覆盖他人新提交，不自动合并main。
 
 
 ## T45 · 通用学习工具产品化评估与本地家庭私测第一阶段
