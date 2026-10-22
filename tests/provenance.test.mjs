@@ -23,3 +23,15 @@ test('renderer preserves evidence type and millisecond timestamps for source ins
  const note=renderNote({title:'course',facts:[],clusters:[],audits:[],conflicts:[],glossary:[],evidence:[{id:'E1',source_id:'s',media_id:'m',start_time:1.25,end_time:2.5,text:'maybe',source_type:'VLM_VISUAL_INFERENCE'}]});
  assert.equal(note.citations[0].sourceType,'VLM_VISUAL_INFERENCE');assert.equal(note.citations[0].start,1250);
 });
+
+const range=vm.runInNewContext(code.slice(code.indexOf('function resolveReference('),code.indexOf('let referenceOrigin='))+';referenceRange');
+test('adjacent clips on one medium form a sorted playback range',()=>{
+ const r=range([{sourceId:'s',start:4000,end:6000},{sourceId:'s',start:0,end:2000}],sources);
+ assert.equal(r.start,0);assert.equal(r.end,6000);assert.equal(r.mediaId,'old');
+});
+test('different media, distant clips and missing end times must not become one playback span',()=>{
+ assert.equal(range([{mediaId:'m',start:0,end:2000},{mediaId:'old',start:2000,end:4000}],sources),null);
+ assert.equal(range([{mediaId:'m',start:0,end:2000},{mediaId:'m',start:9000,end:10000}],sources),null);
+ assert.equal(range([{mediaId:'m',start:0}],sources),null);
+ assert.equal(range([{mediaId:'m',start:0,end:90000}],sources),null);
+});

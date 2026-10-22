@@ -52,6 +52,27 @@ function resolveReference(ref,sources){
  const end=valid(ref.end)&&ref.end>start?ref.end:valid(segment?.end)&&segment.end>start?segment.end:null;
  return {source,media,start,end,text:ref.text||segment?.text||'',sourceType:ref.sourceType||'UNKNOWN'};
 }
+// Only coalesce adjacent, bounded clips from the same media; retain every quotation.
+function referenceRange(refs,sources){
+ const rows=refs.map(r=>resolveReference(r,sources));
+ if(!rows.length||rows.some(r=>!r.media||r.start===null||r.end===null))return null;
+ if(rows.some(r=>r.media.id!==rows[0].media.id))return null;
+ rows.sort((a,b)=>a.start-b.start);let end=rows[0].end;
+ for(const r of rows.slice(1)){if(r.start>end+3000)return null;end=Math.max(end,r.end);}
+ if(end-rows[0].start>60000)return null;
+ return {mediaId:rows[0].media.id,start:rows[0].start,end};
+}
+function showReferences(refs,index=0,origin=document.activeElement){
+ showReference(refs[index]);referenceOrigin=origin;
+ if(refs.length<2)return;
+ const box=$('evidenceDetails'),list=node('div','evidence-parts');
+ list.append(node('h3','','本条笔记的 '+refs.length+' 条证据'),node('p','hint','同一条笔记可能由多个片段共同支持。原始证据逐条保留，未视为重复内容删除。'));
+ const range=referenceRange(refs,state.sources);
+ if(range)list.append(button('连续回放 '+time(range.start)+' — '+time(range.end),()=>play(range.mediaId,range.start,range.end,true)));
+ refs.forEach((ref,i)=>{const r=resolveReference(ref,state.sources);list.append(button((i===index?'正在查看 · ':'')+'['+ref.label+'] '+(r.start!==null?time(r.start):'无时间定位'),()=>showReferences(refs,i,origin)),node('p','evidence-quote',r.text||'未保存原句'));});
+ box.append(list);
+ if(range&&index===0)play(range.mediaId,range.start,range.end,true);
+}
 let referenceOrigin=null;
 function openEvidencePanel(){
  const area=$('mediaArea');document.querySelector('.workspace').append(area);
@@ -103,7 +124,18 @@ function renderNote(){
   editor.classList.toggle('hidden',read||noBook);
   if(read&&!noBook){box.innerHTML=content?renderMarkdown(content):'<p class="note-empty">还没有内容。切到「编辑」写第一版，或导入资料后点「从资料整理」。</p>';
     const revision=[...(state?.revisions||[])].reverse().find(r=>r.notebookId===current&&r.content===content);
-    for(const cite of box.querySelectorAll('sup.cite')){const ref=revision?.citations?.find(r=>r.label===cite.textContent);if(ref){const b=button('['+ref.label+']'+(Number.isFinite(ref.start)?' '+time(ref.start):''),()=>showReference(ref),'note-citation');b.title='核对引用原文与视频';cite.replaceWith(b);}else{cite.title='当前文本没有匹配的来源记录，请勿将该编号视为已核验';}}
+    const groups=new Map();
+    for(const cite of box.querySelectorAll('sup.cite')){
+      const block=cite.closest('li,p,blockquote,h1,h2,h3,h4,h5,h6')||cite.parentElement;
+      if(!groups.has(block))groups.set(block,[]);groups.get(block).push(cite);
+    }
+    for(const cites of groups.values()){
+      const refs=[...new Set(cites.map(c=>c.textContent))].map(label=>revision?.citations?.find(r=>r.label===label));
+      if(refs.some(r=>!r)){for(const cite of cites)cite.title='当前文本没有完整匹配的来源记录，请勿将该编号视为已核验';continue;}
+      const range=referenceRange(refs,state.sources);
+      const label='查看依据'+(range?' · '+time(range.start)+'–'+time(range.end):'')+(refs.length>1?' · '+refs.length+' 条':'');
+      const b=button(label,()=>showReferences(refs),'note-citation');b.title='展开本条笔记的全部证据与视频';cites[0].replaceWith(b);for(const cite of cites.slice(1))cite.remove();
+    }
   }
 }
 function renderMarkdown(md){
