@@ -1,55 +1,41 @@
-# COLLAB.md — 双 agent（codex + claude code）协作手册
+# COLLAB.md — 研习伴协作手册
 
-同一台机器、同一个文件夹、同一个 git repo。两人各自的对话上下文会独立压缩/重启，
-所以**进度只认文件系统和 git**，不认对话记忆。守这份手册即可自动衔接。
+适用于真人协作者、Codex 与 Claude Code。默认每位执行者使用独立 clone 或独立 Git 工作树，每项任务一个短期分支，通过 PR 合并到 main。进度以文件系统、Git 与可重复验证为准，不依赖聊天上下文。
 
-## 真相源优先级（冲突时以此为准）
+## 真相源优先级
 
-代码 > 测试/运行时行为 > 配置 > git diff > `CONTEXT.md` > `TASKS.md` > git history > 对话记忆。
+代码 > 测试/运行时行为 > 配置 > git diff > CONTEXT.md > TASKS.md > git history > 对话记忆。历史验证只代表当时环境；文档写着已安装或已配置，不代表当前机器的服务在线。
 
-## 开工前（每个 agent，每次接手）
+## 开工前
 
-1. 读 `CONTEXT.md` 的 Recovery Capsule（Status / Active task / Last verified state / Current blocker / Next safe action）。
-2. 读 `TASKS.md`，找 `status=open` 且 owner=你的（或无 owner 可认领）的条目。
-3. `git log --oneline -15` + `git status`：看对方做到哪、有没有未提交改动。
-4. 认领：在 `TASKS.md` 把该条 `owner` 改成自己、`status` 改 `doing`。
-5. 需要时验证运行时（如 `curl 127.0.0.1:8765/api/state`），别假设服务在跑。
+1. 在自己的目录检查 `git status --short --branch`。先确认未提交修改的归属；不要重置或覆盖他人的文件。
+2. 工作区干净时，`git switch main`、`git pull --ff-only origin main`；读取 `git log --oneline -15`。
+3. 读 CONTEXT.md 顶部的最新接手状态，再读 TASKS.md 和本手册。旧 Recovery Capsule 与日志保留为历史，不覆盖新的阶段记录。
+4. 在双方可见的 Issue、PR 或约定沟通渠道确认任务归属。TASKS.md 写明可区分执行者的 owner、分支、状态、涉及文件和验收命令；本地编辑不构成共享锁。
+5. 从最新 main 创建任务分支，例如 `git switch -c feat/姓名-任务`。本会话分支为 `codex/cloud-api-onboarding`，任务范围见 T50–T52。
 
-## 收尾 / 交接（做完一个可验证单元）
+## 阶段开发与交接
 
-1. 跑相关验证：`npm test`、`tests/opencc_check.py`、或活体 curl。以「验证过的状态」为准。
-2. 更新 `CONTEXT.md`：Last verified state、Next safe action、Completed Work（若新增）。
-3. 更新 `TASKS.md`：该条 `status` → `done`（或 `blocked`+原因）。
-4. **只提交已验证改动**：`git add <具体文件>`（别 `-A`），commit message 写「为什么」。
-5. 若涉及服务器：停→确认 8765 端口关→启动，勿长期双开共享 `data/store` 的进程。
-6. 需要留档时更新 `docs/开发进度.md`。
+每阶段完成一个可验证单元：实现或说明 → 相关验证 → 更新 CONTEXT.md / TASKS.md → 只添加具体文件 → commit → 在已获授权范围内 push 任务分支 → 核对远端 → 向用户反馈。阶段记录写清范围、结果、未验证项、下一步和上传状态，格式见 [协作与阶段交付](docs/协作与阶段交付.md)。
 
-## 防冲突（关键）
+基础验证为 `npm.cmd run check` 和 `npm.cmd test`。Windows 出现临时文件并发锁问题时，可使用 `node --test --test-concurrency=1 tests/*.test.mjs`。涉及 Python、真实模型、视频或界面时补相应验证，并区分模拟测试、历史真实验证和本轮真实验证。仅修改说明时检查链接和 `git diff --check` 即可，不把说明检查当功能测试。
 
-- **owner 原则**：`TASKS.md` 里 `status=doing` 的条目，owner 不是你的就别碰相关文件。
-- 提交前 `git status` 看有没有对方的未提交改动；有就先读对方改了什么，必要时等对方 commit。
-- 一次 commit 一个可验证单元，粒度小，别把多件不相关的事混进一个 commit。
-- 大改动或方向变更：先写进 `CONTEXT.md` 的 Important Decisions，再动手。
+只提交本任务明确修改且已验证的文件，使用 `git add <具体文件>`，不使用 `git add -A` 混入他人工作。大改动先在 CONTEXT.md 记录目的和边界。保留既有笔记、原始证据、历史验证和未解决任务，不擅自将其标为完成。
 
-## GitHub 同步节奏
+## 分支、PR 与同步
 
-- `main` = 已验证的共享真相；只有验证过的东西进 main。
-- **push 需授权**：`push` 到 GitHub 属影响外部共享状态的动作，除非用户明确授权，先问再推。
-- 拉取：接手前 `git pull`（若对方已 push）；本地两 agent 同机同树，通常无需频繁 pull，push 仅作备份/跨机。
+- main 保存审核后可共享的版本；任务分支可保存已验证的阶段增量。使用草稿 PR 展示未完成工作，完成后转为待审核。
+- push 以用户授权为准；用户已明确要求阶段上传时，授权在该任务范围内持续有效，无需每阶段重复询问。合并 main、公开部署及修改权限分别以相应授权为准。
+- PR 说明包含具体问题、最终行为、验证结果和已知边界，由另一位协作者审核后合并。提交更多改动到同一分支会更新同一 PR。
+- 正在开发的分支需要同步主线时，先提交本地改动，再 `git fetch origin`、`git merge origin/main`；解决冲突后重新验证。禁止擅自 force push、删除分支或重置他人工作。
+- 合并后，双方更新本地 main，并从最新 main 为下一项任务新建分支。远端未出现提交时，不把本地 commit 称为已上传。
 
-## 不要做
+## 本机环境与用户数据
 
-- 不重复已成功/已验证的操作；不重写已解决的工作。
-- 不假设工具跑成功——以实际返回为准。
-- 不擅自 `git push`、不动家目录（`C:/Users/a1440`）大仓库、不动 `data/store.json` 之外的个人数据。
-- 破坏性操作（删除文件/分支、force push、重置）先问用户。
+每个副本独立保存 data、模型、配置与运行环境。Git 代码同步不能替代用户数据备份。不要提交 cookies、密钥、data、模型或虚拟环境，也不将另一台机器的绝对路径当作通用安装位置。
 
-## 2026-10-10 补充：共享目录接手规则
+接手时先只读检查正在运行的服务，禁止为了核对进度擅自重启用户服务。不得启动多个进程共享同一个 data/store.json；同机多个副本同时运行时使用独立数据目录及不同端口。改变 API 连接方式也要明确数据处理位置，不假设切换地址后所有功能自动可用。
 
-- 项目入口为 AGENTS.md → CONTEXT.md / TASKS.md / 本文件。历史聊天仅用于解释背景。
-- 任务认领写明 owner、状态、涉及文件和验收命令；另一 agent 的未提交文件先确认归属，不能自动当成废弃文件。
-- 修改文档前也应检查文件哈希或最新 diff，变化后重读，避免旧进度覆盖新进度。
-- 区分“代码存在”“模拟测试通过”“历史真实验证”“当前在线验证”；模型/环境文件存在不代表服务在线或功能完整。
-- 接手前 read-only 检查运行状态；禁止为了对齐进度擅自重启正在运行的用户服务。
-- 当前 ASR 本地离线，TTS 为 edge-tts 云端；不再复述旧 Kokoro 或全离线结论。
-- 不从旧 dev-stage 暂存覆盖共享项目。只提交本任务明确修改的文件，不夹带 OCR 等他人工作，不自动 push。
+## 历史同目录接手方式
+
+2026-10-10 的默认方式是两位 agent 共用同一个目录。该方式仅适合明确轮流接手：一位结束并提交可验证单元，另一位才开始；同目录切换分支会改变双方可见文件。已有主机上的用户数据与工作目录继续保留，不用新副本覆盖，不从旧 dev-stage 回填。当前 ASR 内置模式为本地识别，TTS 为 edge-tts 云端；其他模式以设置、代码和本轮验证为准。

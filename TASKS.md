@@ -4,6 +4,24 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T50 · 双人任务分支与阶段交接入口统一
+- status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- files: AGENTS.md, COLLAB.md, README.md, docs/协作与阶段交付.md, CONTEXT.md, TASKS.md
+- 范围：独立副本与任务分支、共享认领、阶段交付、PR 和持续授权；保留旧同目录方式为轮流接手场景。
+- 验收：说明链接与 git diff --check；只说明检查，不代表模型或功能验收。上传受连接器 403 阻断，远端仍未创建任务分支。
+
+## T51 · 兼容云端 API 的模型与语音设置
+- status: doing · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- files: server.mjs, public/app.js, public/index.html, src/model_provider/*, tests/provider.test.mjs, .gitignore, CONTEXT.md, TASKS.md
+- 目标：保留本机默认，显式选择云端 HTTPS API；服务端鉴权、独立密钥保存、实际生成连接测试及协议模拟回归。
+- 边界：未选定服务商、无真实 API 密钥，不声称真实云端生成验收。语音和视觉按各自实现与依赖明确标注。
+
+## T52 · 无本地模型的使用说明与交接验证
+- status: open · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- files: docs/云端API接入.md, docs/阶段交付-2026-10-23.md, README.md, CONTEXT.md, TASKS.md
+- 验收：以现有界面字段和真实代码编写步骤，明确已支持/未验证项、服务商接续步骤和上传状态。
+
+
 ## T45 · 通用学习工具产品化评估与本地家庭私测第一阶段
 - status: open · owner: Codex · files: server.mjs, public/app.js, tests/quiz.test.mjs, src/release/*, scripts/check-release.mjs, evaluation/release/*, docs/产品化迭代路线.md, CONTEXT.md, TASKS.md
 - 用户确认：领域/学段通用，少量家庭本地安装私测。先建立发布验收、题目问题反馈与暂停机制；不把本轮称为完成全部产品化。
