@@ -4,6 +4,25 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+## T54 · 两位工作者的任务与分支边界
+- status: done · owner: 工作者A / Codex（本会话） · branch: codex/cloud-api-onboarding
+- files: AGENTS.md, COLLAB.md, CONTEXT.md, TASKS.md, README.md, docs/双人分工与验收.md, docs/阶段交付-2026-10-23.md
+- 结果：明确本轮 T50–T53 均由 A 完成；A 继续 T55，B 的 T56 为待认领。分别写清负责结果、文件范围、验收条件和 PR 依赖，保留历史贡献归属，不声称已安排第二位执行者开工。
+- 验收：说明链接及 git diff --check；预备分支 collab/content-quality 在 T55 验证后建立，实际远端状态见 CONTEXT.md。
+
+## T55 · 统一工程验收入口与 PR 自动检查
+- status: doing · owner: 工作者A / Codex（本会话） · branch: codex/cloud-api-onboarding
+- files: scripts/verify.mjs, package.json, .github/workflows/verify.yml, docs/双人分工与验收.md, README.md, CONTEXT.md, TASKS.md, docs/阶段交付-2026-10-23.md
+- 范围：一条命令检查语法、说明链接、Python校验环境、Node顺序回归与Python回归；PR自动执行Windows/Node22及24/Python3.13工程检查，不依赖真实模型或用户data。
+- 验收：本机完整运行 npm.cmd run verify；上传后核对 GitHub 自动检查的实际结果，远端未运行或未通过时如实记录。检查通过不等于真实课程质量验收。
+
+## T56 · B 的语义与证据质量首个接续阶段
+- status: open · owner: 工作者B（第二位协作者，待认领，尚未开始） · branch: collab/content-quality
+- files: src/attribution_auditor/semantic.mjs, tests/semantic.test.mjs, evaluation/worker-b/*, docs/质量验收-工作者B.md；仅更新共享说明中的本任务条目
+- 范围：承接 T44/T41，先补至少6个新开发样例，跨至少两个领域，含正确/错误对照及对象步骤、数量语义、因果绑定；逐例保存材料、预期理由和实际结果，再修复可复现的问题，不按课程词汇硬编码。
+- 验收：复用 T55 的工程验证；真实课程复测需另有服务商/密钥及材料，记录真实与模拟边界，不把新增开发样例称为留出准确率。保留旧用户笔记与 T45 暂停状态。
+- 认领：B 接手时填写真实可区分 owner，提交并推送该任务认领记录。当前仅完成分工安排，不能标为 doing 或 done。
+
 ## T50 · 双人任务分支与阶段交接入口统一
 - status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
 - files: AGENTS.md, COLLAB.md, README.md, docs/协作与阶段交付.md, CONTEXT.md, TASKS.md

@@ -8,6 +8,8 @@
 
 每位执行者使用独立 clone 或 Git 工作树，每项任务从最新 main 创建分支，通过 PR 审核后合并。先读 [CONTEXT.md](CONTEXT.md) 顶部最新状态、[TASKS.md](TASKS.md) 与 [COLLAB.md](COLLAB.md)，再查看当前分支、工作区和近期提交。
 
+两位工作者的具体安排见 [双人分工与验收](docs/双人分工与验收.md)：A（本会话 Codex）继续接入与工程验证，B（第二位协作者，待认领）负责内容语义和证据质量；分支存在不等于双方都已完成任务。
+
 同步命令、任务认领和阶段反馈格式见 [协作与阶段交付](docs/协作与阶段交付.md)。本次工作分支为 `codex/cloud-api-onboarding`；截至 2026-10-23，三个阶段已依次上传并核对远端提交，已创建 [PR #1](https://github.com/Aa144085412/Study-companion/pull/1)，等待审核。详情见 [阶段交付记录](docs/阶段交付-2026-10-23.md)。
 
 ## 没有本地模型：先走云端 API

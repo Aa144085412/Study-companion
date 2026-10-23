@@ -12,7 +12,7 @@
 2. 工作区干净时，`git switch main`、`git pull --ff-only origin main`；读取 `git log --oneline -15`。
 3. 读 CONTEXT.md 顶部的最新接手状态，再读 TASKS.md 和本手册。旧 Recovery Capsule 与日志保留为历史，不覆盖新的阶段记录。
 4. 在双方可见的 Issue、PR 或约定沟通渠道确认任务归属。TASKS.md 写明可区分执行者的 owner、分支、状态、涉及文件和验收命令；本地编辑不构成共享锁。
-5. 从最新 main 创建任务分支，例如 `git switch -c feat/姓名-任务`。本会话分支为 `codex/cloud-api-onboarding`，任务范围见 T50–T52。
+5. 从最新 main 创建任务分支，例如 `git switch -c feat/姓名-任务`。本会话 A 分支为 `codex/cloud-api-onboarding`，任务范围见 T50–T55；依赖尚未合并 PR 的 B 接续分支及审核顺序见 [双人分工与验收](docs/双人分工与验收.md)。
 
 ## 阶段开发与交接
 
