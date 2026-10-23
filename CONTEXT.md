@@ -1,15 +1,16 @@
 # 当前接手状态 · 2026-10-23
 
-- 任务：T50–T52；owner：Codex（本会话）；branch：codex/cloud-api-onboarding；基线 main/e401ebc6a9cfadb1eb361764d75af40e2ebafbb2。
+- 任务：T50–T53 已完成；owner：Codex（本会话）；branch：codex/cloud-api-onboarding；基线 main/e401ebc6a9cfadb1eb361764d75af40e2ebafbb2。
 - 用户已授权本任务分阶段完善、反馈并上传 GitHub；云端服务商未选定，先完善兼容 OpenAI 格式的 API 配置。该授权不包含合并 main 或公开部署。
 - 阶段1：统一 AGENTS / COLLAB / README 的独立副本与任务分支规则，新增 docs/协作与阶段交付.md；历史进度保留在下方。
-- 上传状态：远端初查只有 main；连接器创建任务分支返回 403 Resource not accessible by integration。本地已从完整校验的同一上游提交建立任务分支；尚未创建远端分支，不称为已上传。
+- 上传状态：远端初查只有 main；现已建立 codex/cloud-api-onboarding，按顺序推送阶段1/d88afce、阶段2/7003ac3、阶段3/2f999ee，并逐次核对远端 SHA。已创建 [PR #1](https://github.com/Aa144085412/Study-companion/pull/1) 并关联当前聊天；main 仍为原基线，等待另一位协作者审核。
+- 连接处理：GitHub 插件原先因目标仓库不在当前安装范围而返回403；该插件范围没有改变。使用本机 Git Credential Manager 的浏览器回调登录，已核验协作者账号 cmccjiang；经本机已有网络代理成功推送，并以同一登录创建 PR。没有把凭据写入仓库。
 - 已验证：121 个文件的 Git blob SHA 与上游一致，完整 Git tree db004f86f527b7fe3a6f8b86f66e976314c42e95 一致。说明阶段检查见提交记录；下方历史测试不代表本轮重测。
 - 阶段2：本地/云端显式选择、LLM/ASR 独立鉴权与密钥保存、文本生成连接测试、外部语音队列和时间戳适配、统一图片发送门禁已实现。视觉请求经本机网关，不向 Python 任务配置写密钥；云端请求去除本地专用 chat_template_kwargs。
 - 本轮验证：Node 114/114（含14项 API 专项）、Python19/19、语法检查通过；浏览器验证云端字段保存、密钥输入保存后清空、文本连接测试和语音状态提示，控制台无错误。全部模型响应为协议模拟，未调用真实云端服务，未重跑既有课程。
 - 运行环境：本轮 Node v26.7.0、Python3.13，独立 .venv-ocr 安装 requirements-course.txt 的 Pydantic，setup-course.ps1 已实跑通过；没有下载本地模型。
 - 阶段3：README 已按当前实现重排，docs/云端API接入.md 和 docs/阶段交付-2026-10-23.md 已补齐。代码、协作约定、用户操作和验证边界可由后续执行者直接接续。
-- 下一步 T53：恢复对本仓库具备代码写入权限的 GitHub 连接后，按阶段顺序上传既有提交、核对远端并创建 PR。上传授权已存在，不需重复申请同一业务许可。真实服务商选择与实际功能验收另行记录，不能用本轮模拟代替。
+- 下一步：另一位协作者先审阅 PR #1；继续开发时先同步该任务分支并检查远端变化。真实服务商尚未选定，语言、语音、视觉与工具能力的实际验收按 docs/云端API接入.md 另行记录，不能用本轮模拟代替。当前成果未合并 main、未公开部署。
 - 原有 T44 语义质量复测、T41 跨领域扩展及暂停中的 T45 保持原状态；本任务不改写用户已有笔记或模型产物。
 
 ---

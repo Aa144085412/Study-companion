@@ -8,24 +8,24 @@
 - status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
 - files: AGENTS.md, COLLAB.md, README.md, docs/协作与阶段交付.md, CONTEXT.md, TASKS.md
 - 范围：独立副本与任务分支、共享认领、阶段交付、PR 和持续授权；保留旧同目录方式为轮流接手场景。
-- 验收：说明链接与 git diff --check；只说明检查，不代表模型或功能验收。上传受连接器 403 阻断，远端仍未创建任务分支。
+- 验收：说明链接与 git diff --check；只说明检查，不代表模型或功能验收。阶段提交 d88afce 已推送任务分支并核对远端 SHA，见 PR #1。
 
 ## T51 · 兼容云端 API 的模型与语音设置
 - status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
 - files: server.mjs, public/app.js, public/index.html, src/model_provider/*, src/evidence_cleaner/index.mjs, scripts/visual_review.py, setup-course.ps1, tests/provider.test.mjs, .gitignore, CONTEXT.md, TASKS.md
 - 已实现：保留本机默认，显式选择云端 HTTPS API；服务端鉴权、独立密钥保存、实际生成连接测试、外部识别队列与秒→毫秒溯源、图片统一门禁及协议模拟回归。
-- 验收：Node114/114（API专项14/14）、Python19/19、语法通过；浏览器模拟接口设置与状态验证通过。未做真实云端模型验收。上传受连接器403阻断。
+- 验收：Node114/114（API专项14/14）、Python19/19、语法通过；浏览器模拟接口设置与状态验证通过。未做真实云端模型验收。阶段提交 7003ac3 已推送任务分支并核对远端 SHA，见 PR #1。
 - 边界：未选定服务商、无真实 API 密钥，不声称真实云端生成验收。语音和视觉按各自实现与依赖明确标注。
 
 ## T52 · 无本地模型的使用说明与交接验证
 - status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
 - files: docs/云端API接入.md, docs/阶段交付-2026-10-23.md, README.md, CONTEXT.md, TASKS.md
-- 验收：以现有界面字段和真实代码编写步骤；README、云端接入说明和阶段记录一致。说明链接与差异空白检查通过；上传仍受连接器403阻断。
+- 验收：以现有界面字段和真实代码编写步骤；README、云端接入说明和阶段记录一致。说明链接与差异空白检查通过；阶段提交 2f999ee 已推送任务分支并核对远端 SHA，见 PR #1。
 
 ## T53 · 既有阶段成果补传 GitHub 与 PR
-- status: blocked · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
-- 原因：当前 GitHub 连接器创建分支返回403 Resource not accessible by integration；本机直连不可用，远端仍只有 main。业务上传已获用户授权，需要可用写入连接。
-- 验收：重读远端变化；逐阶段上传并核对SHA；创建同一PR并关联聊天。不要覆盖他人新提交，不自动合并main。
+- status: done · owner: Codex（本会话） · branch: codex/cloud-api-onboarding
+- 原阻碍（已解决）：插件创建分支和 PR 返回403，目标仓库不在当前插件安装范围；本机经已有网络代理，使用 Git Credential Manager 浏览器回调登录 cmccjiang 后成功上传。插件范围未改变。
+- 验收：上传前重读远端，main 仍为 e401ebc；三个阶段按顺序推送并逐次核对 SHA。已创建 [PR #1](https://github.com/Aa144085412/Study-companion/pull/1) 并关联当前聊天；未覆盖他人提交，未合并 main。上传结果已同步 README、CONTEXT 和阶段记录。
 
 
 ## T45 · 通用学习工具产品化评估与本地家庭私测第一阶段
