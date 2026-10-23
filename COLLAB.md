@@ -1,7 +1,6 @@
 # COLLAB.md — 双 agent（codex + claude code）协作手册
 
-同一台机器、同一个文件夹、同一个 git repo。两人各自的对话上下文会独立压缩/重启，
-所以**进度只认文件系统和 git**，不认对话记忆。守这份手册即可自动衔接。
+每位工作者使用独立副本或Git工作树，同一目录仅可明确轮流接手。进度以代码、验证、文件系统和Git为准；主项目原框架优先，不根据分支说明或旧聊天另建一套业务实现。A/B职责见 [主项目核查与分工](docs/主项目核查与分工-2026-10-23.md)。
 
 ## 真相源优先级（冲突时以此为准）
 
@@ -9,11 +8,9 @@
 
 ## 开工前（每个 agent，每次接手）
 
-1. 读 `CONTEXT.md` 的 Recovery Capsule（Status / Active task / Last verified state / Current blocker / Next safe action）。
-2. 读 `TASKS.md`，找 `status=open` 且 owner=你的（或无 owner 可认领）的条目。
-3. `git log --oneline -15` + `git status`：看对方做到哪、有没有未提交改动。
-4. 认领：在 `TASKS.md` 把该条 `owner` 改成自己、`status` 改 `doing`。
-5. 需要时验证运行时（如 `curl 127.0.0.1:8765/api/state`），别假设服务在跑。
+必须按 [任务进入检查](docs/任务进入检查.md) 的顺序执行：工作区归属与fetch → 主线差异与原框架 → CONTEXT顶部和完整TASKS → 未完成/暂停/历史遗留 → MD进入记录与认领 → 实现。旧Recovery Capsule只作历史背景。
+
+先运行 `npm.cmd run task:check`，认领后再带 `--task` 和准确 `--owner` 核对；T45的hold不能被open状态覆盖。任务表可能在末尾追加条目，不只读顶部。需要在线验证时先只读检查已有服务，不假设服务或模型已启动。
 
 ## 收尾 / 交接（做完一个可验证单元）
 
@@ -35,7 +32,7 @@
 
 - `main` = 已验证的共享真相；只有验证过的东西进 main。
 - **push 需授权**：`push` 到 GitHub 属影响外部共享状态的动作，除非用户明确授权，先问再推。
-- 拉取：接手前 `git pull`（若对方已 push）；本地两 agent 同机同树，通常无需频繁 pull，push 仅作备份/跨机。
+- 拉取：每次接手先fetch核对远端与当前分支；工作区干净后同步对应分支和origin/main。PR分支已完成但未合入main时单独记集成待办，不把它当主线已经具备的能力。阶段上传授权在任务范围内持续有效，主线集成与部署按相应授权执行。
 
 ## 不要做
 

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check server.mjs && node --check public/app.js"
+    "check": "node --check server.mjs && node --check public/app.js",
+    "task:check": "node scripts/check-task-entry.mjs"
   },
   "engines": {
     "node": ">=22"
