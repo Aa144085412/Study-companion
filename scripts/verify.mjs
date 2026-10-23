@@ -10,6 +10,7 @@ const env = {...process.env, PYTHONUTF8:'1', STUDY_LLM_API_KEY:'', STUDY_ASR_API
 const guides = [
   'README.md', 'COLLAB.md', 'docs/协作与阶段交付.md',
   'docs/云端API接入.md', 'docs/阶段交付-2026-10-23.md', 'docs/双人分工与验收.md',
+  'docs/任务进入检查.md', 'docs/主项目核查与分工-2026-10-23.md', 'docs/任务进入记录/2026-10-23-T57.md',
 ];
 
 function filesIn(directory) {
@@ -54,6 +55,7 @@ try {
 
   const started = Date.now();
   console.log(`工程验收：Node ${process.versions.node} / ${process.platform}；根目录 ${root}`);
+  run('原主项目任务进度检查', process.execPath, ['scripts/check-task-entry.mjs']);
   console.log('\n[1/5] 校验 Python 3.10+ 与 Pydantic 2.10+ 环境');
   run('Python 环境校验', python, ['-c', "import sys, pydantic; assert sys.version_info >= (3,10), 'Python 3.10+ is required'; assert (2,10) <= tuple(map(int,pydantic.__version__.split('.')[:2])) < (3,0), 'Pydantic >=2.10,<3 is required'; print('Python:', sys.version.split()[0], '| Pydantic:', pydantic.__version__)"], '请在 Windows PowerShell 运行 .\\setup-course.ps1 后重试。');
 
