@@ -64,6 +64,6 @@ npm.cmd run verify
 
 首次执行前先运行 setup-course.ps1。统一入口会检查 Python/Pydantic 环境、39 个 JavaScript 文件语法、当前说明链接、Node 顺序回归和 Python 回归；任一步失败会返回非零退出码，修复后重新运行完整入口。单独定位问题仍可使用 npm.cmd run check 或 npm.cmd test。
 
-2026-10-23 本机完整验收：Node 114/114（API 专项 14/14）、Python 19/19、语法与说明链接通过，运行环境为 Node v26.7.0、Python 3.13。PR 自动检查使用 Windows、Node 22/24、Python 3.13，实际运行状态见 PR #1 和 CONTEXT.md。此前浏览器设置页模拟验证通过；云端响应为协议模拟，未选服务商、无真实密钥，未完成真实云端课程验收。
+2026-10-23 本机完整验收：Node 114/114（API 专项 14/14）、Python 19/19、语法与说明链接通过，运行环境为 Node v26.7.0、Python 3.13。[GitHub 工程检查](https://github.com/Aa144085412/Study-companion/actions/runs/39886713593) 已验证实现提交 b8015e8 在 Windows/Node22/Python3.13 和 Windows/Node24/Python3.13 两组均通过，最新提交的检查见 PR #1。此前浏览器设置页模拟验证通过；云端响应为协议模拟，未选服务商、无真实密钥，未完成真实云端课程验收。
 
 完整课程准确性、跨领域质量、外部采集可用性、家庭交付和多人在线服务仍有待办，以 TASKS.md 为准。[2026-10-22 架构快照](docs/现有架构与不足-2026-10-22.md) 和 [开发进度](docs/开发进度.md) 保留历史依据；涉及新模式以上述当前实现与本轮验证为准。
