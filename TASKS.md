@@ -4,8 +4,66 @@
 > 状态取值：`open`（待认领）/ `doing`（进行中）/ `blocked`（等外部条件）/ `done`（已验证完成）。
 > 完成定义=相关验证通过 + `CONTEXT.md` 已更新 + 已 commit。
 
+> 每次执行先遵守 [任务进入检查](docs/任务进入检查.md)，核对完整任务表、历史遗留和origin/main，再填写进入记录与认领。原项目架构优先；最新分工与核查见 [主项目核查与分工](docs/主项目核查与分工-2026-10-23.md)。分支done不等于main已集成，后者单独记录。
+
+## 当前 A/B 安排
+
+| 工作者 | 当前阶段 | 原任务后续 | 当前状态 |
+|---|---|---|---|
+| A · Codex本会话 | T57任务进入检查与原进度对齐，属于T14工程交接子阶段 | T14/T13/T12各自仍open，按原优先级逐项认领 | T57工程阶段done；此前T50–T55仅分支完成 |
+| B · 第二位协作者待认领 | T56承接T44语义/证据首阶段，之后T41；T58独立审阅PR #1 | 保留真实课程和材料/模型条件，不把模拟当真实质量验证 | open，尚未开工 |
+
+## T57 · 主项目任务进入检查与遗留对齐
+- status: done · owner: 工作者A/Codex · branch: codex/main-task-review
+- 关联：T14工程交接子阶段；不代替T14的10片段回放、20问残项和工作台验收。
+- files: scripts/check-task-entry.mjs, tests/task-entry.test.mjs, package.json, AGENTS.md, COLLAB.md, TASKS.md, CONTEXT.md, README.md, docs/任务进入检查.md, docs/主项目核查与分工-2026-10-23.md, docs/任务进入记录/2026-10-23-T57.md
+- 验收：完整扫描主任务和交接引用；暂停/归属/已完成重复进入受阻；专项、原项目全回归及说明检查；独立PR更新main并同步A/B文档，分别记录上传与集成状态。
+- 已验证：原项目Node110/110（含进入检查10项）、Python19/19、语法、7份说明18个实际相对链接通过；扫描59项、未登记引用0、重复0。主线与A/B集成按本轮PR回执核验，未把PR #1顺带合并。
+
+## T58 · 云端 API 与工程分支的独立审阅和主线集成
+- status: open · owner: 工作者B/待认领 · branch: codex/cloud-api-onboarding
+- 范围：审阅PR #1对原框架、密钥、模型与回归的影响，按实际授权决定集成；不得把分支测试成功写成已合并。main集成后重新核对A/B分支和任务状态。
+- 依赖：PR #1仍待审核；真实服务商与课程验收另行记录。
+
+## T50 · 分支协作与阶段交接
+- status: done · owner: 工作者A/Codex · branch: codex/cloud-api-onboarding
+- integration: branch-only
+- 证据：d88afce；已上传，PR #1待审。原主线由本轮T57同步接手规则。
+
+## T51 · 兼容云端 API 的语言与语音配置
+- status: done · owner: 工作者A/Codex · branch: codex/cloud-api-onboarding
+- integration: branch-only
+- 证据：7003ac3；协议模拟回归完成，main尚无该适配代码，真实服务商未验收。
+
+## T52 · 云端使用与阶段交接说明
+- status: done · owner: 工作者A/Codex · branch: codex/cloud-api-onboarding
+- integration: branch-only
+- 证据：2f999ee；已上传，PR #1中的使用前提不能当作未集成main的功能。
+
+## T53 · 阶段上传与 PR
+- status: done · owner: 工作者A/Codex · branch: codex/cloud-api-onboarding
+- integration: branch-only
+- 证据：a84fd77；已创建PR #1并核对上传，未因此自动合并main。
+
+## T54 · A/B任务边界
+- status: done · owner: 工作者A/Codex · branch: codex/cloud-api-onboarding
+- integration: branch-only
+- 证据：5f2e4ef；此前仅任务分支说明，本轮T57将原任务对应关系写入主项目两份进度文档。
+
+## T55 · 统一工程验收与 PR 自动检查
+- status: done · owner: 工作者A/Codex · branch: codex/cloud-api-onboarding
+- integration: branch-only
+- 证据：b8015e8、eed215d；该分支Node114/114、Python19/19及GitHub Node22/24通过。main目前仍使用自己的npm check/test，CI待T58审阅集成。
+
+## T56 · B的语义、证据与跨领域质量首阶段
+- status: open · owner: 工作者B/待认领 · branch: collab/content-quality
+- 关联：T44优先，之后T41；先补至少6个新开发样例，跨至少两个领域，包含对象步骤、百分比语义及因果绑定的正反对照，逐例保存依据、预期理由和实际结果。
+- files: src/attribution_auditor/semantic.mjs, tests/semantic.test.mjs, evaluation/worker-b/*, docs/质量验收-工作者B.md；只更新自己任务的共享说明。
+- 验收：原管线与工程回归，真实课程复跑另需材料及可用模型；不改旧用户笔记，不把开发样例称为留出准确率，T45继续暂停。
+
 ## T45 · 通用学习工具产品化评估与本地家庭私测第一阶段
 - status: open · owner: Codex · files: server.mjs, public/app.js, tests/quiz.test.mjs, src/release/*, scripts/check-release.mjs, evaluation/release/*, docs/产品化迭代路线.md, CONTEXT.md, TASKS.md
+- hold: true · 用户2026-10-22明确暂停；不得自动认领或恢复。
 - 用户确认：领域/学段通用，少量家庭本地安装私测。先建立发布验收、题目问题反馈与暂停机制；不把本轮称为完成全部产品化。
 
 - 2026-10-22：用户要求先暂停产品化扩展，优先考虑视频溯源；举报/暂停代码雏形随当前快照保存，未完成专项验收。发布检查脚本与完整产品化方案尚未落地。
@@ -31,12 +89,13 @@
 - 本轮验收：完整覆盖7→19/30，11项部分覆盖已转T44；118/118引文匹配。新增答案来源门禁拦截真实盲测误通过题，最终2题通过/3题拒绝，未代答。报告见docs/笔记质量修复回归.md；不代表剩余语义缺陷全部解决。
 
 ## T44 · 修复复测暴露的剩余语义与质量缺陷
-- status: open · owner: Codex
+- status: open · owner: 工作者B/待认领
+- 接续：按T56拆分首阶段；本轮只安排负责人，未完成实际语义或整课质量验收。
 - 依据：docs/笔记质量修复回归.md，11项部分覆盖。优先修复对象/步骤绑定、百分比差值与相对量、原因错误拼接、独立审计错误否决；保留领域无关实现，不按本课术语硬编码。
 - 扩展题目证据门禁真实跨领域回归；同模型盲解和来源核对仍可能共同出错，不能称科学认证。
 
 ## T41 · 五阶段管线质量覆盖扩展
-- status: open · owner: 未分配
+- status: open · owner: 工作者B/待认领
 - 扩展真实跨领域课程回归；全课画面语义分类和布局提取；有证据的仪器读数语义对齐；外部标准核验；Map知识点覆盖率；不同模型验证器。T40仅完成可运行首版与现有课程验证，未达到这些完整产品目标。
 
 ## T39 · 选择题组与即时反馈
@@ -50,6 +109,7 @@
 ## T37 · 长课程整理超时恢复
 - status: done · owner: Codex · files: server.mjs, public/app.js, tests/learning.test.mjs, TASKS.md, CONTEXT.md
 - 验证：63/63测试，后台进度/跨重启缓存/截断拆批通过。真实课程已成功2/18批并继续后台运行，整课结果尚未验收。
+- 完成边界：done指恢复机制；完整课程复验纳入T44后续，不能据此声称18/18批或内容质量已通过。
 
 ## T36 · 全篇蒸馏与逐题伴学
 - status: done · owner: Codex · files: server.mjs, src/distiller/*, src/deeptutor/*, src/skill_builder/*, src/schemas/*, scripts/visual_review.py, public/*, tests/learning.test.mjs, CONTEXT.md, TASKS.md, docs/DeepTutor迭代计划.md。
@@ -88,11 +148,11 @@
 
 ## 待认领（open）
 
-- **T12 · OCR 应用内集成** — open · owner: 待确认
+- **T12 · OCR 应用内集成** — open · owner: 工作者A/待认领
   - OCR worker 与测试素材已由另一 agent 提交于 f5c71fd；T15 已完成小红书图文的命令行 OCR → 文本资料导入。应用内图片/PDF 上传、OCR 任务队列与校对定位仍待实现；不重复改写 worker。
-- **T13 · 长文上下文与来源映射** — open · owner: —
+- **T13 · 长文上下文与来源映射** — open · owner: 工作者A/待认领
   - 当前共读来源仅 1800 字符、笔记前 800 字符，简单关键词排序。应按模型能力设计预算、全篇分段整理和稳定笔记块来源关联，补长资料覆盖测试。
-- **T14 · 交付验收与数据恢复** — open · owner: —（数据恢复部分已由 **T34** 完成；**A08 20 问已实测（2026-10-11）**）
+- **T14 · 交付验收与数据恢复** — open · owner: 工作者A/待认领 · 数据恢复已由T34完成；A08历史20问见下；本轮T57仅工程交接子阶段
   - 真实材料 20 问验收已实测、工作台集成尚未完成；删除恢复能力已由 T34 补齐（软删除回收站 + 整库 JSON 备份导出/恢复）。
   - **2026-10-11 A08 真实材料 20 问验收（自行实测完成）**：对真实小红书本「酵母转化」8 篇 OCR 来源建一次性验收笔记本 → 设计 20 问覆盖 5 类（指代/连续追问/材料缺失/来源冲突/常规参数；原音频定位对本批文本图文材料 N/A 已如实标注）→ 跑 `/api/chat` → 人工逐条复核：**相关且被所引 `[S#]` 材料支持 17/20**、**关键参数编造 = 0**（缺失/冲突题一律「材料未说明/待核对」）。4 问（Q4/Q8/Q9/Q19）材料含答案但被证据预算（~1800 字符/每来源截 1200）召回受限而答「材料未说明」并拒绝编造（无错误编造），根因=T13。**未达「≥18/20 完全相关且支持」的 18 条线（17/20），零编造达标**。验收后经 T34 软删+purge 清测试本，store 回基线（7 本/0 回收站），无磁盘残留。
   - **2026-10-11 已产出第一版验收报告 `docs/验收报告.md`**（映射 A01–A15 + M0–M5：A01/A02/A03/A04/A05/A07/A08/A12/A13 已验证、A09/A10 历史活体本轮未重测、A11 设计保证、A14 部分(TTS edge-tts 云端)、**A06 回放 10 片段未做**、A15 宿主回归因暂无科研工作台宿主先跳过）。P0 剩余 = A06 回放 10 片段 + A15 宿主（后续单列）+ A08 残项（T13 提升证据预算后重测冲 ≥18/20）。
