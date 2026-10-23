@@ -26,3 +26,5 @@ button.primary{background:var(--green);color:#fff;border-color:transparent}butto
 .evidence-actions{display:flex;gap:8px;flex-wrap:wrap}.evidence-actions button{font-size:12px}
 .note-citation:focus{outline:3px solid #95bfff;outline-offset:2px}
 @media(max-width:850px){.workspace.evidence-open{padding-bottom:52vh}.workspace>#mediaArea{position:fixed;top:auto;bottom:8px;left:8px;right:8px;max-height:50vh;z-index:9;box-shadow:0 -4px 24px #0002}#mediaArea #player{max-height:22vh}}
+
+.provider-settings{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:16px 0}.provider-settings legend{font-weight:600;color:#2f6fd4;padding:0 6px}.provider-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.provider-settings label.settings-check{display:flex;align-items:flex-start;gap:8px;line-height:1.7}.settings-check input[type=checkbox]{width:auto;flex:none;margin-top:5px}#modelTestStatus{overflow-wrap:anywhere}

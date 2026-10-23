@@ -19,6 +19,7 @@
 - files: scripts/check-task-entry.mjs, tests/task-entry.test.mjs, package.json, AGENTS.md, COLLAB.md, TASKS.md, CONTEXT.md, README.md, docs/任务进入检查.md, docs/主项目核查与分工-2026-10-23.md, docs/任务进入记录/2026-10-23-T57.md
 - 验收：完整扫描主任务和交接引用；暂停/归属/已完成重复进入受阻；专项、原项目全回归及说明检查；独立PR更新main并同步A/B文档，分别记录上传与集成状态。
 - 已验证：原项目Node110/110（含进入检查10项）、Python19/19、语法、7份说明18个实际相对链接通过；扫描59项、未登记引用0、重复0。主线与A/B集成按本轮PR回执核验，未把PR #1顺带合并。
+- 分支同步：PR #2已合入main/f5ebaa8；A同步主线后组合验证Node124/124、Python19/19、41个JS语法及9份说明25个链接通过。B仍open，接收相同任务规则，不代替B执行T56/T44。
 
 ## T58 · 云端 API 与工程分支的独立审阅和主线集成
 - status: open · owner: 工作者B/待认领 · branch: codex/cloud-api-onboarding
