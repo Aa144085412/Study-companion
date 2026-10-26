@@ -29,7 +29,7 @@
 
 ## T61 · 科研端网页入口与证据回看集成
 - status: done · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
-- integration: branch-only · PR #3更新待推送
+- integration: branch-only · 提交946aaf4已推送，PR #3已更新且仍未合并
 - files: server.mjs, public/index.html, public/app.js, public/style.css, tests/research-web.test.mjs, docs/工作与科研端协作.md, docs/任务进入记录/2026-10-26-T61.md, TASKS.md, CONTEXT.md
 - 依赖：T60首版完成后，与C协调server.mjs/public/app.js共享文件、业务API和保存方式；需要云端时等待PR #1独立集成或明确基线。
 - 验收目标：科研/报告模板选择、原证据跳转、导出/版本保存、失败重试和旧学习端回归；本期T60不将CLI说成网页入口已完成。
@@ -37,7 +37,7 @@
 
 ## T62 · 科研端真实模型与材料质量验收
 - status: blocked · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
-- integration: branch-only · PR #3更新待推送
+- integration: branch-only · 提交946aaf4已推送，PR #3已更新且仍未合并
 - files: scripts/evaluate-research-notes.mjs, evaluation/research-notes/real-evaluation.template.json, evaluation/research-notes/T62-真实材料验收说明.md, tests/research-evaluation.test.mjs, docs/工作与科研端协作.md, docs/任务进入记录/2026-10-26-T62.md, TASKS.md, CONTEXT.md
 - 阻塞：用户尚未选定OpenAI兼容服务商/模型；PR #1仍open且未合并；没有本轮获准真实文献分享、组会/培训材料与人工标注。无需或不可把密钥贴到聊天/仓库。
 - 已完成的工程部分：提供脱敏记录模板与确定性汇总器；拆分development/held_out；校验授权、非合成、服务名/版本、文献分享与组会/培训留出类型；逐例计算错误接受/拒绝、遗漏、来源定位、耗时、失败和关键错误状态。合成开发样例不能进入held_out；不输出准确率、正文或密钥。

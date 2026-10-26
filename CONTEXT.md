@@ -9,8 +9,8 @@
 - T60实际验证：Windows/Node26.7.0/Python3.13.3；Node139/139（原110+科研29）、Python19/19、Pydantic原输入契约、原check及新增JS语法通过。两组JSON/MD重复生成一致、24个证据锚点、8份本轮说明16个本地链接通过。原server/public/五阶段与公共Schema无差异，无真实学习库或模型服务改动。
 - T61实际验证：同一分支新增科研报告网页页签、两种模板、来源回看、Markdown/JSON下载、独立且幂等的报告版本及历史浏览；生成接口拒绝缺少或过期审计产物。科研版本不参与学习笔记、聊天、Skill的“最新笔记”查找。Node141/141（新增网页/API专项2项）、Python19/19、npm run check与git diff --check通过。验证只使用已提交的合成PipelineArtifact；没有调用模型、真实课程或用户数据。
 - T62实际验证：专项4/4通过；空白记录模板实跑返回`BLOCKED_MISSING_EXTERNAL_INPUTS`、development/held_out metrics均为null。工具不调用模型、不把合成样例送入留出集、不输出准确率或材料原文。完整Node145/145、Python19/19、`npm.cmd run check`、两个新增JS文件语法和`git diff --check`通过。
-- 上传/审阅：T60功能提交bd7534db573e52f263ae500715844ead90a71051仍是已推送基线；本轮T61代码和T62工程工具已完成本机验证，待本次提交推送后更新open且未合并的[PR #3](https://github.com/Aa144085412/Study-companion/pull/3)。Node145/145、Python19/19是本机验证，不引用PR #1的CI结果。
-- Next safe action：推送T61与T62工程部分并核对PR #3；真实验收需要用户先选定OpenAI兼容服务/模型、在本机配置凭据，并提供有权使用的文献分享、组会/培训材料及人工复核。C对共享文件的复核和PR合入待协作者处理；PR #1仍独立审阅，不顺带合入。
+- 上传/审阅：T60功能提交bd7534db573e52f263ae500715844ead90a71051；T61/T62工程部分提交946aaf461c202a0097bf58e33e533fe71c749677已推送，远端分支SHA一致；[PR #3](https://github.com/Aa144085412/Study-companion/pull/3)已更新，仍open且未合并。Node145/145、Python19/19是本机验证；不据此声称远端CI通过。
+- Next safe action：由协作者复核PR #3并按项目流程决定是否集成；T62真实验收待用户选定OpenAI兼容服务/模型、在本机配置凭据，并提供有权使用的文献分享、组会/培训材料及人工复核。PR #1仍独立审阅，不顺带合入。
 
 ---
 
