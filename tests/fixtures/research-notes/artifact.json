@@ -1,0 +1,399 @@
+{
+  "schema_version": "2.0",
+  "pipeline_id": "P_SYNTHETIC_RESEARCH_01",
+  "input_hash": "synthetic-development-input",
+  "title": "合成文献分享与报告整理示例",
+  "domain": "通用研究方法",
+  "glossary": [],
+  "evidence": [
+    {
+      "id": "E1",
+      "source_id": "doc-1",
+      "segment_id": "seg-E1",
+      "media_id": null,
+      "title": "合成资料E1",
+      "start_time": null,
+      "end_time": null,
+      "source_type": "DOCUMENT_TEXT",
+      "raw_text": "本分享讨论怎样比较相同输入下的两种处理方案。\n比较时保持输入和运行配置一致，并记录条件。",
+      "text": "本分享讨论怎样比较相同输入下的两种处理方案。\n比较时保持输入和运行配置一致，并记录条件。",
+      "confidence": null,
+      "flags": [],
+      "classification_method": "synthetic_fixture",
+      "aligned_evidence_ids": [],
+      "frame_path": null,
+      "noise": false
+    },
+    {
+      "id": "E2",
+      "source_id": "transcript-1",
+      "segment_id": "seg-E2",
+      "media_id": "synthetic-media-1",
+      "title": "合成资料E2",
+      "start_time": 12.375,
+      "end_time": 19.125,
+      "source_type": "ASR_TRANSCRIPT",
+      "raw_text": "本轮演示结果只适用于当前输入与配置，不能直接推广。",
+      "text": "本轮演示结果只适用于当前输入与配置，不能直接推广。",
+      "confidence": null,
+      "flags": [],
+      "classification_method": "synthetic_fixture",
+      "aligned_evidence_ids": [],
+      "frame_path": null,
+      "noise": false
+    },
+    {
+      "id": "E3",
+      "source_id": "transcript-2",
+      "segment_id": "seg-E3",
+      "media_id": "synthetic-media-2",
+      "title": "合成资料E3",
+      "start_time": 12.375,
+      "end_time": 19.125,
+      "source_type": "ASR_TRANSCRIPT",
+      "raw_text": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。",
+      "text": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。",
+      "confidence": null,
+      "flags": [],
+      "classification_method": "synthetic_fixture",
+      "aligned_evidence_ids": [],
+      "frame_path": null,
+      "noise": false
+    },
+    {
+      "id": "E4",
+      "source_id": "screen-1",
+      "segment_id": "seg-E4",
+      "media_id": "synthetic-media-1",
+      "title": "合成资料E4",
+      "start_time": 20,
+      "end_time": 21,
+      "source_type": "UNKNOWN_VISUAL_OCR",
+      "raw_text": "图中只有一个孤立数字12，含义不明。",
+      "text": "图中只有一个孤立数字12，含义不明。",
+      "confidence": null,
+      "flags": [
+        "UNKNOWN_VISUAL_ROLE"
+      ],
+      "classification_method": "synthetic_fixture",
+      "aligned_evidence_ids": [],
+      "frame_path": null,
+      "noise": false
+    },
+    {
+      "id": "E5",
+      "source_id": "doc-conflict",
+      "segment_id": "seg-E5",
+      "media_id": null,
+      "title": "合成资料E5",
+      "start_time": null,
+      "end_time": null,
+      "source_type": "DOCUMENT_TEXT",
+      "raw_text": "来源甲认为方案A更合适。\n来源乙认为方案B更合适。",
+      "text": "来源甲认为方案A更合适。\n来源乙认为方案B更合适。",
+      "confidence": null,
+      "flags": [],
+      "classification_method": "synthetic_fixture",
+      "aligned_evidence_ids": [],
+      "frame_path": null,
+      "noise": false
+    }
+  ],
+  "facts": [
+    {
+      "id": "F1",
+      "topic": "研究问题",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "本分享讨论怎样比较相同输入下的两种处理方案。",
+      "parameters": [],
+      "conditions": [],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E1",
+          "quote": "本分享讨论怎样比较相同输入下的两种处理方案。"
+        }
+      ],
+      "flags": [],
+      "verification": "MODEL_REVIEWED",
+      "layer": "CONTEXT"
+    },
+    {
+      "id": "F2",
+      "topic": "方法",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "比较时保持输入和运行配置一致，并记录条件。",
+      "parameters": [],
+      "conditions": [],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E1",
+          "quote": "比较时保持输入和运行配置一致，并记录条件。"
+        }
+      ],
+      "flags": [],
+      "verification": "MODEL_REVIEWED",
+      "layer": "CONTEXT"
+    },
+    {
+      "id": "F3",
+      "topic": "结果边界",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "本轮演示结果只适用于当前输入与配置，不能直接推广。",
+      "parameters": [],
+      "conditions": [
+        "当前输入与配置"
+      ],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E2",
+          "quote": "本轮演示结果只适用于当前输入与配置，不能直接推广。"
+        }
+      ],
+      "flags": [],
+      "verification": "MODEL_REVIEWED",
+      "layer": "CONTEXT"
+    },
+    {
+      "id": "F4",
+      "topic": "讲者建议",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。",
+      "parameters": [],
+      "conditions": [],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E3",
+          "quote": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。"
+        }
+      ],
+      "flags": [],
+      "verification": "MODEL_REVIEWED",
+      "layer": "CONTEXT"
+    },
+    {
+      "id": "F5",
+      "topic": "错误泛化候选",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "未核实的候选声称所有条件下都提高百分之五十。",
+      "parameters": [],
+      "conditions": [],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E2",
+          "quote": "本轮演示结果只适用于当前输入与配置，不能直接推广。"
+        }
+      ],
+      "flags": [
+        "PENDING_VERIFICATION"
+      ],
+      "verification": "PENDING_VERIFICATION",
+      "layer": "UNRESOLVED"
+    },
+    {
+      "id": "F6",
+      "topic": "画面参数候选",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "未核实的画面候选声称仪器参数为12。",
+      "parameters": [],
+      "conditions": [],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E4",
+          "quote": "图中只有一个孤立数字12，含义不明。"
+        }
+      ],
+      "flags": [
+        "PENDING_VERIFICATION"
+      ],
+      "verification": "PENDING_VERIFICATION",
+      "layer": "UNRESOLVED"
+    },
+    {
+      "id": "F7",
+      "topic": "方案冲突甲",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "来源甲认为方案A更合适。",
+      "parameters": [],
+      "conditions": [],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E5",
+          "quote": "来源甲认为方案A更合适。"
+        }
+      ],
+      "flags": [],
+      "verification": "MODEL_REVIEWED",
+      "layer": "CONTEXT"
+    },
+    {
+      "id": "F8",
+      "topic": "方案冲突乙",
+      "step": "合成演示",
+      "entity": "处理方案",
+      "property": "说明",
+      "statement": "来源乙认为方案B更合适。",
+      "parameters": [],
+      "conditions": [],
+      "knowledge_type": "SOURCE_CLAIM",
+      "evidence_quotes": [
+        {
+          "evidence_id": "E5",
+          "quote": "来源乙认为方案B更合适。"
+        }
+      ],
+      "flags": [],
+      "verification": "MODEL_REVIEWED",
+      "layer": "CONTEXT"
+    }
+  ],
+  "audits": [
+    {
+      "fact_id": "F1",
+      "attribution": "NONE",
+      "supported": true,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "CONTEXT_ONLY",
+      "certainty": "MODEL_REVIEW"
+    },
+    {
+      "fact_id": "F2",
+      "attribution": "NONE",
+      "supported": true,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "CONTEXT_ONLY",
+      "certainty": "MODEL_REVIEW"
+    },
+    {
+      "fact_id": "F3",
+      "attribution": "NONE",
+      "supported": true,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "CONTEXT_ONLY",
+      "certainty": "MODEL_REVIEW"
+    },
+    {
+      "fact_id": "F4",
+      "attribution": "NONE",
+      "supported": true,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "CONTEXT_ONLY",
+      "certainty": "MODEL_REVIEW"
+    },
+    {
+      "fact_id": "F5",
+      "attribution": "UNDETERMINED",
+      "supported": false,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "PENDING_VERIFICATION",
+      "certainty": "MODEL_REVIEW"
+    },
+    {
+      "fact_id": "F6",
+      "attribution": "UNDETERMINED",
+      "supported": false,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "PENDING_VERIFICATION",
+      "certainty": "MODEL_REVIEW"
+    },
+    {
+      "fact_id": "F7",
+      "attribution": "NONE",
+      "supported": true,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "CONTEXT_ONLY",
+      "certainty": "MODEL_REVIEW"
+    },
+    {
+      "fact_id": "F8",
+      "attribution": "NONE",
+      "supported": true,
+      "generalizable": false,
+      "rationale": "合成开发用审阅状态，并非真实模型判断",
+      "proposed_correction": "",
+      "standard_boundary": "",
+      "external_reference_ids": [],
+      "decision": "CONTEXT_ONLY",
+      "certainty": "MODEL_REVIEW"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "C1",
+      "fact_ids": [
+        "F7",
+        "F8"
+      ],
+      "reason": "合成来源对方案选择存在未裁决差异",
+      "status": "UNRESOLVED_CONFLICT"
+    }
+  ],
+  "clusters": [
+    {
+      "title": "合成报告",
+      "fact_ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8"
+      ]
+    }
+  ],
+  "markdown": "",
+  "metrics": {},
+  "provenance": {
+    "fixture_type": "SYNTHETIC_DEVELOPMENT_ONLY"
+  }
+}

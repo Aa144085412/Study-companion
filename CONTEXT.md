@@ -1,4 +1,20 @@
-# 当前执行状态 · 2026-10-23 主项目任务核查
+# 当前执行状态 · 2026-10-26 业务B接手
+
+- 用户已确认负责工作与科研端（业务B）；本机Git Credential Manager实际登录核验为cmccjiang。Codex在本会话代执行，不将旧“工作者A/Codex”或“工作者B/待认领”自动映射为产品职责。
+- 基线origin/main/65328fed7cbbe99642ace180704d64e7079464c5；新建collab/cmccjiang-research-notes，包含最新三人协作约定。从main接续，不合入未经独立审阅的PR #1，不覆盖collab/content-quality。
+- 本期：T59登记、T60只读科研/报告编排、T61网页入口与证据回看均已在独立任务分支验证完成；T62记录模板/汇总工具已完成，真实模型/材料验收blocked，等待用户选定服务与获准材料。详细边界见 [工作与科研端协作](docs/工作与科研端协作.md)。
+- 进入核查：本轮完整扫描63项任务，无未登记引用/重复；旧T56/T44/T41/T58保留原负责人，T45继续hold。原Node/Python/Pydantic与五阶段管线优先；本轮T61沿用现有网页和存储，未读写用户数据。
+- T59登记阶段已验证：真实登录cmccjiang；带owner进入检查通过，63项任务引用/重复均0；新MD的2个实际相对链接和git diff --check通过。成果在任务分支，尚未进入main。
+- T59已上传：29be1932b35f299a464d7ada00f06cc96693b4b9，远端分支已逐字核对。T60新增src/research_notes、CLI和合成样例；从既有审计事实编排、匹配原始/清洗证据，隔离未审计/冲突/风险；决议、行动项和文献信息待人工确认，不作新的语义或科学认证。
+- T60实际验证：Windows/Node26.7.0/Python3.13.3；Node139/139（原110+科研29）、Python19/19、Pydantic原输入契约、原check及新增JS语法通过。两组JSON/MD重复生成一致、24个证据锚点、8份本轮说明16个本地链接通过。原server/public/五阶段与公共Schema无差异，无真实学习库或模型服务改动。
+- T61实际验证：同一分支新增科研报告网页页签、两种模板、来源回看、Markdown/JSON下载、独立且幂等的报告版本及历史浏览；生成接口拒绝缺少或过期审计产物。科研版本不参与学习笔记、聊天、Skill的“最新笔记”查找。Node141/141（新增网页/API专项2项）、Python19/19、npm run check与git diff --check通过。验证只使用已提交的合成PipelineArtifact；没有调用模型、真实课程或用户数据。
+- T62实际验证：专项4/4通过；空白记录模板实跑返回`BLOCKED_MISSING_EXTERNAL_INPUTS`、development/held_out metrics均为null。工具不调用模型、不把合成样例送入留出集、不输出准确率或材料原文。完整Node145/145、Python19/19、`npm.cmd run check`、两个新增JS文件语法和`git diff --check`通过。
+- 上传/审阅：T60功能提交bd7534db573e52f263ae500715844ead90a71051；T61/T62工程部分提交946aaf461c202a0097bf58e33e533fe71c749677已推送，远端分支SHA一致；[PR #3](https://github.com/Aa144085412/Study-companion/pull/3)已更新，仍open且未合并。Node145/145、Python19/19是本机验证；不据此声称远端CI通过。
+- Next safe action：由协作者复核PR #3并按项目流程决定是否集成；T62真实验收待用户选定OpenAI兼容服务/模型、在本机配置凭据，并提供有权使用的文献分享、组会/培训材料及人工复核。PR #1仍独立审阅，不顺带合入。
+
+---
+
+# 历史状态 · 2026-10-23 主项目任务核查
 
 - 基线：origin/main/e401ebc6a9cfadb1eb361764d75af40e2ebafbb2。主项目两份进度文件原先没有A/B安排；此前T50–T55在PR #1分支完成，尚未集成main，不能用分支状态替代主线事实。
 - A=本会话Codex，执行T57（原T14工程交接子阶段）：完成每次执行前的任务检查与遗留核查设施；后续T14/T13/T12分别保持open、按优先级认领。B=第二位协作者待认领，经T56优先接续T44语义/证据质量和T41扩展，T58独立审阅PR #1；尚未启动B执行。

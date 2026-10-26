@@ -1,5 +1,7 @@
 import {runPipeline,makeStageCaller,sourceFingerprint} from './src/pipeline/index.mjs';
 import {generateVerifiedQuiz} from './src/quiz_engine/index.mjs';
+import {buildResearchReport} from './src/research_notes/index.mjs';
+import {renderResearchReport} from './src/research_notes/render.mjs';
 import http from 'node:http';
 import {labelEvidence,batches,retrieve,validateCitations} from './src/distiller/evidence.mjs';
 import {SKILL_PROMPTS} from './src/skill_builder/prompts.mjs';
@@ -151,10 +153,13 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     }
     return null;
   }
+  function latestStudyNote(notebookId){
+    return [...db.revisions].reverse().find(r=>r.notebookId===notebookId&&r.kind!=='research-report');
+  }
   async function generateSkillForNotebook(notebookId, kind='experiment', replaceName=null){
     if(!['experiment','knowledge'].includes(kind)) kind='experiment';
     if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
-    const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId);
+    const note=latestStudyNote(notebookId);
     const items=labelEvidence(evidence(notebookId));
     const materials=items.length?items:(note?.content?[{label:'S1',title:'已保存笔记',sourceId:note.id,text:note.content}]:[]);
     const parts=batches(materials);
@@ -184,7 +189,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
   }
   async function classifyNotebookKind(notebookId){
     if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
-    const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId);
+    const note=latestStudyNote(notebookId);
     const items=evidence(notebookId);
     let budget=1800;const refs=[];
     for(const e of items){if(budget<=0)break;const chunk=e.text.slice(0,Math.min(1000,budget));budget-=chunk.length;refs.push({title:e.title,text:chunk});}
@@ -223,6 +228,15 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     const sources=db.sources.filter(s=>s.notebookId===nb.id);
     if(nb.auditedPipeline.inputHash!==sourceFingerprint(sources))throw fail('资料已更新，请重新生成审计笔记后出题',409);
     return JSON.parse(fs.readFileSync(path.join(dataDir,'pipeline-v2',nb.auditedPipeline.id,'artifact.json'),'utf8'));
+  }
+  function researchOutput(nb,template,outline={}){
+    const artifact=auditedArtifact(nb);
+    let report;
+    try{report=buildResearchReport(artifact,{template,outline});}
+    catch(e){throw fail(e.message,400);}
+    const markdown=renderResearchReport(report);
+    if(markdown.length>200000)throw fail('科研报告超过200,000字，请拆分资料后重试',413);
+    return {report,markdown};
   }
   async function generateNote(notebookId){
     if(generationLocks.has(notebookId))throw fail('这本笔记正在整理，请等待当前任务完成',409);
@@ -678,6 +692,20 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(!q)throw fail('题目已失效',404);const f=artifact.facts.find(f=>f.id===q.fact_ids[0]),e=artifact.evidence.find(e=>e.id===f.evidence_quotes[0].evidence_id);
         return json(res,{sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,title:e.title,text:e.text,start:e.start_time===null?undefined:e.start_time*1000,end:e.end_time===null?undefined:e.end_time*1000});
       }
+      if(req.method==='GET' && p==='/api/research/report'){
+        const nb=book(u.searchParams.get('notebookId'));
+        return json(res,researchOutput(nb,u.searchParams.get('template')||'research'));
+      }
+      if(req.method==='POST' && p==='/api/research/report/save'){
+        const x=await body(req),nb=book(x.notebookId);
+        const output=researchOutput(nb,x.template||'research',x.outline||{}),report=output.report;
+        const existing=db.revisions.find(r=>r.notebookId===nb.id&&r.kind==='research-report'&&r.reportId===report.report_id);
+        if(existing)return json(res,{revision:existing,reused:true});
+        const revision={id:uuid(),notebookId:nb.id,kind:'research-report',template:report.template,
+          reportId:report.report_id,auditPipelineId:report.source_pipeline_id,sourceInputHash:report.source_input_hash,
+          content:output.markdown,researchReport:report,createdAt:now()};
+        db.revisions.push(revision);save();return json(res,{revision,reused:false},201);
+      }
       if(req.method==='GET' && p==='/api/audit'){
         const nb=book(u.searchParams.get('notebookId'));return json(res,auditedArtifact(nb));
       }
@@ -731,7 +759,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       if(req.method==='POST' && p==='/api/chat') {
         const x=await body(req);book(x.notebookId);
         if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
-        const note=[...db.revisions].reverse().find(r=>r.notebookId===x.notebookId);
+        const note=latestStudyNote(x.notebookId);
         const selection=text(x.selection,500);
         if(selection && !note?.content.includes(selection)) throw fail('选区与已保存笔记不一致，请先保存当前笔记');
         const items=labelEvidence(evidence(x.notebookId));

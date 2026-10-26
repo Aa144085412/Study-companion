@@ -6,7 +6,45 @@
 
 > 每次执行先遵守 [任务进入检查](docs/任务进入检查.md)，核对完整任务表、历史遗留和origin/main，再填写进入记录与认领。原项目架构优先；最新分工与核查见 [主项目核查与分工](docs/主项目核查与分工-2026-10-23.md)。分支done不等于main已集成，后者单独记录。
 
-## 当前 A/B 安排
+## 业务角色 B 的本期任务 · 2026-10-26
+
+用户已确认业务角色B，GitHub登录已核验为 **cmccjiang**；执行者为本会话Codex。此处的业务B不同于下方历史执行者编号，不改变旧任务负责人。账号、范围和验收见 [工作与科研端协作](docs/工作与科研端协作.md)。
+
+## T59 · 业务B账号、任务、分支与验收登记
+- status: done · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
+- integration: branch-only
+- files: TASKS.md, CONTEXT.md, COLLAB.md, docs/工作与科研端协作.md, docs/任务进入记录/2026-10-26-T59.md
+- 范围：以origin/main/65328fe为基线，登记业务B与旧执行者编号的关系、独立分支、文件边界、本期任务和验收；保留原任务、暂停及主线集成条件。
+- 验收：实际GitHub登录为cmccjiang；任务进入检查、MD链接和状态一致性通过；提交并上传任务分支。
+- 已验证：带T59/owner的进入检查通过；63项任务未登记引用0、重复0；本轮两份新MD的2个实际相对链接、git diff --check通过。上传和PR以GitHub回执为准。
+
+## T60 · 科研与报告笔记编排首阶段
+- status: done · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
+- integration: branch-only
+- files: src/research_notes/*, scripts/research-report.mjs, tests/research-notes.test.mjs, tests/research-report-cli.test.mjs, tests/fixtures/research-notes/*, evaluation/research-notes/*, docs/工作与科研端协作.md, docs/任务进入记录/2026-10-26-T60.md, TASKS.md, CONTEXT.md
+- 关联：复用T40的审计产物；为T41提供科研业务输出和开发样例，不关闭T41/T44/T56的公共质量遗留。
+- 范围：只读现有PipelineArtifact；输出科研/报告模板、证据原句与来源/时间索引、明确待核对和冲突；CLI可在无模型环境演示、导出JSON与Markdown。可选人工栏目映射不新增事实、不把来源陈述升级为会议决议。
+- 验收：未经审计/拒绝/冲突/不明视觉/无有效引用的事实不得进入来源要点；缺失决议、责任人、日期、文献信息保持待确认；保留来源与毫秒时间位置；无输入修改、无联网、无store写入；重复运行一致；专项与原回归通过。
+- 已验证：科研专项29项；含原110项的Node总回归139/139、Python19/19、原PipelineArtifact样例契约及JS语法通过。两组JSON/MD演示可复算一致，24个证据锚点、8份本轮说明16个实际相对链接通过。仅合成开发样例，无真实模型/课程准确率。见T60进入记录与evaluation/research-notes。
+
+## T61 · 科研端网页入口与证据回看集成
+- status: done · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
+- integration: branch-only · 提交946aaf4已推送，PR #3已更新且仍未合并
+- files: server.mjs, public/index.html, public/app.js, public/style.css, tests/research-web.test.mjs, docs/工作与科研端协作.md, docs/任务进入记录/2026-10-26-T61.md, TASKS.md, CONTEXT.md
+- 依赖：T60首版完成后，与C协调server.mjs/public/app.js共享文件、业务API和保存方式；需要云端时等待PR #1独立集成或明确基线。
+- 验收目标：科研/报告模板选择、原证据跳转、导出/版本保存、失败重试和旧学习端回归；本期T60不将CLI说成网页入口已完成。
+- 已验证：新增科研报告页和research/meeting模板；GET /api/research/report只读当前五阶段审计产物并沿用过期输入409门禁；原句按钮复用showReference定位原文/媒体；Markdown/JSON导出，POST /api/research/report/save幂等写入typed revision并保留旧版本。失败信息保留且页面生成按钮可重试；学习笔记、聊天、Skill入口过滤科研版次。Node141/141、Python19/19、npm run check、git diff --check通过。PR #1保持独立；C代码复核/PR合并仍待协作者处理。
+
+## T62 · 科研端真实模型与材料质量验收
+- status: blocked · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
+- integration: branch-only · 提交946aaf4已推送，PR #3已更新且仍未合并
+- files: scripts/evaluate-research-notes.mjs, evaluation/research-notes/real-evaluation.template.json, evaluation/research-notes/T62-真实材料验收说明.md, tests/research-evaluation.test.mjs, docs/工作与科研端协作.md, docs/任务进入记录/2026-10-26-T62.md, TASKS.md, CONTEXT.md
+- 阻塞：用户尚未选定OpenAI兼容服务商/模型；PR #1仍open且未合并；没有本轮获准真实文献分享、组会/培训材料与人工标注。无需或不可把密钥贴到聊天/仓库。
+- 已完成的工程部分：提供脱敏记录模板与确定性汇总器；拆分development/held_out；校验授权、非合成、服务名/版本、文献分享与组会/培训留出类型；逐例计算错误接受/拒绝、遗漏、来源定位、耗时、失败和关键错误状态。合成开发样例不能进入held_out；不输出准确率、正文或密钥。
+- 验证：空模板实跑输出BLOCKED_MISSING_EXTERNAL_INPUTS且两类metrics为null；T62专项4项通过，包含development隔离、真实模式前置条件和已有输出保护。完整Node145/145、Python19/19、JS语法和git diff --check通过，详见T62进入记录。真实模型与材料效果未运行，不能标done。
+- 解除条件：选定并本机配置服务及模型版本，提供有权使用的文献分享与组会/培训材料，完成人工逐例及独立复核；之后按模板运行REAL验收，关键错误修复或隔离后再更新状态。
+
+## 历史执行者 A/B 安排（不等同业务角色）
 
 | 工作者 | 当前阶段 | 原任务后续 | 当前状态 |
 |---|---|---|---|

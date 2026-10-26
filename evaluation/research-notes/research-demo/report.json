@@ -1,0 +1,283 @@
+{
+  "schema_version": "research-report/1.0",
+  "template": "research",
+  "title": "合成文献分享与报告整理示例",
+  "source_pipeline_id": "P_SYNTHETIC_RESEARCH_01",
+  "source_input_hash": "synthetic-development-input",
+  "provenance": {
+    "generator_version": "1.0.0",
+    "content": "INHERITED_AUDITED_FACTS",
+    "data_kind": "SYNTHETIC_DEVELOPMENT_ONLY",
+    "classification": "EXPLICIT_OUTLINE_NOT_SEMANTIC_VALIDATION",
+    "external_verification": "NOT_PERFORMED",
+    "decisions_and_actions": "HUMAN_CONFIRMATION_REQUIRED"
+  },
+  "sections": [
+    {
+      "id": "research_question",
+      "title": "研究问题",
+      "items": [
+        {
+          "fact_id": "F1",
+          "topic": "研究问题",
+          "statement": "本分享讨论怎样比较相同输入下的两种处理方案。",
+          "conditions": [],
+          "source_layer": "CONTEXT",
+          "verification": "MODEL_REVIEWED",
+          "status": "SOURCE_STATEMENT_NOT_MEETING_DECISION",
+          "evidence_quotes": [
+            {
+              "evidence_id": "E1",
+              "label": "S1",
+              "quote": "本分享讨论怎样比较相同输入下的两种处理方案。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "methods",
+      "title": "方法概述",
+      "items": [
+        {
+          "fact_id": "F2",
+          "topic": "方法",
+          "statement": "比较时保持输入和运行配置一致，并记录条件。",
+          "conditions": [],
+          "source_layer": "CONTEXT",
+          "verification": "MODEL_REVIEWED",
+          "status": "SOURCE_STATEMENT_NOT_MEETING_DECISION",
+          "evidence_quotes": [
+            {
+              "evidence_id": "E1",
+              "label": "S1",
+              "quote": "比较时保持输入和运行配置一致，并记录条件。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "results",
+      "title": "来源报告的结果",
+      "items": [
+        {
+          "fact_id": "F3",
+          "topic": "结果边界",
+          "statement": "本轮演示结果只适用于当前输入与配置，不能直接推广。",
+          "conditions": [
+            "当前输入与配置"
+          ],
+          "source_layer": "CONTEXT",
+          "verification": "MODEL_REVIEWED",
+          "status": "SOURCE_STATEMENT_NOT_MEETING_DECISION",
+          "evidence_quotes": [
+            {
+              "evidence_id": "E2",
+              "label": "S2",
+              "quote": "本轮演示结果只适用于当前输入与配置，不能直接推广。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "limitations",
+      "title": "局限",
+      "items": []
+    },
+    {
+      "id": "discussion",
+      "title": "讨论",
+      "items": []
+    },
+    {
+      "id": "topics",
+      "title": "尚未分类的来源要点",
+      "items": [
+        {
+          "fact_id": "F4",
+          "topic": "讲者建议",
+          "statement": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。",
+          "conditions": [],
+          "source_layer": "CONTEXT",
+          "verification": "MODEL_REVIEWED",
+          "status": "SOURCE_STATEMENT_NOT_MEETING_DECISION",
+          "evidence_quotes": [
+            {
+              "evidence_id": "E3",
+              "label": "S3",
+              "quote": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decisions": [],
+  "action_items": [],
+  "bibliography": {
+    "title": null,
+    "authors": [],
+    "year": null,
+    "doi": null,
+    "status": "NOT_VERIFIED"
+  },
+  "pending": [
+    {
+      "fact_id": "F5",
+      "topic": "错误泛化候选",
+      "proposed_statement": "未核实的候选声称所有条件下都提高百分之五十。",
+      "reason_codes": [
+        "UNREVIEWED",
+        "AUDIT_NOT_ACCEPTED",
+        "RISK_FLAG"
+      ],
+      "evidence_quotes": [
+        {
+          "evidence_id": "E2",
+          "label": "S2",
+          "quote": "本轮演示结果只适用于当前输入与配置，不能直接推广。"
+        }
+      ]
+    },
+    {
+      "fact_id": "F6",
+      "topic": "画面参数候选",
+      "proposed_statement": "未核实的画面候选声称仪器参数为12。",
+      "reason_codes": [
+        "UNREVIEWED",
+        "AUDIT_NOT_ACCEPTED",
+        "RISK_FLAG",
+        "UNSUPPORTED_SOURCE",
+        "LOW_QUALITY_EVIDENCE"
+      ],
+      "evidence_quotes": [
+        {
+          "evidence_id": "E4",
+          "label": "S4",
+          "quote": "图中只有一个孤立数字12，含义不明。"
+        }
+      ]
+    },
+    {
+      "fact_id": "F7",
+      "topic": "方案冲突甲",
+      "proposed_statement": "来源甲认为方案A更合适。",
+      "reason_codes": [
+        "UNRESOLVED_CONFLICT"
+      ],
+      "evidence_quotes": [
+        {
+          "evidence_id": "E5",
+          "label": "S5",
+          "quote": "来源甲认为方案A更合适。"
+        }
+      ]
+    },
+    {
+      "fact_id": "F8",
+      "topic": "方案冲突乙",
+      "proposed_statement": "来源乙认为方案B更合适。",
+      "reason_codes": [
+        "UNRESOLVED_CONFLICT"
+      ],
+      "evidence_quotes": [
+        {
+          "evidence_id": "E5",
+          "label": "S5",
+          "quote": "来源乙认为方案B更合适。"
+        }
+      ]
+    }
+  ],
+  "evidence_index": [
+    {
+      "label": "S1",
+      "evidenceId": "E1",
+      "sourceId": "doc-1",
+      "segmentId": "seg-E1",
+      "mediaId": null,
+      "title": "合成资料E1",
+      "sourceType": "DOCUMENT_TEXT",
+      "text": "本分享讨论怎样比较相同输入下的两种处理方案。\n比较时保持输入和运行配置一致，并记录条件。",
+      "rawText": "本分享讨论怎样比较相同输入下的两种处理方案。\n比较时保持输入和运行配置一致，并记录条件。",
+      "start": null,
+      "end": null,
+      "timeValid": true,
+      "page": null,
+      "playbackAvailable": false
+    },
+    {
+      "label": "S2",
+      "evidenceId": "E2",
+      "sourceId": "transcript-1",
+      "segmentId": "seg-E2",
+      "mediaId": "synthetic-media-1",
+      "title": "合成资料E2",
+      "sourceType": "ASR_TRANSCRIPT",
+      "text": "本轮演示结果只适用于当前输入与配置，不能直接推广。",
+      "rawText": "本轮演示结果只适用于当前输入与配置，不能直接推广。",
+      "start": 12375,
+      "end": 19125,
+      "timeValid": true,
+      "page": null,
+      "playbackAvailable": true
+    },
+    {
+      "label": "S3",
+      "evidenceId": "E3",
+      "sourceId": "transcript-2",
+      "segmentId": "seg-E3",
+      "mediaId": "synthetic-media-2",
+      "title": "合成资料E3",
+      "sourceType": "ASR_TRANSCRIPT",
+      "text": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。",
+      "rawText": "讲者建议下次讨论是否扩大样本，本次未形成共同决议。",
+      "start": 12375,
+      "end": 19125,
+      "timeValid": true,
+      "page": null,
+      "playbackAvailable": true
+    },
+    {
+      "label": "S4",
+      "evidenceId": "E4",
+      "sourceId": "screen-1",
+      "segmentId": "seg-E4",
+      "mediaId": "synthetic-media-1",
+      "title": "合成资料E4",
+      "sourceType": "UNKNOWN_VISUAL_OCR",
+      "text": "图中只有一个孤立数字12，含义不明。",
+      "rawText": "图中只有一个孤立数字12，含义不明。",
+      "start": 20000,
+      "end": 21000,
+      "timeValid": true,
+      "page": null,
+      "playbackAvailable": true
+    },
+    {
+      "label": "S5",
+      "evidenceId": "E5",
+      "sourceId": "doc-conflict",
+      "segmentId": "seg-E5",
+      "mediaId": null,
+      "title": "合成资料E5",
+      "sourceType": "DOCUMENT_TEXT",
+      "text": "来源甲认为方案A更合适。\n来源乙认为方案B更合适。",
+      "rawText": "来源甲认为方案A更合适。\n来源乙认为方案B更合适。",
+      "start": null,
+      "end": null,
+      "timeValid": true,
+      "page": null,
+      "playbackAvailable": false
+    }
+  ],
+  "metrics": {
+    "input_facts": 8,
+    "source_items": 4,
+    "pending_items": 4,
+    "referenced_evidence": 5
+  },
+  "report_id": "Rdf05b366623e366fee0a"
+}

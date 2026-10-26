@@ -1,18 +1,18 @@
 const $ = id=>document.getElementById(id);
 function confirmAction(message){ return new Promise(resolve=>{ $('confirmText').textContent=message; const d=$('confirmDialog'); d.onclose=()=>resolve(d.returnValue==='yes'); d.showModal(); }); }
-let state, current=localStorage.getItem('study.current'), selection='', dirty=false, busy=false, historyView=false, noteView='read';
+let state, current=localStorage.getItem('study.current'), selection='', dirty=false, busy=false, historyView=false, noteView='read', activeResearch=null, researchBusy=false;
 const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
 function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.add('hidden'),6500);}
 async function api(url,data,method='POST'){const r=await fetch(url,data===undefined?{}:{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const x=await r.json();if(!r.ok)throw Error(x.error||'请求失败');return x;}
 async function run(fn){try{return await fn();}catch(e){toast(e.message);}}
 function needBook(){if(!current)throw Error('请先点击左侧 ＋ 创建笔记本');return current;}
-const latest=()=>[...state.revisions].reverse().find(r=>r.notebookId===current);
+const latest=()=>[...state.revisions].reverse().find(r=>r.notebookId===current&&r.kind!=='research-report');
 const time=ms=>new Date(ms).toISOString().slice(11,19);
 function openImage(url){window.open(url,'_blank');}
 function button(label,fn,cls='secondary'){const b=node('button',cls,label);b.onclick=()=>run(fn);return b;}
 async function refresh(loadNote=false){state=await api('/api/state');if(!state.notebooks.some(b=>b.id===current))current=state.notebooks[0]?.id;render(loadNote);}
 function render(loadNote){
-  $('books').replaceChildren(...state.notebooks.map(b=>button('▤  '+b.title,async()=>{if(dirty&&!await confirmAction('当前笔记未保存，仍要切换吗？'))return;current=b.id;localStorage.setItem('study.current',current);dirty=false;selection='';render(true);},b.id===current?'active':'')));
+  $('books').replaceChildren(...state.notebooks.map(b=>button('▤  '+b.title,async()=>{if(dirty&&!await confirmAction('当前笔记未保存，仍要切换吗？'))return;current=b.id;activeResearch=null;$('researchStatus').textContent='';localStorage.setItem('study.current',current);dirty=false;selection='';render(true);},b.id===current?'active':'')));
   $('bookTitle').textContent=state.notebooks.find(b=>b.id===current)?.title||'建立你的第一本学习笔记';
   $('deleteBookButton').classList.toggle('hidden',!state.notebooks.length);
   const noBook=state.notebooks.length===0;
@@ -38,7 +38,7 @@ function render(loadNote){
   }
   $('questionList').replaceChildren();if(!questions.length)$('questionList').append(node('div','empty','把问题写在右侧，点击「记下疑问」。不急着一次弄懂。'));
   for(const q of questions){const c=node('div','question-card');c.append(node('p','',q.question));const sel=node('select');['未解决','学习中','已理解'].forEach(s=>sel.append(new Option(s,s)));sel.value=q.status;sel.onchange=()=>run(async()=>{await api('/api/questions/'+q.id,{status:sel.value},'PATCH');await refresh();});c.append(sel);$('questionList').append(c);}
-  renderMessages(); renderJobs(); renderTutor();
+  renderMessages(); renderJobs(); renderTutor(); renderResearchReportView();
   renderNote();
 }
 function renderMessages(){const messages=(state?.messages||[]).filter(m=>m.notebookId===current&&!m.adoptedRevisionId);if(!messages.length){$('messages').replaceChildren(node('div','chat-welcome','✧\n\n从一个「为什么」开始\n\n选中笔记中的一句话，问问它的原理、目的，或前后联系。'));return;}$('messages').replaceChildren();for(const m of messages){const c=node('article','message '+m.role);c.append(node('div','message-label',m.role==='user'?'你':m.type==='draft'?'研习伴 · 笔记草稿':'研习伴'),node('div','message-text',m.text));if(m.role==='assistant'){const actions=node('div','message-actions');actions.append(button('朗读',()=>speak(m.text)),button('停止',stopSpeak),button('追加到笔记',async()=>{if(!await confirmAction('将这段回答追加到编辑区？检查后点击保存版本。'))return;$('noteEditor').value+='\n\n'+m.text+'\n\n'+(m.citations||[]).map(e=>`来源 [${e.label}]：${e.title}${e.start!==undefined?' '+time(e.start):''}`).join('\n');dirty=true;$('revisionLabel').textContent='有未保存的修改';renderNote();}));c.append(actions);for(const ref of m.citations||[])c.append(button(`[${ref.label}] ${ref.title}${ref.start!==undefined?' · '+time(ref.start):''}`,()=>showReference(ref),'citation'));if(m.truncated)c.append(node('p','hint','本次材料超过上下文预算，仅使用部分内容；请拆分笔记本后再核对。'));}$('messages').append(c);}$('messages').scrollTop=$('messages').scrollHeight;}
@@ -100,6 +100,41 @@ function showReference(ref){
  actions.append(button('返回笔记位置',closeEvidencePanel));box.append(actions);
  $('mediaTitle').focus({preventScroll:true});
 }
+const RESEARCH_REASON_LABELS={UNREVIEWED:'原事实未通过来源审阅',AUDIT_NOT_ACCEPTED:'原审计缺失或未接受该事实',UNRESOLVED_CONFLICT:'原管线仍记录未裁决冲突',RISK_FLAG:'原事实带有未核实或高风险标记',SINGLE_RUN:'单次结果需要人工核对适用范围',INVALID_FACT:'事实字段不完整',NO_QUOTES:'没有可核对的证据原句',MISSING_EVIDENCE:'引用的证据不存在',QUOTE_MISMATCH:'引用未同时匹配原文和清洗文本',UNSUPPORTED_SOURCE:'仅有视觉推断或不明画面证据',LOW_QUALITY_EVIDENCE:'证据为噪声、低可信或缺少原文',INVALID_TIME_RANGE:'时间范围无效'};
+function renderResearchReportView(){
+ const box=$('researchReport');if(!box)return;
+ const currentSources=JSON.stringify(state.sources.filter(s=>s.notebookId===current));
+ if(activeResearch?.notebookId===current&&!activeResearch.isHistorical&&activeResearch.sourceSnapshot!==currentSources){activeResearch=null;$('researchStatus').textContent='资料已变化，请重新运行五阶段审计后生成报告。';}
+ const result=activeResearch?.notebookId===current&&activeResearch?.template===$('researchTemplate')?.value?activeResearch:null;
+ $('researchSave').disabled=!result||researchBusy||!!result?.isHistorical;$('researchExportMarkdown').disabled=!result;$('researchExportJson').disabled=!result;
+ if(!result){box.replaceChildren(node('div','empty','选择模板并生成报告。报告只使用当前笔记本中最新的审计产物。'));return;}
+ const {report}=result, evidence=new Map(report.evidence_index.map(e=>[e.evidenceId,e]));box.replaceChildren();
+ box.append(node('h2','research-title',report.title+' · '+(report.template==='research'?'科研报告':'报告／会议材料')),
+  node('p','hint',`原管线 ${report.source_pipeline_id} · 来源要点 ${report.metrics.source_items} 条 · 待核对 ${report.metrics.pending_items} 条 · 外部核验未执行；计数不是准确率。`));
+ if(report.provenance.data_kind==='SYNTHETIC_DEVELOPMENT_ONLY')box.append(node('p','hint','合成开发样例：不是实际文献、真实会议或模型效果验收。'));
+ for(const section of report.sections){
+  const sectionBox=node('section','research-section');sectionBox.append(node('h3','',section.title));
+  if(!section.items.length)sectionBox.append(node('p','empty','材料未明确提及或尚未指定栏目，请核对原资料。'));
+  for(const item of section.items){
+   const card=node('article','research-card');card.append(node('h4','',item.topic||item.fact_id),node('p','',item.statement));
+   if(item.conditions?.length)card.append(node('p','hint','来源中的条件：'+item.conditions.join('；')));
+   for(const quote of item.evidence_quotes||[]){
+    const source=evidence.get(quote.evidence_id);card.append(node('blockquote','evidence-quote',quote.quote));
+    if(source)card.append(button(`[${source.label}] ${source.title||source.sourceId||'原始证据'}${source.start!==null?' · '+time(source.start):' · 无时间定位'}`,()=>showReference({label:source.label,title:source.title,sourceId:source.sourceId,segmentId:source.segmentId,mediaId:source.mediaId,start:source.start,end:source.end,text:quote.quote,sourceType:source.sourceType}),'citation'));
+   }
+   sectionBox.append(card);
+  }
+  box.append(sectionBox);
+ }
+ const pending=node('section','research-section');pending.append(node('h3','','争议与待核对'));
+ if(!report.pending.length)pending.append(node('p','hint','本次输入未触发新增隔离项；仍需人工核对原资料，不能据此判定无错误。'));
+ for(const item of report.pending){
+  const card=node('article','research-card pending');card.append(node('h4','',item.topic||item.fact_id),node('p','',item.proposed_statement||'未提供候选陈述'),node('p','hint',(item.reason_codes||[]).map(code=>RESEARCH_REASON_LABELS[code]||code).join('；')));
+  for(const quote of item.evidence_quotes||[]){const source=evidence.get(quote.evidence_id);card.append(node('blockquote','evidence-quote',quote.quote));if(source)card.append(button(`[${source.label}] 回看来源${source.start!==null?' · '+time(source.start):''}`,()=>showReference({label:source.label,title:source.title,sourceId:source.sourceId,segmentId:source.segmentId,mediaId:source.mediaId,start:source.start,end:source.end,text:quote.quote,sourceType:source.sourceType}),'citation'));}
+  pending.append(card);
+ }
+ box.append(pending,node('p','hint','会议决议、行动项和文献信息均待人工确认；来源陈述不等于共同决定，未核验元数据不会自动补齐。'));
+}
 let mediaEnd;
 function play(id,start,end,preserveEvidence=false){
  const s=state.sources.find(s=>s.id===id&&s.kind==='media');if(!s)throw Error('原媒体不存在');
@@ -123,7 +158,7 @@ function renderNote(){
   box.classList.toggle('hidden',!read||noBook);
   editor.classList.toggle('hidden',read||noBook);
   if(read&&!noBook){box.innerHTML=content?renderMarkdown(content):'<p class="note-empty">还没有内容。切到「编辑」写第一版，或导入资料后点「从资料整理」。</p>';
-    const revision=[...(state?.revisions||[])].reverse().find(r=>r.notebookId===current&&r.content===content);
+    const revision=[...(state?.revisions||[])].reverse().find(r=>r.notebookId===current&&r.kind!=='research-report'&&r.content===content);
     const groups=new Map();
     for(const cite of box.querySelectorAll('sup.cite')){
       const block=cite.closest('li,p,blockquote,h1,h2,h3,h4,h5,h6')||cite.parentElement;
@@ -168,11 +203,11 @@ $('noteRender').addEventListener('mouseup',()=>{const sel=window.getSelection();
 $('noteRender').addEventListener('keyup',()=>$('noteRender').dispatchEvent(new MouseEvent('mouseup',{bubbles:true})));
 $('newBook').onclick=()=>{ $('newBookTitle').value=''; $('newBookDialog').showModal(); };
 $('createFirstBook').onclick=()=>{ $('newBookTitle').value=''; $('newBookDialog').showModal(); };
-$('newBookForm').onsubmit=e=>{e.preventDefault();run(async()=>{const title=$('newBookTitle').value.trim();if(!title)return;if(dirty&&!await confirmAction('当前笔记未保存，仍要新建吗？'))return;const b=await api('/api/notebooks',{title});current=b.id;dirty=false;localStorage.setItem('study.current',current);$('newBookDialog').close();await refresh(true);});};
+$('newBookForm').onsubmit=e=>{e.preventDefault();run(async()=>{const title=$('newBookTitle').value.trim();if(!title)return;if(dirty&&!await confirmAction('当前笔记未保存，仍要新建吗？'))return;const b=await api('/api/notebooks',{title});current=b.id;activeResearch=null;$('researchStatus').textContent='';dirty=false;localStorage.setItem('study.current',current);$('newBookDialog').close();await refresh(true);});};
 $('cancelNewBook').onclick=()=>$('newBookDialog').close();
 $('saveNote').onclick=()=>run(saveNote);
 async function saveNote(){needBook();await api('/api/notes',{notebookId:current,content:$('noteEditor').value});dirty=false;historyView=false;await refresh();toast('已保存新版本，历史内容保留');}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>{const on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;});document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab));b.focus();});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>{const on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;});document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab));if(b.dataset.tab==='research')renderResearchReportView();b.focus();});
 $('importButton').onclick=()=>run(()=>{needBook();$('fileInput').click();});
 const toBase64=blob=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.onerror=reject;r.readAsDataURL(blob);});
 function uploadMedia(file,notebookId){return new Promise((resolve,reject)=>{const xhr=new XMLHttpRequest();xhr.open('POST','/api/upload?notebookId='+encodeURIComponent(notebookId)+'&title='+encodeURIComponent(file.name));xhr.setRequestHeader('Content-Type','application/octet-stream');xhr.upload.onprogress=e=>{if(e.lengthComputable)$('uploadStatus').textContent='上传 '+file.name+' · '+Math.round(e.loaded/e.total*100)+'%';};xhr.onerror=()=>reject(Error('上传连接中断，请重试'));xhr.onload=()=>{try{const value=JSON.parse(xhr.responseText);if(xhr.status>=400)reject(Error(value.error));else resolve(value);}catch{reject(Error('上传响应异常，请重试'));}};xhr.send(file);});}
@@ -188,7 +223,24 @@ $('settingsForm').onsubmit=e=>{e.preventDefault();run(async()=>{await saveSettin
 $('detectModels').onclick=()=>run(async()=>{await saveSettings();const x=await api('/api/models',{});const ids=(x.data||[]).map(m=>m.id);if(!ids.length)throw Error('服务已连接，但没有加载模型');$('settingsForm').elements.model.value=ids[0];toast('检测到：'+ids.join('、')+'；已填入首个模型，请保存');});
 $('closeMedia').onclick=closeEvidencePanel;
 async function loadRevision(r){if(dirty&&!await confirmAction('放弃当前未保存修改？'))return;$('noteEditor').value=r.content;$('noteEditor').readOnly=true;$('noteEditor').classList.add('is-historical');historyView=true;dirty=false;selection='';selectionChanged();$('revisionLabel').textContent='只读 · 历史版本';$('continueEdit').classList.remove('hidden');$('sourceDialog').close();renderNote();}
-$('historyButton').onclick=()=>{const revisions=state.revisions.filter(r=>r.notebookId===current).reverse();$('sourceDialogTitle').textContent='笔记历史版本';$('sourceContent').replaceChildren();for(const r of revisions){const c=node('div','segment');c.append(button(new Date(r.createdAt).toLocaleString()+' · 只读预览',async()=>{await loadRevision(r);}));c.append(node('p','',r.content.slice(0,150)));$('sourceContent').append(c);}if(!revisions.length)$('sourceContent').textContent='尚无保存版本';$('sourceDialog').showModal();};
+$('historyButton').onclick=()=>{const revisions=state.revisions.filter(r=>r.notebookId===current&&r.kind!=='research-report').reverse();$('sourceDialogTitle').textContent='笔记历史版本';$('sourceContent').replaceChildren();for(const r of revisions){const c=node('div','segment');c.append(button(new Date(r.createdAt).toLocaleString()+' · 只读预览',async()=>{await loadRevision(r);}));c.append(node('p','',r.content.slice(0,150)));$('sourceContent').append(c);}if(!revisions.length)$('sourceContent').textContent='尚无保存版本';$('sourceDialog').showModal();};
+$('researchTemplate').onchange=()=>{activeResearch=null;$('researchStatus').textContent='模板已更改，需重新生成。';renderResearchReportView();};
+$('researchGenerate').onclick=()=>run(async()=>{
+ const notebookId=needBook(),template=$('researchTemplate').value;$('researchGenerate').disabled=true;researchBusy=true;activeResearch=null;$('researchStatus').textContent='正在读取最新审计产物并编排报告…';renderResearchReportView();
+ try{const result=await api('/api/research/report?notebookId='+encodeURIComponent(notebookId)+'&template='+encodeURIComponent(template));
+  if(notebookId!==current)return;activeResearch={notebookId,template,...result,sourceSnapshot:JSON.stringify(state.sources.filter(s=>s.notebookId===notebookId))};$('researchStatus').textContent='报告已生成。内容来自现有审计结果；请逐条复核来源。';renderResearchReportView();
+ }catch(e){$('researchStatus').textContent=e.message+' 可点击“生成／重试报告”重试。';throw e;}
+ finally{researchBusy=false;$('researchGenerate').disabled=false;renderResearchReportView();}
+});
+$('researchSave').onclick=()=>run(async()=>{
+ const result=activeResearch;if(!result||result.isHistorical)throw Error('请先生成当前报告');researchBusy=true;renderResearchReportView();
+ try{const saved=await api('/api/research/report/save',{notebookId:result.notebookId,template:result.template});await refresh();$('researchStatus').textContent=saved.reused?'该审计产物与模板的报告版本已保存。':'已保存新的科研报告版本，旧版本保留。';toast(saved.reused?'相同报告版本已存在':'科研报告已保存为新版本');}
+ finally{researchBusy=false;renderResearchReportView();}
+});
+function downloadResearch(name,content,mime){const url=URL.createObjectURL(new Blob([content],{type:mime}));const link=node('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('researchExportMarkdown').onclick=()=>run(()=>{if(!activeResearch)throw Error('请先生成报告');downloadResearch((activeResearch.report.title||'科研报告').replace(/[<>:"/\\|?*]/g,'_')+'.md',activeResearch.markdown,'text/markdown;charset=utf-8');});
+$('researchExportJson').onclick=()=>run(()=>{if(!activeResearch)throw Error('请先生成报告');downloadResearch((activeResearch.report.title||'科研报告').replace(/[<>:"/\\|?*]/g,'_')+'.json',JSON.stringify(activeResearch.report,null,2),'application/json;charset=utf-8');});
+$('researchHistory').onclick=()=>{const revisions=state.revisions.filter(r=>r.notebookId===current&&r.kind==='research-report').reverse();$('sourceDialogTitle').textContent='科研报告历史版本';$('sourceContent').replaceChildren();for(const r of revisions){const row=node('div','segment');row.append(button(new Date(r.createdAt).toLocaleString()+' · '+(r.template==='meeting'?'报告／会议':'科研')+' · 只读查看',()=>{activeResearch={notebookId:current,template:r.template,report:r.researchReport,markdown:r.content,isHistorical:true};$('researchTemplate').value=r.template;$('researchStatus').textContent='当前查看的是已保存的历史版本。';$('sourceDialog').close();renderResearchReportView();}));row.append(node('p','hint','管线 '+r.auditPipelineId+' · 报告 '+r.reportId));$('sourceContent').append(row);}if(!revisions.length)$('sourceContent').textContent='尚无科研报告版本';$('sourceDialog').showModal();};
 $('continueEdit').onclick=()=>{if(!historyView)return;historyView=false;$('noteEditor').readOnly=false;$('noteEditor').classList.remove('is-historical');$('continueEdit').classList.add('hidden');dirty=true;$('revisionLabel').textContent='有未保存的修改';};
 $('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.notebooks.find(x=>x.id===current);if(!await confirmAction('删除笔记本「'+b.title+'」？其全部资料、笔记版本、问答与任务将移入回收站（媒体文件保留），可在那里恢复或彻底删除。'))return;await api('/api/notebooks/'+current,'','DELETE');current=null;localStorage.setItem('study.current','');dirty=false;selection='';await refresh(true);toast('已移入回收站');});
 $('exportButton').onclick=()=>run(()=>{needBook();const title=state.notebooks.find(b=>b.id===current).title;const sources=state.sources.filter(s=>s.notebookId===current);const content=`# ${title}\n\n${$('noteEditor').value}\n\n## 资料清单\n${sources.map(s=>`- ${s.title}（ID: ${s.id}）`).join('\n')}\n\n## 疑问\n${state.questions.filter(q=>q.notebookId===current).map(q=>`- [${q.status}] ${q.question}`).join('\n')}\n`;const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'}));const a=node('a');a.href=url;a.download=title.replace(/[<>:"/\\|?*]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
