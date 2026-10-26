@@ -19,11 +19,13 @@
 - 已验证：带T59/owner的进入检查通过；63项任务未登记引用0、重复0；本轮两份新MD的2个实际相对链接、git diff --check通过。上传和PR以GitHub回执为准。
 
 ## T60 · 科研与报告笔记编排首阶段
-- status: open · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
+- status: done · owner: cmccjiang（业务B，Codex代执行） · branch: collab/cmccjiang-research-notes
+- integration: branch-only
 - files: src/research_notes/*, scripts/research-report.mjs, tests/research-notes.test.mjs, tests/research-report-cli.test.mjs, tests/fixtures/research-notes/*, evaluation/research-notes/*, docs/工作与科研端协作.md, docs/任务进入记录/2026-10-26-T60.md, TASKS.md, CONTEXT.md
 - 关联：复用T40的审计产物；为T41提供科研业务输出和开发样例，不关闭T41/T44/T56的公共质量遗留。
 - 范围：只读现有PipelineArtifact；输出科研/报告模板、证据原句与来源/时间索引、明确待核对和冲突；CLI可在无模型环境演示、导出JSON与Markdown。可选人工栏目映射不新增事实、不把来源陈述升级为会议决议。
 - 验收：未经审计/拒绝/冲突/不明视觉/无有效引用的事实不得进入来源要点；缺失决议、责任人、日期、文献信息保持待确认；保留来源与毫秒时间位置；无输入修改、无联网、无store写入；重复运行一致；专项与原回归通过。
+- 已验证：科研专项29项；含原110项的Node总回归139/139、Python19/19、原PipelineArtifact样例契约及JS语法通过。两组JSON/MD演示可复算一致，24个证据锚点、8份本轮说明16个实际相对链接通过。仅合成开发样例，无真实模型/课程准确率。见T60进入记录与evaluation/research-notes。
 
 ## T61 · 科研端网页入口与证据回看集成
 - status: open · owner: cmccjiang（业务B，Codex代执行）
