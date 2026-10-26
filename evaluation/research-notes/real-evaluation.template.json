@@ -1,0 +1,19 @@
+{
+  "schema_version": "research-quality-run/1.0",
+  "run_id": "",
+  "state": "NOT_RUN",
+  "model": {
+    "provider": "",
+    "name": "",
+    "version": "",
+    "api_format": "openai-compatible"
+  },
+  "location_tolerance_ms": 3000,
+  "materials": [],
+  "cases": [],
+  "review": {
+    "completed": false,
+    "independent": false,
+    "critical_errors_resolved": false
+  }
+}

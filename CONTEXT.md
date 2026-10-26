@@ -2,13 +2,15 @@
 
 - 用户已确认负责工作与科研端（业务B）；本机Git Credential Manager实际登录核验为cmccjiang。Codex在本会话代执行，不将旧“工作者A/Codex”或“工作者B/待认领”自动映射为产品职责。
 - 基线origin/main/65328fed7cbbe99642ace180704d64e7079464c5；新建collab/cmccjiang-research-notes，包含最新三人协作约定。从main接续，不合入未经独立审阅的PR #1，不覆盖collab/content-quality。
-- 本期：T59登记和T60只读科研/报告编排首阶段均已验证完成，仅在独立任务分支；T61网页集成、T62真实模型/材料验收保持open。详细边界见 [工作与科研端协作](docs/工作与科研端协作.md)。
-- 进入核查：完整59项任务无未登记引用/重复，旧T56/T44/T41/T58尚未认领、T45继续hold。原Node/Python/Pydantic与五阶段管线优先，不更改共享服务、界面、存储格式或用户数据。
+- 本期：T59登记、T60只读科研/报告编排、T61网页入口与证据回看均已在独立任务分支验证完成；T62记录模板/汇总工具已完成，真实模型/材料验收blocked，等待用户选定服务与获准材料。详细边界见 [工作与科研端协作](docs/工作与科研端协作.md)。
+- 进入核查：本轮完整扫描63项任务，无未登记引用/重复；旧T56/T44/T41/T58保留原负责人，T45继续hold。原Node/Python/Pydantic与五阶段管线优先；本轮T61沿用现有网页和存储，未读写用户数据。
 - T59登记阶段已验证：真实登录cmccjiang；带owner进入检查通过，63项任务引用/重复均0；新MD的2个实际相对链接和git diff --check通过。成果在任务分支，尚未进入main。
 - T59已上传：29be1932b35f299a464d7ada00f06cc96693b4b9，远端分支已逐字核对。T60新增src/research_notes、CLI和合成样例；从既有审计事实编排、匹配原始/清洗证据，隔离未审计/冲突/风险；决议、行动项和文献信息待人工确认，不作新的语义或科学认证。
 - T60实际验证：Windows/Node26.7.0/Python3.13.3；Node139/139（原110+科研29）、Python19/19、Pydantic原输入契约、原check及新增JS语法通过。两组JSON/MD重复生成一致、24个证据锚点、8份本轮说明16个本地链接通过。原server/public/五阶段与公共Schema无差异，无真实学习库或模型服务改动。
-- 上传/审阅：T60功能提交bd7534db573e52f263ae500715844ead90a71051已推送并核对远端；[PR #3](https://github.com/Aa144085412/Study-companion/pull/3) 已由cmccjiang创建，open、未合并。当前没有该PR的远端自动检查结果，139/139等为本机验证，不引用PR #1的CI结果。
-- Next safe action：PR #3独立审阅后集成；T61先与C协调公共网页/业务接口/保存契约，再认领实现；T62需要有权使用的材料、可用模型和人工复核。云端PR #1仍另行待审，不顺带合入。上传/PR回执见 [T60记录](docs/任务进入记录/2026-10-26-T60.md)。
+- T61实际验证：同一分支新增科研报告网页页签、两种模板、来源回看、Markdown/JSON下载、独立且幂等的报告版本及历史浏览；生成接口拒绝缺少或过期审计产物。科研版本不参与学习笔记、聊天、Skill的“最新笔记”查找。Node141/141（新增网页/API专项2项）、Python19/19、npm run check与git diff --check通过。验证只使用已提交的合成PipelineArtifact；没有调用模型、真实课程或用户数据。
+- T62实际验证：专项4/4通过；空白记录模板实跑返回`BLOCKED_MISSING_EXTERNAL_INPUTS`、development/held_out metrics均为null。工具不调用模型、不把合成样例送入留出集、不输出准确率或材料原文。完整Node145/145、Python19/19、`npm.cmd run check`、两个新增JS文件语法和`git diff --check`通过。
+- 上传/审阅：T60功能提交bd7534db573e52f263ae500715844ead90a71051仍是已推送基线；本轮T61代码和T62工程工具已完成本机验证，待本次提交推送后更新open且未合并的[PR #3](https://github.com/Aa144085412/Study-companion/pull/3)。Node145/145、Python19/19是本机验证，不引用PR #1的CI结果。
+- Next safe action：推送T61与T62工程部分并核对PR #3；真实验收需要用户先选定OpenAI兼容服务/模型、在本机配置凭据，并提供有权使用的文献分享、组会/培训材料及人工复核。C对共享文件的复核和PR合入待协作者处理；PR #1仍独立审阅，不顺带合入。
 
 ---
 
