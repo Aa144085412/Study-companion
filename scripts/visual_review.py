@@ -1,4 +1,4 @@
-"""Timestamp-aligned burned subtitle evidence, with optional local vision fallback."""
+"""Timestamp-aligned evidence; vision requests go through the local API gateway."""
 import argparse, base64, hashlib, json, subprocess, sys
 import re
 from pathlib import Path
@@ -107,7 +107,7 @@ def main():
         lines += [f'\n## {int(minutes):02}:{seconds:05.2f}',f'原 ASR：{e.asr_text}',f'画面字幕候选：{e.subtitle_text or "未识别到"}',f'OCR 置信度：{e.ocr_confidence:.3f}']
         if e.slide_changed:lines.append('课件/画面正文 OCR 候选（不是人工确认）：'+e.slide_text)
         elif e.slide_id:lines.append(f'画面正文沿用 {e.slide_start_time:.2f} 秒，画面标识 {e.slide_id}')
-        if e.visual_description:lines.append('本地视觉模型推断：'+e.visual_description)
+        if e.visual_description:lines.append('视觉模型推断：'+e.visual_description)
     (out/'evidence-items.v2.json').write_text(json.dumps(typed_evidence(cfg,segments,results),ensure_ascii=False,indent=2),encoding='utf-8')
     # Legacy display export only. The audited pipeline consumes typed evidence / FrameEvidence.
     document=RawMultimodalDocument(media_type='video',title=cfg.get('title','视频课程联合证据'),segments=[TimelineSegment(start_time=seg['start']/1000,end_time=seg['end']/1000,asr_text=e.asr_text,visual_description='字幕OCR候选：'+e.subtitle_text+'\n课件/画面正文OCR候选：'+e.slide_text+'\n视觉模型推断：'+e.visual_description) for seg,e in zip(segments,results)])
