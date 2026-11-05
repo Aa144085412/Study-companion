@@ -1,3 +1,5 @@
+import {writeAgentBundle} from './src/note_renderer/agent-bundle.mjs';
+import {renderAgentMarkdown} from './src/note_renderer/agent-markdown.mjs';
 import {runPipeline,makeStageCaller,sourceFingerprint} from './src/pipeline/index.mjs';
 import {generateVerifiedQuiz} from './src/quiz_engine/index.mjs';
 import http from 'node:http';
@@ -160,7 +162,8 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       const description='当需要复习本视频的知识、解释概念或核对来源时加载；待核对内容不能作为确定事实';
       const content='---\nname: '+name+'\ntitle: '+JSON.stringify(nb.title)+'\nkind: knowledge\ndescription: '+description+'\n---\n\n'+note.content;
       fs.mkdirSync(skillsDir,{recursive:true});
-      const packagePath=compilePackage({skillsDir,name,description,content,sources:artifact.evidence.map(e=>({...e,sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,start:e.start_time===null?null:e.start_time*1000,end:e.end_time===null?null:e.end_time*1000})),note:note.content,kind:'knowledge'});
+      const agentReference=renderAgentMarkdown({...artifact,title:nb.title},{sourceUrl:nb.sourceUrl||''});
+      const packagePath=compilePackage({skillsDir,name,description,content,sources:artifact.evidence.map(e=>({...e,sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,start:e.start_time===null?null:e.start_time*1000,end:e.end_time===null?null:e.end_time*1000})),note:note.content,kind:'knowledge',agentNote:agentReference.markdown,agentImages:agentReference.images,imageRoot:path.join(dataDir,'visual-review')});
       const file=path.join(skillsDir,name+'.md');fs.writeFileSync(file,content,'utf8');
       return {name,title:nb.title,description,kind:'knowledge',steps:0,path:file,packagePath};
     }
@@ -689,6 +692,23 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const nb=book(u.searchParams.get('notebookId')),artifact=auditedArtifact(nb),q=nb.quizSession?.questions.find(q=>q.id===u.searchParams.get('questionId')&&q.pipeline_id===artifact.pipeline_id&&q.verification_status==='BLIND_MODEL_AGREEMENT');
         if(!q)throw fail('题目已失效',404);const f=artifact.facts.find(f=>f.id===q.fact_ids[0]),e=artifact.evidence.find(e=>e.id===f.evidence_quotes[0].evidence_id);
         return json(res,{sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,title:e.title,text:e.text,start:e.start_time===null?undefined:e.start_time*1000,end:e.end_time===null?undefined:e.end_time*1000});
+      }
+      if(req.method==='GET' && ['/api/notes/agent-markdown','/api/notes/agent-bundle'].includes(p)){
+        const nb=book(u.searchParams.get('notebookId')),artifact=auditedArtifact(nb);
+        const latest=[...db.revisions].reverse().find(r=>r.notebookId===nb.id);
+        if(!latest||latest.auditPipelineId!==artifact.pipeline_id)throw fail('当前笔记已编辑或缺少对应审计版本，请重新整理后导出Agent参考笔记',409);
+        const recorded=[...db.agentRuns].reverse().find(r=>r.notebookId===nb.id&&r.url);
+        const result=renderAgentMarkdown(artifact,{sourceUrl:u.searchParams.get('sourceUrl')||nb.sourceUrl||recorded?.url||''});
+        if(p==='/api/notes/agent-bundle'){
+          const exports=path.join(dataDir,'exports'),name=uuid(),directory=path.join(exports,name),archive=directory+'.zip';
+          writeAgentBundle(artifact,{directory,imageRoot:path.join(dataDir,'visual-review'),sourceUrl:u.searchParams.get('sourceUrl')||nb.sourceUrl||recorded?.url||''});
+          const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+          await new Promise((resolve,reject)=>{const child=spawn(py,[path.join(ROOT,'scripts','zip_reference.py'),directory,archive],{windowsHide:true});let error='';child.stderr.on('data',x=>error=(error+x).slice(-700));child.on('error',reject);child.on('close',code=>code===0?resolve():reject(fail('图文参考包压缩失败：'+error,500)));});
+          res.writeHead(200,{'Content-Type':'application/zip','Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(nb.title+'-Agent图文包.zip').replace(/'/g,'%27')});
+          return fs.createReadStream(archive).pipe(res);
+        }
+        const {images,...portable}=result;
+        return json(res,{...portable,pipelineId:artifact.pipeline_id,filename:nb.title.replace(/[<>:"/\\|?*]/g,'_')+'-Agent参考.md'});
       }
       if(req.method==='GET' && p==='/api/note-frame'){
         const nb=book(u.searchParams.get('notebookId')),artifact=auditedArtifact(nb);

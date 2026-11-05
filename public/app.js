@@ -194,6 +194,13 @@ $('historyButton').onclick=()=>{const revisions=state.revisions.filter(r=>r.note
 $('continueEdit').onclick=()=>{if(!historyView)return;historyView=false;$('noteEditor').readOnly=false;$('noteEditor').classList.remove('is-historical');$('continueEdit').classList.add('hidden');dirty=true;$('revisionLabel').textContent='有未保存的修改';};
 $('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.notebooks.find(x=>x.id===current);if(!await confirmAction('删除笔记本「'+b.title+'」？其全部资料、笔记版本、问答与任务将移入回收站（媒体文件保留），可在那里恢复或彻底删除。'))return;await api('/api/notebooks/'+current,'','DELETE');current=null;localStorage.setItem('study.current','');dirty=false;selection='';await refresh(true);toast('已移入回收站');});
 $('exportButton').onclick=()=>run(()=>{needBook();const title=state.notebooks.find(b=>b.id===current).title;const sources=state.sources.filter(s=>s.notebookId===current);const content=`# ${title}\n\n${$('noteEditor').value}\n\n## 资料清单\n${sources.map(s=>`- ${s.title}（ID: ${s.id}）`).join('\n')}\n\n## 疑问\n${state.questions.filter(q=>q.notebookId===current).map(q=>`- [${q.status}] ${q.question}`).join('\n')}\n`;const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'}));const a=node('a');a.href=url;a.download=title.replace(/[<>:"/\\|?*]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$('exportAgentButton').onclick=()=>run(async()=>{
+  needBook();if(dirty||historyView)throw Error('请先保存并整理当前笔记；Agent导出使用当前已审计版本。');
+  const response=await fetch('/api/notes/agent-bundle?notebookId='+encodeURIComponent(current));
+  if(!response.ok){const error=await response.json();throw Error(error.error||'图文包导出失败');}
+  const url=URL.createObjectURL(await response.blob());
+  const a=node('a');a.href=url;a.download=(state.notebooks.find(b=>b.id===current)?.title||'学习笔记').replace(/[<>:"/\\|?*]/g,'_')+'-Agent图文包.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
 let ttsAudio=null,ttsSeq=0,ttsCtrl=null;
 function stopSpeak(){ttsSeq++;if(ttsCtrl){try{ttsCtrl.abort();}catch{}ttsCtrl=null;}if(ttsAudio){try{ttsAudio.pause();}catch{}if(String(ttsAudio.src).startsWith('blob:'))URL.revokeObjectURL(ttsAudio.src);ttsAudio=null;}try{speechSynthesis.cancel();}catch{}}
 function stripMarkdown(v){

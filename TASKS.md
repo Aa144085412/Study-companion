@@ -440,3 +440,11 @@
 - 验收：当前视频按截图/时间顺序展开，画面文字可见并与对应讲解/已审阅事实关联；真实图片能加载；文本资料原有渲染保持兼容；完整回归与实际输出检查后再提交。
 
 - T60实际验收：Pdf380122b8f1a6fe0034，12个图文章节/12图接口字节匹配/12读图说明/12同图OCR锚点，50已审阅事实，16待核对保留；Node121/Python31、Pydantic和语法通过。仅本地提交，不push/合main。
+
+## T61 · 面向人和Agent的自包含Markdown参考笔记
+- status: done · owner: 工作者A/Codex · branch: codex/video-sop
+- 关联：T60的图文阅读版补充Agent快速读取结构，不重新提取或放宽事实审核。
+- files: src/note_renderer/agent-markdown.mjs, src/note_renderer/agent-bundle.mjs, scripts/zip_reference.py, tests/test_reference_zip.py, server.mjs, public/app.js, public/index.html, src/skill_builder/package.mjs, tests/agent-markdown.test.mjs, docs/视频总结SOP.md, docs/任务进入记录/2026-11-05-T61.md, CONTEXT.md, TASKS.md
+- 验收：Markdown与原图打包，有摘要/概念索引/明确陈述/图文对应/适用范围/待核对/时间与来源，无本地绝对路径及内部API依赖；当前视频真实导出、陈述溯源与工程回归通过后本地提交。
+
+- T61最终：用户要求Agent联合看图，已交付Markdown+12原图ZIP；G/K对应、108脚注、50已审阅/16待核对、原图哈希与相对路径验证通过。Node126/Python33；仅本地提交，不push/合main。
