@@ -432,3 +432,11 @@
 - 验收：ASR与时间对齐OCR必须先于审计笔记；失败不能报告成功；当前Super-agent视频真实端到端验证，工程回归通过后才commit。
 
 - T59验收：Node115/115、Python31/31、语法通过；229帧OCR，695条证据/66卡，六主题均有审阅内容，109引用逐字支持，审计保存版本与知识包一致；首轮Watchdog覆盖失败未提交，格式重试修复后复测通过。报告evaluation/video-sop/2026-11-05-super-agent.json；仅本地提交，未推送/合入main。
+
+## T60 · 截图主导的视频笔记与画面正文整合
+- status: done · owner: 工作者A/Codex · branch: codex/video-sop
+- 关联：T59验收不足；不仅要求OCR进入审计，还要求截图成为正文组织线索。保留原五阶段审计，不自动提升未知OCR为已确认事实。
+- files: src/note_renderer/*, src/pipeline/index.mjs, server.mjs, public/app.js, public/style.css, tests/*, docs/视频总结SOP.md, docs/任务进入记录/2026-11-05-T60.md, CONTEXT.md, TASKS.md
+- 验收：当前视频按截图/时间顺序展开，画面文字可见并与对应讲解/已审阅事实关联；真实图片能加载；文本资料原有渲染保持兼容；完整回归与实际输出检查后再提交。
+
+- T60实际验收：Pdf380122b8f1a6fe0034，12个图文章节/12图接口字节匹配/12读图说明/12同图OCR锚点，50已审阅事实，16待核对保留；Node121/Python31、Pydantic和语法通过。仅本地提交，不push/合main。

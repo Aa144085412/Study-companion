@@ -145,6 +145,8 @@ function renderMarkdown(md){
   const out=[],para=[];const flush=()=>{if(para.length)out.push('<p>'+inline(para.join(' '))+'</p>');para.length=0;};
   let listType=null;const endList=()=>{if(listType){out.push('</'+listType+'>');listType=null;}};
   for(const line of md.replace(/\r\n/g,'\n').split('\n')){
+    const image=line.match(/^!\[([^\]]*)\]\((\/api\/note-frame\?notebookId=[A-Za-z0-9%_-]+&evidenceId=[A-Za-z0-9%_-]+)\)$/);
+    if(image){flush();endList();out.push('<figure class="note-screenshot"><img loading="lazy" src="'+image[2].replace(/&/g,'&amp;')+'" alt="'+esc(image[1]).replace(/"/g,'&quot;')+'"><figcaption>'+inline(image[1])+'</figcaption></figure>');continue;}
     const h=line.match(/^(#{1,6})\s+(.*)$/);
     if(h){flush();endList();const l=h[1].length;out.push('<h'+l+'>'+inline(h[2])+'</h'+l+'>');continue;}
     if(/^\s*(---|\*\*\*|___)\s*$/.test(line)){flush();endList();out.push('<hr>');continue;}

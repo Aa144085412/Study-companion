@@ -148,6 +148,17 @@ class VerifiedQuizItem(Contract):
             raise ValueError('all distractors must be rejected with reasons')
         return self
 
+class VisualNoteSection(Contract):
+    title: str
+    mediaId: str
+    time: float = Field(ge=0)
+    frameEvidenceId: str
+    framePath: str
+    bodyEvidenceId: str | None = None
+    factIds: list[str] = Field(min_length=1)
+    visualReading: str = ""
+    readingStatus: Literal["MODEL_VISUAL_INTERPRETATION", "UNRESOLVED"] = "UNRESOLVED"
+
 class PipelineArtifact(Contract):
     schema_version: Literal['2.0'] = '2.0'
     pipeline_id: str
@@ -163,3 +174,19 @@ class PipelineArtifact(Contract):
     markdown: str
     metrics: dict
     provenance: dict
+
+    visual_sections: list[VisualNoteSection] = Field(default_factory=list)
+
+    @model_validator(mode='after')
+    def visual_links(self):
+        evidence = {e.id: e for e in self.evidence}
+        facts = {f.id: f for f in self.facts}
+        for section in self.visual_sections:
+            frame = evidence.get(section.frameEvidenceId)
+            if not frame or frame.frame_path != section.framePath or frame.media_id != section.mediaId:
+                raise ValueError('visual section must reference its actual frame evidence')
+            if section.bodyEvidenceId and section.bodyEvidenceId not in evidence:
+                raise ValueError('visual body evidence missing')
+            if any(fid not in facts or facts[fid].layer == 'UNRESOLVED' for fid in section.factIds):
+                raise ValueError('visual explanation can only use reviewed facts')
+        return self

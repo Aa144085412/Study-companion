@@ -1,3 +1,4 @@
+import {screenshotSections,readScreenshotSections} from '../note_renderer/screenshots.mjs';
 import fs from 'node:fs';import path from 'node:path';import {hash,parseJSON} from './common.mjs';
 import {ingestEvidence,cleanEvidence} from '../evidence_cleaner/index.mjs';import {synthesize} from '../note_synthesizer/index.mjs';import {auditFacts} from '../attribution_auditor/index.mjs';import {renderNote} from '../note_renderer/index.mjs';
 export const PIPELINE_VERSION='2.2.0';
@@ -24,8 +25,11 @@ export async function runPipeline({sources,title,notebookId,dataDir,call,progres
  const clean=await cleanEvidence(raw,{title,call,classifyLimit});write('evidence.json',clean);
  const mapped=await synthesize(clean.evidence,{call,progress});write('map-reduce.json',mapped);
  const reviewed=await auditFacts(mapped.facts,clean.evidence,mapped.conflicts,{call,progress});write('audit.json',reviewed);
- const rendered=renderNote({title,facts:reviewed.facts,clusters:mapped.clusters,audits:reviewed.audits,conflicts:mapped.conflicts,evidence:clean.evidence,glossary:clean.glossary});
+ const visualSections=await readScreenshotSections(screenshotSections({facts:reviewed.facts,clusters:mapped.clusters,evidence:clean.evidence}),clean.evidence,{call,progress});
+ const rendered=renderNote({title,notebookId,visualSections,facts:reviewed.facts,clusters:mapped.clusters,audits:reviewed.audits,conflicts:mapped.conflicts,evidence:clean.evidence,glossary:clean.glossary});
  const artifact={schema_version:'2.0',pipeline_id,input_hash,title,domain:clean.domain,glossary:clean.glossary,evidence:clean.evidence,facts:reviewed.facts,conflicts:mapped.conflicts,audits:reviewed.audits,clusters:mapped.clusters,markdown:rendered.markdown,metrics:{raw_evidence:raw.length,noise:clean.evidence.filter(e=>e.noise).length,unknown_visual:clean.evidence.filter(e=>e.source_type==='UNKNOWN_VISUAL_OCR').length,map_batches:mapped.map_batches,extracted_cards:mapped.extracted_cards,semantic_merges:mapped.semantic_merges,coverage_recovered:mapped.coverage.reduce((n,b)=>n+b.recovered,0),facts:reviewed.facts.length,semantic_checked:reviewed.semantic_checks.length,semantic_blocked:reviewed.semantic_checks.filter(c=>!c.passed).length,core:reviewed.facts.filter(f=>f.layer==='CORE').length,context:reviewed.facts.filter(f=>f.layer==='CONTEXT').length,unresolved:reviewed.facts.filter(f=>f.layer==='UNRESOLVED').length,conflicts:mapped.conflicts.length,rejected_map_cards:mapped.rejects.length,rewrites:reviewed.rewrites.length,scope_downgrades:reviewed.scope_checks.filter(c=>!c.generalizable||c.counterexample.trim()).length},provenance:{semantic_review_format:'object_quotes_retry_v1',quiz_verification:'blind_plus_grounding_v1',pipeline_version:PIPELINE_VERSION,independence:'separate_context_same_configured_model',scientific_verification:'MODEL_REVIEW_NOT_EXTERNAL_CERTIFICATION'}};
+ artifact.visual_sections=rendered.visualSections||[];
+ artifact.provenance.note_layout='screenshot_first_v1';
  artifact.pipeline_id='P'+hash(artifact).slice(0,20);
  const finalDir=path.join(dataDir,'pipeline-v2',artifact.pipeline_id);fs.mkdirSync(finalDir,{recursive:true});
  for(const file of ['evidence.json','map-reduce.json','audit.json'])fs.copyFileSync(path.join(runDir,file),path.join(finalDir,file));

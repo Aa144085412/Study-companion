@@ -690,6 +690,13 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(!q)throw fail('题目已失效',404);const f=artifact.facts.find(f=>f.id===q.fact_ids[0]),e=artifact.evidence.find(e=>e.id===f.evidence_quotes[0].evidence_id);
         return json(res,{sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,title:e.title,text:e.text,start:e.start_time===null?undefined:e.start_time*1000,end:e.end_time===null?undefined:e.end_time*1000});
       }
+      if(req.method==='GET' && p==='/api/note-frame'){
+        const nb=book(u.searchParams.get('notebookId')),artifact=auditedArtifact(nb);
+        const ev=artifact.evidence.find(e=>e.id===u.searchParams.get('evidenceId'));
+        const file=ev?.frame_path&&path.resolve(ev.frame_path),allowed=path.resolve(dataDir,'visual-review')+path.sep;
+        if(!file||!file.startsWith(allowed)||!file.toLowerCase().endsWith('.jpg')||!fs.existsSync(file))throw fail('笔记截图不存在',404);
+        res.writeHead(200,{'Content-Type':'image/jpeg'});return fs.createReadStream(file).pipe(res);
+      }
       if(req.method==='GET' && p==='/api/audit'){
         const nb=book(u.searchParams.get('notebookId'));return json(res,auditedArtifact(nb));
       }
