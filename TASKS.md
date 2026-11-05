@@ -424,3 +424,11 @@
 ## T49 · 对象、因果与数量的语义门禁首轮
 - status: done · owner: Codex
 - 2.2.0新增语义双轮核对与只读原材料关系还原、注释混排风险门禁。100/100 Node顺序测试、9例定向模型开发回归符合预期；其中B24模型仍漏检，由保守混排规则拦截。详见docs/语义准确性修复-2026-10-22.md。T44整课复跑与误拒绝修复仍open；未覆盖旧笔记。
+
+## T59 · 视频 URL 标准 SOP 修复与当前视频验收
+- status: done · owner: 工作者A/Codex · branch: codex/video-sop
+- 关联：T24/T35/T36/T40 的视频入口集成缺口；不恢复暂停的T45，不接管B的语义规则。
+- files: scripts/url_pipeline.py, scripts/video_sop.py, scripts/tools_pipeline.py, server.mjs, src/skill_builder/package.mjs, src/attribution_auditor/semantic.mjs, src/pipeline/index.mjs, tests/semantic.test.mjs, tests/test_video_sop.py, tests/audited-export.test.mjs, tests/tools.test.mjs, AGENTS.md, README.md, docs/视频总结SOP.md, docs/任务进入记录/2026-11-05-T59.md, CONTEXT.md, TASKS.md
+- 验收：ASR与时间对齐OCR必须先于审计笔记；失败不能报告成功；当前Super-agent视频真实端到端验证，工程回归通过后才commit。
+
+- T59验收：Node115/115、Python31/31、语法通过；229帧OCR，695条证据/66卡，六主题均有审阅内容，109引用逐字支持，审计保存版本与知识包一致；首轮Watchdog覆盖失败未提交，格式重试修复后复测通过。报告evaluation/video-sop/2026-11-05-super-agent.json；仅本地提交，未推送/合入main。

@@ -151,7 +151,19 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     }
     return null;
   }
-  async function generateSkillForNotebook(notebookId, kind='experiment', replaceName=null){
+  async function generateSkillForNotebook(notebookId, kind='experiment', replaceName=null, auditedOnly=false){
+    if(auditedOnly){
+      const nb=book(notebookId),artifact=auditedArtifact(nb);
+      const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId&&r.auditPipelineId===artifact.pipeline_id);
+      if(!note?.content?.trim())throw fail('缺少当前审计版本笔记，不能导出知识包',409);
+      const name='knowledge-'+artifact.pipeline_id.toLowerCase();
+      const description='当需要复习本视频的知识、解释概念或核对来源时加载；待核对内容不能作为确定事实';
+      const content='---\nname: '+name+'\ntitle: '+JSON.stringify(nb.title)+'\nkind: knowledge\ndescription: '+description+'\n---\n\n'+note.content;
+      fs.mkdirSync(skillsDir,{recursive:true});
+      const packagePath=compilePackage({skillsDir,name,description,content,sources:artifact.evidence.map(e=>({...e,sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,start:e.start_time===null?null:e.start_time*1000,end:e.end_time===null?null:e.end_time*1000})),note:note.content,kind:'knowledge'});
+      const file=path.join(skillsDir,name+'.md');fs.writeFileSync(file,content,'utf8');
+      return {name,title:nb.title,description,kind:'knowledge',steps:0,path:file,packagePath};
+    }
     if(!['experiment','knowledge'].includes(kind)) kind='experiment';
     if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
     const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId);
@@ -768,13 +780,13 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           const priorSkill=prior?.result?.skill;
           let reused=false;let skill;
           // reuse only when the previously generated skill is the same kind (a knowledge skill can't stand in for an experiment one, or vice versa)
-          if(!force && priorSkill && prior.kind===kind && fs.existsSync(priorSkill.path)){
+          if(!x.auditedOnly && !force && priorSkill && prior.kind===kind && fs.existsSync(priorSkill.path)){
             const content=fs.readFileSync(priorSkill.path,'utf8');
             const meta=parseSkillMeta(content);
             skill={name:meta.name||priorSkill.name,title:meta.title||priorSkill.title,description:meta.description||'',kind:meta.kind||kind,steps:meta.steps,path:priorSkill.path,packagePath:fs.existsSync(path.join(skillsDir,meta.name||priorSkill.name,'SKILL.md'))?path.join(skillsDir,meta.name||priorSkill.name,'SKILL.md'):null};
             reused=true;
           }else{
-            const gen=await generateSkillForNotebook(nb.id,kind,force?priorSkill?.name:null);
+            const gen=await generateSkillForNotebook(nb.id,kind,force?priorSkill?.name:null,x.auditedOnly===true);
             skill={name:gen.name,title:gen.title,description:gen.description||'',kind:gen.kind||kind,steps:gen.steps,path:gen.path,packagePath:gen.packagePath};
           }
           const gaps=extractGaps(fs.readFileSync(skill.path,'utf8'));
@@ -910,6 +922,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const max=Number.isFinite(+x.max)?Math.trunc(+x.max):10;
         const limit=Number.isFinite(+x.limit)?Math.trunc(+x.limit):0;
         if(!url&&!source&&!query)throw fail('请提供 url、source 或 query');
+        if(['douyin','xhs-video','bilibili'].includes(source)||/https?:\/\/(?:[^/]+\.)?(?:douyin\.com|bilibili\.com|b23\.tv|xiaohongshu\.com|xhslink\.com)(?:[/?#]|$)/i.test(url))throw fail('视频必须使用 /api/agent/media 或 /api/agent/tools 的标准OCR与审计流程',409);
         const out=await runToolsLoop({source,url,goal,query,max,limit});
         const nb=out.notebookId?db.notebooks.find(b=>b.id===out.notebookId):null;
         return json(res,{status:'done',finalText:out.finalText,toolLog:out.toolLog,notebookId:out.notebookId||null,notebookTitle:nb?.title||null,transcriptLen:out.transcriptLen,skill:out.skill||null});

@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "video_url": "https://v.douyin.com/iFPakt478kE/",
+  "duration_seconds": 468.2,
+  "download_and_asr": "reused real prior outputs; no synthetic transcript",
+  "visual": {
+    "frames": 229,
+    "subtitleFrames": 229,
+    "slideTextFrames": 229,
+    "visionFrames": 23,
+    "errors": []
+  },
+  "pipeline_id": "Pdb921ce905efc123bb66",
+  "artifact_sha256": "4d60163399649ed1e2ea53955244c0a0ae9777fcbf9a1746eaa7cd7e5816c007",
+  "evidence_types": {
+    "ASR_TRANSCRIPT": 229,
+    "SUBTITLE_OCR": 229,
+    "UNKNOWN_VISUAL_OCR": 229,
+    "VLM_VISUAL_INFERENCE": 8
+  },
+  "facts_by_layer": {
+    "CONTEXT": 49,
+    "UNRESOLVED": 16,
+    "CORE": 1
+  },
+  "quote_checks_passed": 109,
+  "topic_coverage": {
+    "双层架构": {
+      "total": 25,
+      "reviewed": 20
+    },
+    "事件驱动": {
+      "total": 5,
+      "reviewed": 5
+    },
+    "订阅与直通": {
+      "total": 2,
+      "reviewed": 1
+    },
+    "全双工": {
+      "total": 5,
+      "reviewed": 4
+    },
+    "存算分离": {
+      "total": 12,
+      "reviewed": 6
+    },
+    "监督": {
+      "total": 6,
+      "reviewed": 5
+    }
+  },
+  "audit_revision_and_package_match": true,
+  "numeric_conflict_gate": "ASR30/OCR38 retained as unresolved; manually viewed frame at211.24s confirms30%",
+  "manual_frames_seconds": [
+    59.52,
+    198.96,
+    211.24,
+    400.2
+  ],
+  "tests": {
+    "node_passed": 115,
+    "python_passed": 31
+  },
+  "limits": "ASR-midpoint sampled frames; heuristic OCR regions; same configured model reviews; not external certification"
+}

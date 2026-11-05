@@ -111,7 +111,7 @@ test('POST /api/agent/tools rejects invalid url/source (400)',async t=>{
 test('POST /api/tools/loop runs import_to_notebook then make_skill, lands a notebook and a skill file',async t=>{
   const launcher=fakeLauncher();
   const {call,skillsDir}=await fixture(t,fakeAgentModel(),launcher);
-  const r=await call('/api/tools/loop',{source:'douyin',url:'https://v.douyin.com/abc/'});
+  const r=await call('/api/tools/loop',{source:'wechat',url:'https://mp.weixin.qq.com/s/test'});
   assert.equal(r.status,200);
   assert.equal(r.body.status,'done');
   // toolLog shows both tools ok
@@ -227,4 +227,12 @@ test('POST /api/agent/fetch-xhs rejects missing/blank query (400, no spawn)',asy
   assert.equal((await call('/api/agent/fetch-xhs',{})).status,400);
   assert.equal((await call('/api/agent/fetch-xhs',{query:'   '})).status,400);
   assert.equal(launcher.calls.length,0);
+});
+
+
+test('legacy tool loop refuses video summaries that would omit OCR',async t=>{
+  const {call}=await fixture(t);
+  for(const data of [{source:'douyin',url:'https://v.douyin.com/abc/'},{source:'bilibili',url:'https://bilibili.com/video/BVtest'},{source:'xhs-video',url:'https://www.xiaohongshu.com/explore/test'},{url:'https://v.douyin.com/abc/'},{url:'https://b23.tv/test'},{url:'https://www.xiaohongshu.com/explore/test'}]){
+    const r=await call('/api/tools/loop',data);assert.equal(r.status,409);assert.match(r.body.error,/OCR/);
+  }
 });
