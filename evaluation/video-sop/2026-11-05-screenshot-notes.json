@@ -1,0 +1,101 @@
+{
+  "status": "passed",
+  "pipeline_id": "Pdf380122b8f1a6fe0034",
+  "sections": 12,
+  "image_route_and_bytes_verified": 12,
+  "readings_completed": 12,
+  "body_ocr_anchored_to_same_image": 12,
+  "reviewed_fact_links": 50,
+  "pending_facts_kept_separate": 16,
+  "tests": {
+    "node": 121,
+    "python": 31
+  },
+  "images": [
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=E86d8f9f7f860d6f2",
+      "name": "01.jpg",
+      "time": 21.8,
+      "title": "多Agent协作瓶颈与管理极限",
+      "sha256": "b584580dc4480519934aa2716aa7b71f9bed269acd941b4e7c1f2373e4cbeb9f"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=E35af3bc7d6e861e8",
+      "name": "02.jpg",
+      "time": 74.97999999999999,
+      "title": "双层架构：Router职责与模型选择",
+      "sha256": "3c105eb5e9a422c8989f6e27c4d24596649eb37a33fb291007b8da042df2d78d"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=E5f230a75fb1189bb",
+      "name": "03.jpg",
+      "time": 96.82,
+      "title": "双层架构：Worker职责与执行模式",
+      "sha256": "d4774c86150a1bc98c6e5309bf6580e5241f44b5fad1189315503a0d11c7277a"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=E149a617bc517dbf4",
+      "name": "04.jpg",
+      "time": 164.9,
+      "title": "事件驱动机制与Trigger筛选",
+      "sha256": "0d67ef2ed9e9b06b9f64035b20bd1c8c91e3d50a4dff64fe9d4d0b674af0f679"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=E545cec0ec7248017",
+      "name": "05.jpg",
+      "time": 206.68,
+      "title": "订阅与直通路由机制",
+      "sha256": "d466d0827450ca392ae3d171da38a87dd93c3d557d5f226f3c39f85938ece63c"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=Eea5f2ce43fd99992",
+      "name": "06.jpg",
+      "time": 228.38,
+      "title": "Router批处理与性能指标",
+      "sha256": "0a21a1973a6627231ca245fe7be78d3272f5e26cdaf801cc003b4abf2b9632d9"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=Ea378532582b7e368",
+      "name": "07.jpg",
+      "time": 282.34000000000003,
+      "title": "全双工通信与异步交互",
+      "sha256": "45867ea473357b4317fcaeb5d0895173e149a0c3a93a511e8da3a69c1690f085"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=Eaa171e15728647dc",
+      "name": "08.jpg",
+      "time": 342.38,
+      "title": "存算分离：传统局限与架构定义",
+      "sha256": "2a5c35de566bcac5540d8cc33c032765d226983e1ce62d6d7f6b4e663aabcd7b"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=Eea4f74787e98affb",
+      "name": "09.jpg",
+      "time": 345.37,
+      "title": "存算分离：云端部署与本地执行策略",
+      "sha256": "821c287267d73328e6812526a157674dbfe1cee98e7b906961a1d1b914537c77"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=E687ecad5925cf96b",
+      "name": "10.jpg",
+      "time": 377.26,
+      "title": "Watchdog监控与自我纠正机制",
+      "sha256": "92d4de8f4306a8d6c6996360ef6bd94be60c3154818079875110838e4c2536bd"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=Eb7f4e9f2e1048a4e",
+      "name": "11.jpg",
+      "time": 414.58,
+      "title": "系统整体特性与初始化",
+      "sha256": "66ddd2e89f5c850797680aebf82d4e5193e849892bb9bcc8fa1d7ca6ca0b338a"
+    },
+    {
+      "url": "/api/note-frame?notebookId=5a7db635-afc6-4012-927a-4be612dda3f1&evidenceId=E4f2fd91770ca76e0",
+      "name": "12.jpg",
+      "time": 438.78,
+      "title": "Super-agent核心定义与用户交互",
+      "sha256": "42e0d6c5627e52dae938c6ddb49047bdd51fe8cfdb4b05bbfb14a832420b54a8"
+    }
+  ],
+  "limits": "截图为代表画面；OCR候选与视觉解读不自动认证为事实。结构由已审阅主题与对应画面建立，不是逐镜头切分。"
+}

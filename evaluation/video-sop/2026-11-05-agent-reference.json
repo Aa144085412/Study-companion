@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "format": "study-reference/multimodal-agent-v1",
+  "pipeline_id": "Pdf380122b8f1a6fe0034",
+  "markdown_characters": 19590,
+  "markdown_entry": "note.md",
+  "images": 12,
+  "image_original_hashes_match": true,
+  "resolved_source_footnotes": 108,
+  "reviewed_fact_sections": 50,
+  "pending_sections": 16,
+  "internal_api_or_machine_path_dependencies": false,
+  "agent_skill_reference_and_images_updated": true,
+  "node_tests": 126,
+  "python_tests": 33,
+  "zip_sha256": "04eeeeb53431f3465c2a0f422be342e516f70abeb3cf5b959cf4654242be0a5e"
+}

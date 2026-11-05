@@ -6,7 +6,7 @@ export function semanticDecision(checks,fact,evidence){
  const axes=['binding_supported','causality_supported','quantity_supported'];
  const valid=c&&axes.every(k=>[true,false,null].includes(c[k]))&&typeof c.rationale==='string'&&c.rationale.trim()&&Array.isArray(c.evidence_quotes)&&c.evidence_quotes.length>0&&c.evidence_quotes.every(q=>typeof q.quote==='string'&&q.quote.trim()&&evidence.some(e=>e.id===q.evidence_id&&e.text.includes(q.quote)));
  const passed=Boolean(valid&&axes.every(k=>c[k]===true));
- return {fact_id:fact.id,passed,attribution:valid&&axes.some(k=>c[k]===false)?'MODEL_INDUCTION_ERROR':'UNDETERMINED',rationale:valid?c.rationale:'语义复核缺失、重复、格式或引用无效，需核对原片。',check:c};
+ return {fact_id:fact.id,format_valid:Boolean(valid),passed,attribution:valid&&axes.some(k=>c[k]===false)?'MODEL_INDUCTION_ERROR':'UNDETERMINED',rationale:valid?c.rationale:'语义复核缺失、重复、格式或引用无效，需核对原片。',check:c};
 }
 // OCR may concatenate a persistent annotation with changing speech subtitles.
 // This is a layout ambiguity guard, not a factual correction or domain vocabulary rule.
@@ -22,6 +22,15 @@ export function annotationCausalityRisk(fact,evidence){
  }
  return risks;
 }
+async function checkedReview(call,prompt,input,batch,refs){
+ let result;
+ for(let attempt=0;attempt<2;attempt++){
+  result=await call('semantic_check',prompt+(attempt?'\n上次响应未通过结构/引用校验。严格返回checks数组，每个fact恰好一项；evidence_quotes必须是对象数组[{"evidence_id":"输入中的E标识","quote":"该标识对应text的连续原句"}]，不能是字符串数组，不能省略来源ID。不要改变true/false/null的语义标准。':''),input);
+  if(Array.isArray(result?.checks)&&result.checks.length===batch.length&&batch.every(f=>semanticDecision(result.checks,f,refs).format_valid))return result;
+  call.invalidateLast?.();
+ }
+ return result; // Still malformed: semanticDecision keeps it unresolved, never auto-corrects citations.
+}
 export async function reviewSemantics(facts,evidence,{call,refsFor,progress=()=>{}}){
  const decisions=[];
  for(const batch of chunkBySize(facts,6500)){
@@ -29,9 +38,9 @@ export async function reviewSemantics(facts,evidence,{call,refsFor,progress=()=>
   // No prior audit, layer or certification label is sent to this reviewer.
   const claims=batch.map(({id,topic,step,entity,property,statement,parameters,conditions,evidence_quotes})=>({id,topic,step,entity,property,statement,parameters,conditions,evidence_quotes}));
   const refs=refsFor(batch),input={facts:claims,evidence:refs};
-  const first=await call('semantic_check',SEMANTIC_PROMPT,input);
+  const first=await checkedReview(call,SEMANTIC_PROMPT,input,batch,refs);
   const source_reading=await call('source_relations',SOURCE_RELATION_PROMPT,{evidence:refs});
-  const second=await call('semantic_check',CONTEXT_SEMANTIC_PROMPT+'\nsource_reading是只看原文的另一上下文分析，仅作反证线索，不可代替原句；如其中因果与候选不一致，必须回查原证据，无法确认则null。',{...input,source_reading});
+  const second=await checkedReview(call,CONTEXT_SEMANTIC_PROMPT+'\nsource_reading是只看原文的另一上下文分析，仅作反证线索，不可代替原句；如其中因果与候选不一致，必须回查原证据，无法确认则null。',{...input,source_reading},batch,refs);
   decisions.push(...batch.map(f=>{
    const passes=[semanticDecision(first?.checks,f,refs),semanticDecision(second?.checks,f,refs)];
    const layout_risks=annotationCausalityRisk(f,evidence);

@@ -145,6 +145,8 @@ function renderMarkdown(md){
   const out=[],para=[];const flush=()=>{if(para.length)out.push('<p>'+inline(para.join(' '))+'</p>');para.length=0;};
   let listType=null;const endList=()=>{if(listType){out.push('</'+listType+'>');listType=null;}};
   for(const line of md.replace(/\r\n/g,'\n').split('\n')){
+    const image=line.match(/^!\[([^\]]*)\]\((\/api\/note-frame\?notebookId=[A-Za-z0-9%_-]+&evidenceId=[A-Za-z0-9%_-]+)\)$/);
+    if(image){flush();endList();out.push('<figure class="note-screenshot"><img loading="lazy" src="'+image[2].replace(/&/g,'&amp;')+'" alt="'+esc(image[1]).replace(/"/g,'&quot;')+'"><figcaption>'+inline(image[1])+'</figcaption></figure>');continue;}
     const h=line.match(/^(#{1,6})\s+(.*)$/);
     if(h){flush();endList();const l=h[1].length;out.push('<h'+l+'>'+inline(h[2])+'</h'+l+'>');continue;}
     if(/^\s*(---|\*\*\*|___)\s*$/.test(line)){flush();endList();out.push('<hr>');continue;}
@@ -192,6 +194,13 @@ $('historyButton').onclick=()=>{const revisions=state.revisions.filter(r=>r.note
 $('continueEdit').onclick=()=>{if(!historyView)return;historyView=false;$('noteEditor').readOnly=false;$('noteEditor').classList.remove('is-historical');$('continueEdit').classList.add('hidden');dirty=true;$('revisionLabel').textContent='有未保存的修改';};
 $('deleteBookButton').onclick=()=>run(async()=>{needBook();const b=state.notebooks.find(x=>x.id===current);if(!await confirmAction('删除笔记本「'+b.title+'」？其全部资料、笔记版本、问答与任务将移入回收站（媒体文件保留），可在那里恢复或彻底删除。'))return;await api('/api/notebooks/'+current,'','DELETE');current=null;localStorage.setItem('study.current','');dirty=false;selection='';await refresh(true);toast('已移入回收站');});
 $('exportButton').onclick=()=>run(()=>{needBook();const title=state.notebooks.find(b=>b.id===current).title;const sources=state.sources.filter(s=>s.notebookId===current);const content=`# ${title}\n\n${$('noteEditor').value}\n\n## 资料清单\n${sources.map(s=>`- ${s.title}（ID: ${s.id}）`).join('\n')}\n\n## 疑问\n${state.questions.filter(q=>q.notebookId===current).map(q=>`- [${q.status}] ${q.question}`).join('\n')}\n`;const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'}));const a=node('a');a.href=url;a.download=title.replace(/[<>:"/\\|?*]/g,'_')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$('exportAgentButton').onclick=()=>run(async()=>{
+  needBook();if(dirty||historyView)throw Error('请先保存并整理当前笔记；Agent导出使用当前已审计版本。');
+  const response=await fetch('/api/notes/agent-bundle?notebookId='+encodeURIComponent(current));
+  if(!response.ok){const error=await response.json();throw Error(error.error||'图文包导出失败');}
+  const url=URL.createObjectURL(await response.blob());
+  const a=node('a');a.href=url;a.download=(state.notebooks.find(b=>b.id===current)?.title||'学习笔记').replace(/[<>:"/\\|?*]/g,'_')+'-Agent图文包.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
 let ttsAudio=null,ttsSeq=0,ttsCtrl=null;
 function stopSpeak(){ttsSeq++;if(ttsCtrl){try{ttsCtrl.abort();}catch{}ttsCtrl=null;}if(ttsAudio){try{ttsAudio.pause();}catch{}if(String(ttsAudio.src).startsWith('blob:'))URL.revokeObjectURL(ttsAudio.src);ttsAudio=null;}try{speechSynthesis.cancel();}catch{}}
 function stripMarkdown(v){
@@ -303,15 +312,15 @@ async function startAgentPipeline(){
     $('agentState').textContent='运行中…（每 4 秒刷新）';
     const run=await pollAgentRun(x.runId);
     renderAgentReport(run);
-    $('agentState').textContent=run.status==='done'?'已完成':'失败';
-    toast(run.status==='done'?'agent 运行完成':'agent 运行失败，见报告');
+    $('agentState').textContent=run.status==='needs_review'?'待逐图复读':run.status==='done'?'已完成':'失败';
+    toast(run.status==='needs_review'?'草稿已生成，待逐图复读':run.status==='done'?'agent 运行完成':'agent 运行失败，见报告');
   }finally{setAgentBusy(false);}
 }
 async function pollAgentRun(runId){
   for(let i=0;i<3600;i++){ // ~2 小时上限
     const list=await api('/api/agent/runs?id='+encodeURIComponent(runId),undefined,'GET');
     const run=Array.isArray(list)?list[0]:list;
-    if(run&&(run.status==='done'||run.status==='failed'))return run;
+    if(run&&(['done','failed','needs_review'].includes(run.status)))return run;
     if(run?.result?.steps)agentLog('进度：'+Object.keys(run.result.steps).filter(k=>k!=='error').join(' → '));
     await new Promise(r=>setTimeout(r,4000));
   }
@@ -321,7 +330,7 @@ function renderAgentReport(run){
   const box=$('agentReport');const report=run.result||{};
   const failed=run.status==='failed';
   box.replaceChildren();box.classList.remove('hidden');
-  box.append(node('div','agent-report-title '+(failed?'fail':'ok'),failed?'✕ 运行失败':'✓ 运行完成'));
+  box.append(node('div','agent-report-title '+(failed?'fail':'ok'),failed?'✕ 运行失败':run.status==='needs_review'?'待逐图复读':'✓ 运行完成'));
   const steps=report.steps||{};
   const counts=steps.import?.counts||{};
   const note=steps.note||{};

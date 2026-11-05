@@ -424,3 +424,33 @@
 ## T49 · 对象、因果与数量的语义门禁首轮
 - status: done · owner: Codex
 - 2.2.0新增语义双轮核对与只读原材料关系还原、注释混排风险门禁。100/100 Node顺序测试、9例定向模型开发回归符合预期；其中B24模型仍漏检，由保守混排规则拦截。详见docs/语义准确性修复-2026-10-22.md。T44整课复跑与误拒绝修复仍open；未覆盖旧笔记。
+
+## T59 · 视频 URL 标准 SOP 修复与当前视频验收
+- status: done · owner: 工作者A/Codex · branch: codex/video-sop
+- 关联：T24/T35/T36/T40 的视频入口集成缺口；不恢复暂停的T45，不接管B的语义规则。
+- files: scripts/url_pipeline.py, scripts/video_sop.py, scripts/tools_pipeline.py, server.mjs, src/skill_builder/package.mjs, src/attribution_auditor/semantic.mjs, src/pipeline/index.mjs, tests/semantic.test.mjs, tests/test_video_sop.py, tests/audited-export.test.mjs, tests/tools.test.mjs, AGENTS.md, README.md, docs/视频总结SOP.md, docs/任务进入记录/2026-11-05-T59.md, CONTEXT.md, TASKS.md
+- 验收：ASR与时间对齐OCR必须先于审计笔记；失败不能报告成功；当前Super-agent视频真实端到端验证，工程回归通过后才commit。
+
+- T59验收：Node115/115、Python31/31、语法通过；229帧OCR，695条证据/66卡，六主题均有审阅内容，109引用逐字支持，审计保存版本与知识包一致；首轮Watchdog覆盖失败未提交，格式重试修复后复测通过。报告evaluation/video-sop/2026-11-05-super-agent.json；仅本地提交，未推送/合入main。
+
+## T60 · 截图主导的视频笔记与画面正文整合
+- status: done · owner: 工作者A/Codex · branch: codex/video-sop
+- 关联：T59验收不足；不仅要求OCR进入审计，还要求截图成为正文组织线索。保留原五阶段审计，不自动提升未知OCR为已确认事实。
+- files: src/note_renderer/*, src/pipeline/index.mjs, server.mjs, public/app.js, public/style.css, tests/*, docs/视频总结SOP.md, docs/任务进入记录/2026-11-05-T60.md, CONTEXT.md, TASKS.md
+- 验收：当前视频按截图/时间顺序展开，画面文字可见并与对应讲解/已审阅事实关联；真实图片能加载；文本资料原有渲染保持兼容；完整回归与实际输出检查后再提交。
+
+- T60实际验收：Pdf380122b8f1a6fe0034，12个图文章节/12图接口字节匹配/12读图说明/12同图OCR锚点，50已审阅事实，16待核对保留；Node121/Python31、Pydantic和语法通过。仅本地提交，不push/合main。
+
+## T61 · 面向人和Agent的自包含Markdown参考笔记
+- status: done · owner: 工作者A/Codex · branch: codex/video-sop
+- 关联：T60的图文阅读版补充Agent快速读取结构，不重新提取或放宽事实审核。
+- files: src/note_renderer/agent-markdown.mjs, src/note_renderer/agent-bundle.mjs, scripts/zip_reference.py, tests/test_reference_zip.py, server.mjs, public/app.js, public/index.html, src/skill_builder/package.mjs, tests/agent-markdown.test.mjs, docs/视频总结SOP.md, docs/任务进入记录/2026-11-05-T61.md, CONTEXT.md, TASKS.md
+- 验收：Markdown与原图打包，有摘要/概念索引/明确陈述/图文对应/适用范围/待核对/时间与来源，无本地绝对路径及内部API依赖；当前视频真实导出、陈述溯源与工程回归通过后本地提交。
+
+- T61最终：用户要求Agent联合看图，已交付Markdown+12原图ZIP；G/K对应、108脚注、50已审阅/16待核对、原图哈希与相对路径验证通过。Node126/Python33；仅本地提交，不push/合main。
+
+## T62 · 图文成稿证据与复读验收
+- status: done · owner: 工作者A/Codex · branch: codex/video-sop
+- 验收：图文导出覆盖原片限定、指标与冲突复核，回放真实视频。
+
+- 实际验收：6处额外复读、18张原图字节核对、108个脚注；Node128/Python33通过。

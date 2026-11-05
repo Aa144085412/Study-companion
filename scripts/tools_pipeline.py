@@ -15,6 +15,8 @@ download_media → transcribe → import_to_notebook → make_skill），拿回�
 - 报告含 toolLog（各工具步 ok/error）、transcriptLen、notebook（共读笔记 id/标题）、skill。
 """
 import argparse
+import subprocess
+import sys
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,6 +59,22 @@ def main():
     ap.add_argument('--cookie-file', default='')
     ap.add_argument('--out', default='')
     args = ap.parse_args()
+
+    if not args.source:
+        host = (urlparse(args.url).hostname or '').lower()
+        for domain, source in [('douyin.com', 'douyin'), ('bilibili.com', 'bilibili'), ('b23.tv', 'bilibili'), ('xiaohongshu.com', 'xhs-video'), ('xhslink.com', 'xhs-video')]:
+            if host == domain or host.endswith('.' + domain):
+                args.source = source
+                break
+    # Video ingestion is deterministic: an LLM tool choice cannot skip OCR/audit.
+    if args.source in ('douyin', 'xhs-video', 'bilibili'):
+        cmd = [sys.executable, str(Path(__file__).with_name('url_pipeline.py')),
+               '--api', args.api, '--source', args.source, '--url', args.url,
+               '--kind', 'knowledge']
+        for flag, value in [('--run-id', args.run_id), ('--goal', args.goal),
+                            ('--cookie-file', args.cookie_file), ('--out', args.out)]:
+            if value: cmd.extend([flag, value])
+        return subprocess.run(cmd, check=False).returncode
 
     started = now()
     loop_payload = {}

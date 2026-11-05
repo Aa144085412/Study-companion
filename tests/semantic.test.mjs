@@ -26,3 +26,28 @@ test('persistent annotation plus changing subtitle cannot certify a causal claim
  assert.equal(annotationCausalityRisk(claim,rows.map((r,i)=>({...r,media_id:String(i)}))).length,0);
  assert.equal(annotationCausalityRisk(claim,rows.slice(0,2)).length,0);
 });
+
+
+test('malformed semantic quote objects are retried once without weakening support gates',async()=>{
+ let calls=0,invalidated=0;const call=async(stage,prompt)=>{
+  if(stage==='source_relations')return {};
+  calls++;
+  if(calls===1)return {checks:[{...good,evidence_quotes:[e.text]}]};
+  if(calls===2)assert.match(prompt,/不能是字符串数组/);
+  return {checks:[good]};
+ };call.invalidateLast=()=>invalidated++;
+ const result=await reviewSemantics([f],[e],{call,refsFor:()=>[e]});
+ assert.equal(result[0].passed,true);assert.equal(calls,3);assert.equal(invalidated,1);
+});
+
+test('repeated malformed semantic output remains unresolved after bounded retries',async()=>{
+ let calls=0;const call=async stage=>{if(stage==='source_relations')return {};calls++;return {checks:[{...good,evidence_quotes:[e.text]}]};};
+ const result=await reviewSemantics([f],[e],{call,refsFor:()=>[e]});
+ assert.equal(calls,4);assert.equal(result[0].passed,false);assert.equal(result[0].format_valid,false);
+});
+
+test('a well-formed negative semantic verdict is never retried for a positive answer',async()=>{
+ let calls=0;const call=async stage=>{if(stage==='source_relations')return {};calls++;return {checks:[{...good,binding_supported:false}]};};
+ const result=await reviewSemantics([f],[e],{call,refsFor:()=>[e]});
+ assert.equal(calls,2);assert.equal(result[0].passed,false);assert.equal(result[0].attribution,'MODEL_INDUCTION_ERROR');
+});

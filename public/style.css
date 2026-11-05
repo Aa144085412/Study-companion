@@ -26,3 +26,5 @@ button.primary{background:var(--green);color:#fff;border-color:transparent}butto
 .evidence-actions{display:flex;gap:8px;flex-wrap:wrap}.evidence-actions button{font-size:12px}
 .note-citation:focus{outline:3px solid #95bfff;outline-offset:2px}
 @media(max-width:850px){.workspace.evidence-open{padding-bottom:52vh}.workspace>#mediaArea{position:fixed;top:auto;bottom:8px;left:8px;right:8px;max-height:50vh;z-index:9;box-shadow:0 -4px 24px #0002}#mediaArea #player{max-height:22vh}}
+
+.note-screenshot{margin:18px 0}.note-screenshot img{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--border)}.note-screenshot figcaption{font-size:12px;color:var(--muted);margin-top:6px}

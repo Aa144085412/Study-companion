@@ -1,3 +1,5 @@
+import {writeAgentBundle} from './src/note_renderer/agent-bundle.mjs';
+import {renderAgentMarkdown} from './src/note_renderer/agent-markdown.mjs';
 import {runPipeline,makeStageCaller,sourceFingerprint} from './src/pipeline/index.mjs';
 import {generateVerifiedQuiz} from './src/quiz_engine/index.mjs';
 import http from 'node:http';
@@ -151,7 +153,20 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     }
     return null;
   }
-  async function generateSkillForNotebook(notebookId, kind='experiment', replaceName=null){
+  async function generateSkillForNotebook(notebookId, kind='experiment', replaceName=null, auditedOnly=false){
+    if(auditedOnly){
+      const nb=book(notebookId),artifact=auditedArtifact(nb);
+      const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId&&r.auditPipelineId===artifact.pipeline_id);
+      if(!note?.content?.trim())throw fail('缺少当前审计版本笔记，不能导出知识包',409);
+      const name='knowledge-'+artifact.pipeline_id.toLowerCase();
+      const description='当需要复习本视频的知识、解释概念或核对来源时加载；待核对内容不能作为确定事实';
+      const content='---\nname: '+name+'\ntitle: '+JSON.stringify(nb.title)+'\nkind: knowledge\ndescription: '+description+'\n---\n\n'+note.content;
+      fs.mkdirSync(skillsDir,{recursive:true});
+      const agentReference=renderAgentMarkdown({...artifact,title:nb.title},{review:editorialReview(artifact),sourceUrl:nb.sourceUrl||''});
+      const packagePath=compilePackage({skillsDir,name,description,content,sources:artifact.evidence.map(e=>({...e,sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,start:e.start_time===null?null:e.start_time*1000,end:e.end_time===null?null:e.end_time*1000})),note:note.content,kind:'knowledge',agentNote:agentReference.markdown,agentImages:agentReference.images,imageRoot:path.join(dataDir,'visual-review')});
+      const file=path.join(skillsDir,name+'.md');fs.writeFileSync(file,content,'utf8');
+      return {name,title:nb.title,description,kind:'knowledge',steps:0,path:file,packagePath,reviewStatus:agentReference.reviewStatus};
+    }
     if(!['experiment','knowledge'].includes(kind)) kind='experiment';
     if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
     const note=[...db.revisions].reverse().find(r=>r.notebookId===notebookId);
@@ -218,6 +233,10 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     await new Promise((resolve,reject)=>{const proc=spawn(py,['-X','utf8',path.join(ROOT,'scripts','validate_pipeline.py'),kind,file],{cwd:ROOT,windowsHide:true});let error='';proc.stderr.on('data',x=>error+=x);proc.on('error',reject);proc.on('close',code=>code===0?resolve():reject(fail('审计数据契约校验未通过：'+error.slice(-900),502)));});
   }
   function stageCaller(){return makeStageCaller({model,modelName:db.settings.model,cacheDir:path.join(dataDir,'pipeline-v2','stage-cache'),provenance:{url:db.settings.llmUrl}});}
+  function editorialReview(artifact){
+    const file=path.join(dataDir,'pipeline-v2',artifact.pipeline_id,'frame-review.json');
+    return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null;
+  }
   function auditedArtifact(nb){
     if(!nb.auditedPipeline)throw fail('请先点击从资料整理，生成经过五阶段审计的笔记',409);
     const sources=db.sources.filter(s=>s.notebookId===nb.id);
@@ -678,6 +697,30 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         if(!q)throw fail('题目已失效',404);const f=artifact.facts.find(f=>f.id===q.fact_ids[0]),e=artifact.evidence.find(e=>e.id===f.evidence_quotes[0].evidence_id);
         return json(res,{sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,title:e.title,text:e.text,start:e.start_time===null?undefined:e.start_time*1000,end:e.end_time===null?undefined:e.end_time*1000});
       }
+      if(req.method==='GET' && ['/api/notes/agent-markdown','/api/notes/agent-bundle'].includes(p)){
+        const nb=book(u.searchParams.get('notebookId')),artifact=auditedArtifact(nb);
+        const latest=[...db.revisions].reverse().find(r=>r.notebookId===nb.id);
+        if(!latest||latest.auditPipelineId!==artifact.pipeline_id)throw fail('当前笔记已编辑或缺少对应审计版本，请重新整理后导出Agent参考笔记',409);
+        const recorded=[...db.agentRuns].reverse().find(r=>r.notebookId===nb.id&&r.url);
+        const options={review:editorialReview(artifact),sourceUrl:u.searchParams.get('sourceUrl')||nb.sourceUrl||recorded?.url||''};
+        if(p==='/api/notes/agent-bundle'){
+          const exports=path.join(dataDir,'exports'),name=uuid(),directory=path.join(exports,name),archive=directory+'.zip';
+          writeAgentBundle(artifact,{directory,imageRoot:path.join(dataDir,'visual-review'),...options});
+          const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
+          await new Promise((resolve,reject)=>{const child=spawn(py,[path.join(ROOT,'scripts','zip_reference.py'),directory,archive],{windowsHide:true});let error='';child.stderr.on('data',x=>error=(error+x).slice(-700));child.on('error',reject);child.on('close',code=>code===0?resolve():reject(fail('图文参考包压缩失败：'+error,500)));});
+          res.writeHead(200,{'Content-Type':'application/zip','Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(nb.title+'-Agent图文包.zip').replace(/'/g,'%27')});
+          return fs.createReadStream(archive).pipe(res);
+        }
+        const {images,...portable}=renderAgentMarkdown(artifact,options);
+        return json(res,{...portable,pipelineId:artifact.pipeline_id,filename:nb.title.replace(/[<>:"/\\|?*]/g,'_')+'-Agent参考.md'});
+      }
+      if(req.method==='GET' && p==='/api/note-frame'){
+        const nb=book(u.searchParams.get('notebookId')),artifact=auditedArtifact(nb);
+        const ev=artifact.evidence.find(e=>e.id===u.searchParams.get('evidenceId'));
+        const file=ev?.frame_path&&path.resolve(ev.frame_path),allowed=path.resolve(dataDir,'visual-review')+path.sep;
+        if(!file||!file.startsWith(allowed)||!file.toLowerCase().endsWith('.jpg')||!fs.existsSync(file))throw fail('笔记截图不存在',404);
+        res.writeHead(200,{'Content-Type':'image/jpeg'});return fs.createReadStream(file).pipe(res);
+      }
       if(req.method==='GET' && p==='/api/audit'){
         const nb=book(u.searchParams.get('notebookId'));return json(res,auditedArtifact(nb));
       }
@@ -768,21 +811,21 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           const priorSkill=prior?.result?.skill;
           let reused=false;let skill;
           // reuse only when the previously generated skill is the same kind (a knowledge skill can't stand in for an experiment one, or vice versa)
-          if(!force && priorSkill && prior.kind===kind && fs.existsSync(priorSkill.path)){
+          if(!x.auditedOnly && !force && priorSkill && prior.kind===kind && fs.existsSync(priorSkill.path)){
             const content=fs.readFileSync(priorSkill.path,'utf8');
             const meta=parseSkillMeta(content);
             skill={name:meta.name||priorSkill.name,title:meta.title||priorSkill.title,description:meta.description||'',kind:meta.kind||kind,steps:meta.steps,path:priorSkill.path,packagePath:fs.existsSync(path.join(skillsDir,meta.name||priorSkill.name,'SKILL.md'))?path.join(skillsDir,meta.name||priorSkill.name,'SKILL.md'):null};
             reused=true;
           }else{
-            const gen=await generateSkillForNotebook(nb.id,kind,force?priorSkill?.name:null);
-            skill={name:gen.name,title:gen.title,description:gen.description||'',kind:gen.kind||kind,steps:gen.steps,path:gen.path,packagePath:gen.packagePath};
+            const gen=await generateSkillForNotebook(nb.id,kind,force?priorSkill?.name:null,x.auditedOnly===true);
+            skill={name:gen.name,title:gen.title,description:gen.description||'',kind:gen.kind||kind,steps:gen.steps,path:gen.path,packagePath:gen.packagePath,...(gen.reviewStatus?{reviewStatus:gen.reviewStatus}:{})};
           }
           const gaps=extractGaps(fs.readFileSync(skill.path,'utf8'));
           base.status='done';
           const kindLabel=kind==='knowledge'?'知识总结':'实验操作';
           base.result={
             experiment:skill.title,
-            skill:{name:skill.name,title:skill.title,description:skill.description,kind:skill.kind,steps:skill.steps||0,path:skill.path,packagePath:skill.packagePath||null,portable:true,format:'Agent Skills (SKILL.md)'},
+            skill:{name:skill.name,title:skill.title,description:skill.description,kind:skill.kind,steps:skill.steps||0,path:skill.path,packagePath:skill.packagePath||null,...(skill.reviewStatus?{reviewStatus:skill.reviewStatus}:{}),portable:true,format:'Agent Skills (SKILL.md)'},
             reused,
             gaps,
             gapCount:gaps.length,
@@ -910,6 +953,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const max=Number.isFinite(+x.max)?Math.trunc(+x.max):10;
         const limit=Number.isFinite(+x.limit)?Math.trunc(+x.limit):0;
         if(!url&&!source&&!query)throw fail('请提供 url、source 或 query');
+        if(['douyin','xhs-video','bilibili'].includes(source)||/https?:\/\/(?:[^/]+\.)?(?:douyin\.com|bilibili\.com|b23\.tv|xiaohongshu\.com|xhslink\.com)(?:[/?#]|$)/i.test(url))throw fail('视频必须使用 /api/agent/media 或 /api/agent/tools 的标准OCR与审计流程',409);
         const out=await runToolsLoop({source,url,goal,query,max,limit});
         const nb=out.notebookId?db.notebooks.find(b=>b.id===out.notebookId):null;
         return json(res,{status:'done',finalText:out.finalText,toolLog:out.toolLog,notebookId:out.notebookId||null,notebookTitle:nb?.title||null,transcriptLen:out.transcriptLen,skill:out.skill||null});
@@ -998,7 +1042,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           const report=await body(req);
           const run=db.agentRuns.find(r=>r.id===pm[1]&&['pipeline','tools','visual'].includes(r.kind));
           if(!run)throw fail('找不到该 pipeline/tools run',404);
-          run.status=report.status==='done'?'done':'failed';
+          run.status=['done','needs_review'].includes(report.status)?report.status:'failed';
           run.result=report;
           if(report.notebook){run.notebookId=report.notebook.id;run.notebookTitle=report.notebook.title;}
           if(report.error)run.error=report.error;

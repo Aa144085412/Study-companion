@@ -15,7 +15,7 @@
 
 说明：
 - 任何一步失败都 emit error 并以非零退出，报告如实写 failed。
-- 视频：音轨经服务端 faster-whisper 转写成文本，画面抽关键帧供视觉 LLM；二者合成一条资料。
+- 视频：音轨经服务端 faster-whisper 转写成文本，按转写时间片段执行画面OCR/必要视觉复核，再进入五阶段审计；未完成不能仅凭ASR交付。
 - 不做反爬绕过：小红书视频若需登录，用 --cookie-file 提供 cookies.txt，失败如实上报。
 """
 import argparse
@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.extractors.course import transcribe, from_source
+from scripts.video_sop import review_video, generate_audited_note
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -86,18 +87,13 @@ def find_or_create_notebook(api_base, title):
     return {'id': nb['id'], 'title': title, 'sources': 0, 'created': True}
 
 
-def generate_note(api_base, notebook_id):
-    draft = api(api_base, '/api/generate', {'notebookId': notebook_id}, timeout=180)
-    text = (draft.get('text') or '').strip()
-    if not text:
-        return None
-    rev = api(api_base, '/api/notes', {'notebookId': notebook_id, 'content': text}, timeout=60)
-    return {'revisionId': rev.get('id'), 'chars': len(text),
-            'firstLine': text.splitlines()[0].strip()[:120]}
+def generate_note(api_base, notebook_id, require_visual=False):
+    return generate_audited_note(api_base, notebook_id, api, require_visual=require_visual)
+
 
 
 def run_skill(api_base, notebook_id, force, kind='experiment'):
-    payload = {'notebookId': notebook_id}
+    payload = {'notebookId': notebook_id, 'auditedOnly': kind == 'knowledge'}
     if force:
         payload['mode'] = 'force'
     if kind and kind != 'experiment':
@@ -105,6 +101,8 @@ def run_skill(api_base, notebook_id, force, kind='experiment'):
     run = api(api_base, '/api/agent/skill', payload, timeout=300)
     r = run.get('result') or {}
     sk = r.get('skill') or {}
+    if run.get('status') != 'done' or not sk.get('path') or not sk.get('packagePath'):
+        raise RuntimeError('审计知识包未成功保存，不能报告成功')
     return {'skill': sk, 'reused': r.get('reused', False),
             'gapCount': r.get('gapCount', 0), 'gaps': r.get('gaps', [])}
 
@@ -125,6 +123,7 @@ def main():
     ap.add_argument('--force-skill', action='store_true')
     ap.add_argument('--out', default='')
     ap.add_argument('--frames', type=int, default=8)
+    ap.add_argument('--resume-media', type=Path, help='复用本流程下载结果JSON，校验来源URL及本地文件')
     args = ap.parse_args()
 
     app_root = args.app_root
@@ -158,19 +157,27 @@ def main():
                    '--app-root', str(app_root), '--frames', str(args.frames)]
             if args.cookie_file:
                 cmd += ['--cookie-file', str(args.cookie_file)]
-            ev = run_script(cmd, app_root, log_dir, 'media-download', timeout=1500)
-            res = ev.get('result') or {}
+            if args.resume_media:
+                res = json.loads(args.resume_media.read_text(encoding='utf-8'))
+                if res.get('url') != args.url or res.get('source') != args.source:
+                    raise ValueError('复用下载结果与当前来源URL不匹配')
+                if not all(Path(res.get(k) or '').is_file() for k in ('audio', 'video')):
+                    raise ValueError('复用下载结果缺少音轨或视频')
+            else:
+                ev = run_script(cmd, app_root, log_dir, 'media-download', timeout=1500)
+                res = ev.get('result') or {}
+            (log_dir / 'download-result.json').write_text(json.dumps(res, ensure_ascii=False), encoding='utf-8')
             report['steps']['download'] = {'title': res.get('title'), 'duration': res.get('duration'),
                                            'frames': len(res.get('frames', [])), 'dir': res.get('dir'),
                                            'audio': res.get('audio')}
             title0 = title0 or (res.get('title') or urlparse(args.url).netloc)
             emit(event='download-done', title=res.get('title'), frames=len(res.get('frames', [])))
             frames_dir = Path(res['dir']) / 'frames' if res.get('frames') else None
-            if not res.get('audio'):
-                raise RuntimeError('下载未产出音轨，不能生成课程笔记')
+            if not res.get('audio') or not res.get('video'):
+                raise RuntimeError('下载缺少音轨或视频，不能生成课程笔记')
             nb = find_or_create_notebook(args.api, SOURCE_LABEL[args.source] + ' · ' + str(title0)[:40])
             report['notebook'] = nb
-            transcript_source = transcribe(args.api, nb['id'], res['audio'], api)
+            transcript_source = transcribe(args.api, nb['id'], res['video'], api)
             document = from_source(transcript_source, title0, args.url)
             document_path = Path(res['dir']) / 'raw-document.json'
             document_path.write_text(document.model_dump_json(indent=2), encoding='utf-8')
@@ -178,20 +185,10 @@ def main():
             transcript = transcript_source['content']
             report['steps']['transcribe'] = {'chars': len(transcript or ''), 'ok': bool(transcript)}
             emit(event='transcribe-done', chars=len(transcript or ''))
-            dur = res.get('duration')
-            content = (
-                f'<!-- media {res.get("sid")} url:{args.url} -->\n\n'
-                f'来源：{SOURCE_LABEL[args.source]} 视频\n'
-                f'标题：{res.get("title") or ""}\n'
-                f'作者：{res.get("uploader") or "未知"}\n'
-                f'时长：{dur if dur is not None else "未知"} 秒\n'
-                f'原文链接：{res.get("webpage_url") or args.url}\n\n'
-                f'## {res.get("title") or "视频转写"}\n\n'
-                f'{transcript or "（音轨转写为空：可能无有效语音，或需检查识别服务）"}\n\n'
-                f'说明：以上为视频音轨的机器转写（faster-whisper），仅供学习核对；数字与实验参数需对照视频画面与正式规程确认。\n\n'
-                + (f'图片目录：{frames_dir}\n' if frames_dir else '')
-            )
-            src_title = slug(title0)[:40] + '（视频转写）.md'
+            if not res.get('video'):
+                raise RuntimeError('下载未产出视频，不能跳过画面核对')
+            report['steps']['visual'] = review_video(args.api, nb['id'], res['video'], transcript_source, api)
+            emit(event='visual-done', frames=report['steps']['visual']['frames'])
 
         # 2) 建/找笔记本
         nb_title = SOURCE_LABEL[args.source] + ' · ' + str(title0)[:40]
@@ -199,13 +196,17 @@ def main():
         report['notebook'] = nb
         emit(event='notebook', title=nb['title'], created=nb['created'])
 
-        # 3) 导入资料（文本源；末行 图片目录 供视觉）
-        src = api(args.api, '/api/sources', {'notebookId': nb['id'], 'title': src_title, 'content': content})
-        report['steps']['import'] = {'sourceId': src.get('id'), 'chars': len(content)}
-        emit(event='import-done', sourceId=src.get('id'))
+        # Video ASR and timestamped visual sources are imported by their persistent jobs.
+        # Do not duplicate them into a plain Markdown ASR source.
+        if args.source == 'wechat':
+            src = api(args.api, '/api/sources', {'notebookId': nb['id'], 'title': src_title, 'content': content})
+            report['steps']['import'] = {'sourceId': src.get('id'), 'chars': len(content)}
+        else:
+            report['steps']['import'] = {'sourceId': transcript_source['id'], 'visualSourceIds': report['steps']['visual']['sourceIds']}
+        emit(event='import-done', sourceId=report['steps']['import']['sourceId'])
 
         # 4) 整理笔记
-        report['steps']['note'] = generate_note(args.api, nb['id'])
+        report['steps']['note'] = generate_note(args.api, nb['id'], require_visual=args.source in MEDIA_SOURCES)
         emit(event='note-done', revisionId=report['steps']['note'].get('revisionId') if report['steps']['note'] else None)
 
         # 5) 生成 skill
@@ -214,10 +215,14 @@ def main():
         report['status'] = 'done'
         report['summary'] = (
             f'已就「{title0}」从 {SOURCE_LABEL[args.source]} 跑完：'
-            f'{"转写+抽帧" if args.source in MEDIA_SOURCES else "抓图文"} → 导入 → 整理笔记 → '
+            f'{"转写+时间对齐OCR/视觉核对+归因审计" if args.source in MEDIA_SOURCES else "抓图文"} → 导入 → 整理笔记 → '
             f'生成 skill「{sk.get("name")}」（{sk.get("steps", 0)} 步，'
-            f'{report["steps"]["skill"]["gapCount"]} 项待核对）。skill 为标准 Agent Skills 格式，任何 agent 可加载指导该实验。'
+            f'{report["steps"]["skill"]["gapCount"]} 项待核对）。skill 为标准 Agent Skills 格式，任何 agent 可加载学习（待核对项不视为已验证事实）。'
         )
+        if sk.get('reviewStatus') == 'needs_review':
+            report['status'] = 'needs_review'
+            report['summary'] = '图文草稿已生成；关键原帧仍待逐图复读。'
+            report['steps']['editorialReview'] = {'status': 'needs_review'}
     except Exception as exc:
         report['status'] = 'failed'
         report['error'] = str(exc)

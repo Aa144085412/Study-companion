@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "pipelineId": "Pdf380122b8f1a6fe0034",
+  "checkpoints": 6,
+  "originalFramesCompared": 18,
+  "footnotes": 108,
+  "reviewedFacts": 50,
+  "pendingRecords": 16,
+  "apiStatus": [
+    "needs_review",
+    "reviewed"
+  ],
+  "nodeTests": 128,
+  "pythonTests": 33,
+  "zipSha256": "46c7dd02ca0a01f53094d4f973282cb10423c1f2d2c089fa31f7b51304320ade"
+}
