@@ -10,6 +10,8 @@
 
 必须按 [任务进入检查](docs/任务进入检查.md) 的顺序执行：工作区归属与fetch → 主线差异与原框架 → CONTEXT顶部和完整TASKS → 未完成/暂停/历史遗留 → MD进入记录与认领 → 实现。旧Recovery Capsule只作历史背景。
 
+codex/cloud-api-onboarding 与 collab/content-quality 另具备 `npm.cmd run verify`，统一验收先执行主项目task:check，再做语法、说明、Node与Python回归。该入口随PR #1单独审阅，未集成main前不要在原主线假定它存在。
+
 先运行 `npm.cmd run task:check`，认领后再带 `--task` 和准确 `--owner` 核对；T45的hold不能被open状态覆盖。任务表可能在末尾追加条目，不只读顶部。需要在线验证时先只读检查已有服务，不假设服务或模型已启动。
 
 ## 收尾 / 交接（做完一个可验证单元）

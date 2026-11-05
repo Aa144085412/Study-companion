@@ -1,8 +1,13 @@
 data/
 *.log
 node_modules/
+.env
+.env.*
+!.env.example
+.venv-tts/
 
 .venv/
+.venv-ocr/
 models/
 backups/
 __pycache__/

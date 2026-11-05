@@ -35,7 +35,7 @@ export function ingestEvidence(sources,{dataDir,notebookId}={}){
   const segments=s.segments?.length?s.segments:Array.from({length:Math.ceil((s.content||'').length/1800)},(_,i)=>({text:s.content.slice(i*1800,(i+1)*1800)}));
   for(const [segmentIndex,seg] of segments.entries()){if(!seg.text?.trim())continue;const base={source_id:s.id,segment_id:seg.id||`text-${segmentIndex}`,media_id:s.mediaId||null,title:s.title,start_time:seg.start===undefined?null:seg.start/1000,end_time:seg.end===undefined?null:seg.end/1000};
    // Legacy mixed exports are parsed by explicit record prefixes, not by domain terms.
-   const markers=[['原 ASR：','ASR_TRANSCRIPT'],['画面字幕 OCR 候选：','SUBTITLE_OCR'],['课件/画面正文 OCR 候选：','UNKNOWN_VISUAL_OCR'],['本地视觉模型推断：','VLM_VISUAL_INFERENCE']];
+   const markers=[['原 ASR：','ASR_TRANSCRIPT'],['画面字幕 OCR 候选：','SUBTITLE_OCR'],['课件/画面正文 OCR 候选：','UNKNOWN_VISUAL_OCR'],['本地视觉模型推断：','VLM_VISUAL_INFERENCE'],['视觉模型推断：','VLM_VISUAL_INFERENCE']];
    if(markers.some(([prefix])=>seg.text.includes(prefix))){for(const line of seg.text.split('\n')){const m=markers.find(([prefix])=>line.startsWith(prefix));if(m&&line.slice(m[0].length).trim())out.push(item(base,m[1],line.slice(m[0].length)));}}
    else out.push(item(base,s.mediaId?'ASR_TRANSCRIPT':'DOCUMENT_TEXT',seg.text));
   }
