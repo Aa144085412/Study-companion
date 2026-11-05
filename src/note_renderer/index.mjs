@@ -1,3 +1,4 @@
+import {reviewFrames} from './review-frames.mjs';
 import {screenshotSections,visibleOCR,frameURL} from './screenshots.mjs';
 function displayStatement(f,evidence){
  if(f.knowledge_type!=='SINGLE_RUN_METRIC')return {heading:f.entity+' · '+f.property,text:f.statement};
@@ -16,6 +17,11 @@ export function renderNote({title,facts,clusters,audits,conflicts,evidence,gloss
  const visualSections=preparedSections||(notebookId?screenshotSections({facts,clusters,evidence}):[]);
  if(visualSections.length){
   const lines=['# '+title,'','> 按视频画面展开：先看截图和画面文字，再结合讲解理解。正文仅使用已审阅的来源陈述；OCR候选与未核实内容保持区分。'];
+  const checkpoints=reviewFrames(evidence);
+  if(checkpoints.length){
+   lines.push('','## 需对照原图核对的细节');
+   for(const {frame,reasons} of checkpoints)lines.push('','!['+reasons.join('、')+']('+frameURL(notebookId,frame.id)+')',reasons.join('、')+' ['+labels.get(frame.id)+']');
+  }
   const shown=new Set();
   for(const scene of visualSections){
    const seconds=Math.floor(scene.time),stamp=Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');

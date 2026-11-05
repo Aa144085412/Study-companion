@@ -1,8 +1,10 @@
+import {frameReviewDocument} from './review-frames.mjs';
+import {visibleOCR} from './screenshots.mjs';
 // A portable reference document: no new claims or dependence on local images/API.
 const oneLine=value=>String(value??'').replace(/[\r\n]+/g,' ').trim();
 const cell=value=>oneLine(value).replaceAll('|','\\|');
 const clock=value=>{const s=Math.floor(value);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
-export function renderAgentMarkdown(artifact,{sourceUrl=''}={}){
+export function renderAgentMarkdown(artifact,{sourceUrl='',review=null}={}){
  const {facts=[],evidence=[],visual_sections:scenes=[],clusters=[],audits=[]}=artifact;
  const accepted=facts.filter(f=>f.layer!=='UNRESOLVED'),pending=facts.filter(f=>f.layer==='UNRESOLVED');
  const labels=new Map(evidence.map((e,i)=>[e.id,'S'+(i+1)])),byEvidence=new Map(evidence.map(e=>[e.id,e]));
@@ -39,6 +41,8 @@ export function renderAgentMarkdown(artifact,{sourceUrl=''}={}){
    lines.push('','!['+imageId+' · '+oneLine(g.title)+']('+relativePath+')',
     '', '**'+imageId+' 图文对应**：本图对应 '+rows.map(f=>ids.get(f.id)).join('、')+'。先观察图中对象、连线方向、区域分组与文字，再阅读下文；图片与文字不一致时保留问题并回查来源。');
   }
+  const ocr=visibleOCR(evidence,byEvidence.get(g.bodyId));
+  if(ocr)lines.push('','同帧画面文字（OCR候选）：'+oneLine(ocr));
   if(g.reading)lines.push('','图示结构（'+(g.status==='MODEL_VISUAL_INTERPRETATION'?'视觉模型解读，非已确认事实':'未完成核对')+'）：'+oneLine(g.reading));
   for(const f of rows)writeFact(f);
  }
@@ -52,5 +56,6 @@ export function renderAgentMarkdown(artifact,{sourceUrl=''}={}){
  }
  lines.push('','## 来源索引','以下时间为原视频时间；编号只用于定位证据，不是额外独立来源。');
  for(const e of evidence.filter(e=>used.has(e.id)))lines.push('[^'+labels.get(e.id)+']: '+(Number.isFinite(e.start_time)?clock(e.start_time)+'–'+clock(e.end_time??e.start_time):'无视频时间')+' · '+e.source_type+'。');
- return {markdown:lines.join('\n')+'\n',images,imageCount:images.length,factCount:accepted.length,pendingCount:pending.length,referenceCount:used.size,format:'study-reference/multimodal-agent-v1'};
+ const edition=frameReviewDocument(artifact,review,lines,images);
+ return {reviewStatus:edition.status,markdown:edition.markdown.join('\n')+'\n',images,imageCount:images.length,factCount:accepted.length,pendingCount:pending.length,referenceCount:used.size,format:'study-reference/multimodal-agent-v1'};
 }

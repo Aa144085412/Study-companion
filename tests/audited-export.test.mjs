@@ -22,6 +22,7 @@ test('video knowledge export preserves the audited note and never regenerates cl
  const file=result.body.result.skill.path;
  assert.ok(fs.readFileSync(file,'utf8').includes('审计正文\n待核对：某项结论'));
  assert.ok(!fs.readFileSync(file,'utf8').includes('原始识别错误文字'));
+ assert.equal(result.body.result.skill.reviewStatus,'automatic');
  const entry=fs.readFileSync(result.body.result.skill.packagePath,'utf8');
  assert.match(entry,/视频知识复习/);assert.doesNotMatch(entry,/每次只推进一个步骤/);
  const refs=JSON.parse(fs.readFileSync(path.join(path.dirname(result.body.result.skill.packagePath),'references','sources.json'),'utf8'));

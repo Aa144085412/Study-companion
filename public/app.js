@@ -312,15 +312,15 @@ async function startAgentPipeline(){
     $('agentState').textContent='运行中…（每 4 秒刷新）';
     const run=await pollAgentRun(x.runId);
     renderAgentReport(run);
-    $('agentState').textContent=run.status==='done'?'已完成':'失败';
-    toast(run.status==='done'?'agent 运行完成':'agent 运行失败，见报告');
+    $('agentState').textContent=run.status==='needs_review'?'待逐图复读':run.status==='done'?'已完成':'失败';
+    toast(run.status==='needs_review'?'草稿已生成，待逐图复读':run.status==='done'?'agent 运行完成':'agent 运行失败，见报告');
   }finally{setAgentBusy(false);}
 }
 async function pollAgentRun(runId){
   for(let i=0;i<3600;i++){ // ~2 小时上限
     const list=await api('/api/agent/runs?id='+encodeURIComponent(runId),undefined,'GET');
     const run=Array.isArray(list)?list[0]:list;
-    if(run&&(run.status==='done'||run.status==='failed'))return run;
+    if(run&&(['done','failed','needs_review'].includes(run.status)))return run;
     if(run?.result?.steps)agentLog('进度：'+Object.keys(run.result.steps).filter(k=>k!=='error').join(' → '));
     await new Promise(r=>setTimeout(r,4000));
   }
@@ -330,7 +330,7 @@ function renderAgentReport(run){
   const box=$('agentReport');const report=run.result||{};
   const failed=run.status==='failed';
   box.replaceChildren();box.classList.remove('hidden');
-  box.append(node('div','agent-report-title '+(failed?'fail':'ok'),failed?'✕ 运行失败':'✓ 运行完成'));
+  box.append(node('div','agent-report-title '+(failed?'fail':'ok'),failed?'✕ 运行失败':run.status==='needs_review'?'待逐图复读':'✓ 运行完成'));
   const steps=report.steps||{};
   const counts=steps.import?.counts||{};
   const note=steps.note||{};

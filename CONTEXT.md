@@ -1,3 +1,7 @@
+# T62 · 视频成稿逐图复读
+
+视频知识总结增加原帧复读及草稿状态。当前视频经标准HTTP导出完成18图、108引用与知识包验收；本地分支codex/video-sop，桌面服务仍为原版。详见 evaluation/video-sop/2026-11-05-frame-review.json。
+
 # 2026-11-05 T61 · Agent图文Markdown参考包
 
 - 用户要求同时便于人阅读与Agent快速理解，并明确Agent必须联合看图，不能以纯文本代替图像。默认参考格式为Markdown＋原图的完整包。

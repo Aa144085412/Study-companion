@@ -219,6 +219,10 @@ def main():
             f'生成 skill「{sk.get("name")}」（{sk.get("steps", 0)} 步，'
             f'{report["steps"]["skill"]["gapCount"]} 项待核对）。skill 为标准 Agent Skills 格式，任何 agent 可加载学习（待核对项不视为已验证事实）。'
         )
+        if sk.get('reviewStatus') == 'needs_review':
+            report['status'] = 'needs_review'
+            report['summary'] = '图文草稿已生成；关键原帧仍待逐图复读。'
+            report['steps']['editorialReview'] = {'status': 'needs_review'}
     except Exception as exc:
         report['status'] = 'failed'
         report['error'] = str(exc)

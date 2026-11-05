@@ -162,10 +162,10 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
       const description='当需要复习本视频的知识、解释概念或核对来源时加载；待核对内容不能作为确定事实';
       const content='---\nname: '+name+'\ntitle: '+JSON.stringify(nb.title)+'\nkind: knowledge\ndescription: '+description+'\n---\n\n'+note.content;
       fs.mkdirSync(skillsDir,{recursive:true});
-      const agentReference=renderAgentMarkdown({...artifact,title:nb.title},{sourceUrl:nb.sourceUrl||''});
+      const agentReference=renderAgentMarkdown({...artifact,title:nb.title},{review:editorialReview(artifact),sourceUrl:nb.sourceUrl||''});
       const packagePath=compilePackage({skillsDir,name,description,content,sources:artifact.evidence.map(e=>({...e,sourceId:e.source_id,segmentId:e.segment_id,mediaId:e.media_id,start:e.start_time===null?null:e.start_time*1000,end:e.end_time===null?null:e.end_time*1000})),note:note.content,kind:'knowledge',agentNote:agentReference.markdown,agentImages:agentReference.images,imageRoot:path.join(dataDir,'visual-review')});
       const file=path.join(skillsDir,name+'.md');fs.writeFileSync(file,content,'utf8');
-      return {name,title:nb.title,description,kind:'knowledge',steps:0,path:file,packagePath};
+      return {name,title:nb.title,description,kind:'knowledge',steps:0,path:file,packagePath,reviewStatus:agentReference.reviewStatus};
     }
     if(!['experiment','knowledge'].includes(kind)) kind='experiment';
     if(!db.settings.model.trim()) throw fail('请先在模型设置中填写或检测语言模型名称');
@@ -233,6 +233,10 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
     await new Promise((resolve,reject)=>{const proc=spawn(py,['-X','utf8',path.join(ROOT,'scripts','validate_pipeline.py'),kind,file],{cwd:ROOT,windowsHide:true});let error='';proc.stderr.on('data',x=>error+=x);proc.on('error',reject);proc.on('close',code=>code===0?resolve():reject(fail('审计数据契约校验未通过：'+error.slice(-900),502)));});
   }
   function stageCaller(){return makeStageCaller({model,modelName:db.settings.model,cacheDir:path.join(dataDir,'pipeline-v2','stage-cache'),provenance:{url:db.settings.llmUrl}});}
+  function editorialReview(artifact){
+    const file=path.join(dataDir,'pipeline-v2',artifact.pipeline_id,'frame-review.json');
+    return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null;
+  }
   function auditedArtifact(nb){
     if(!nb.auditedPipeline)throw fail('请先点击从资料整理，生成经过五阶段审计的笔记',409);
     const sources=db.sources.filter(s=>s.notebookId===nb.id);
@@ -698,16 +702,16 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
         const latest=[...db.revisions].reverse().find(r=>r.notebookId===nb.id);
         if(!latest||latest.auditPipelineId!==artifact.pipeline_id)throw fail('当前笔记已编辑或缺少对应审计版本，请重新整理后导出Agent参考笔记',409);
         const recorded=[...db.agentRuns].reverse().find(r=>r.notebookId===nb.id&&r.url);
-        const result=renderAgentMarkdown(artifact,{sourceUrl:u.searchParams.get('sourceUrl')||nb.sourceUrl||recorded?.url||''});
+        const options={review:editorialReview(artifact),sourceUrl:u.searchParams.get('sourceUrl')||nb.sourceUrl||recorded?.url||''};
         if(p==='/api/notes/agent-bundle'){
           const exports=path.join(dataDir,'exports'),name=uuid(),directory=path.join(exports,name),archive=directory+'.zip';
-          writeAgentBundle(artifact,{directory,imageRoot:path.join(dataDir,'visual-review'),sourceUrl:u.searchParams.get('sourceUrl')||nb.sourceUrl||recorded?.url||''});
+          writeAgentBundle(artifact,{directory,imageRoot:path.join(dataDir,'visual-review'),...options});
           const py=path.join(ROOT,'.venv-ocr','Scripts','python.exe');
           await new Promise((resolve,reject)=>{const child=spawn(py,[path.join(ROOT,'scripts','zip_reference.py'),directory,archive],{windowsHide:true});let error='';child.stderr.on('data',x=>error=(error+x).slice(-700));child.on('error',reject);child.on('close',code=>code===0?resolve():reject(fail('图文参考包压缩失败：'+error,500)));});
           res.writeHead(200,{'Content-Type':'application/zip','Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(nb.title+'-Agent图文包.zip').replace(/'/g,'%27')});
           return fs.createReadStream(archive).pipe(res);
         }
-        const {images,...portable}=result;
+        const {images,...portable}=renderAgentMarkdown(artifact,options);
         return json(res,{...portable,pipelineId:artifact.pipeline_id,filename:nb.title.replace(/[<>:"/\\|?*]/g,'_')+'-Agent参考.md'});
       }
       if(req.method==='GET' && p==='/api/note-frame'){
@@ -814,14 +818,14 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
             reused=true;
           }else{
             const gen=await generateSkillForNotebook(nb.id,kind,force?priorSkill?.name:null,x.auditedOnly===true);
-            skill={name:gen.name,title:gen.title,description:gen.description||'',kind:gen.kind||kind,steps:gen.steps,path:gen.path,packagePath:gen.packagePath};
+            skill={name:gen.name,title:gen.title,description:gen.description||'',kind:gen.kind||kind,steps:gen.steps,path:gen.path,packagePath:gen.packagePath,...(gen.reviewStatus?{reviewStatus:gen.reviewStatus}:{})};
           }
           const gaps=extractGaps(fs.readFileSync(skill.path,'utf8'));
           base.status='done';
           const kindLabel=kind==='knowledge'?'知识总结':'实验操作';
           base.result={
             experiment:skill.title,
-            skill:{name:skill.name,title:skill.title,description:skill.description,kind:skill.kind,steps:skill.steps||0,path:skill.path,packagePath:skill.packagePath||null,portable:true,format:'Agent Skills (SKILL.md)'},
+            skill:{name:skill.name,title:skill.title,description:skill.description,kind:skill.kind,steps:skill.steps||0,path:skill.path,packagePath:skill.packagePath||null,...(skill.reviewStatus?{reviewStatus:skill.reviewStatus}:{}),portable:true,format:'Agent Skills (SKILL.md)'},
             reused,
             gaps,
             gapCount:gaps.length,
@@ -1038,7 +1042,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), modelFetch = fetc
           const report=await body(req);
           const run=db.agentRuns.find(r=>r.id===pm[1]&&['pipeline','tools','visual'].includes(r.kind));
           if(!run)throw fail('找不到该 pipeline/tools run',404);
-          run.status=report.status==='done'?'done':'failed';
+          run.status=['done','needs_review'].includes(report.status)?report.status:'failed';
           run.result=report;
           if(report.notebook){run.notebookId=report.notebook.id;run.notebookTitle=report.notebook.title;}
           if(report.error)run.error=report.error;
